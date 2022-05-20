@@ -1,0 +1,42 @@
+{
+  "name": "tinybuild",
+  "version": "0.3.59",
+  "description": "Versatile esbuild + node + python quart wrapper for a lightweight and frustration-free development experience.",
+  "main": "tinybuild.js",
+  "type": "module",
+  "bin": {
+    "tinybuild": "tinybuild/bin/global.js"
+  },
+  "preferGlobal": true,
+  "scripts": {
+    "start": "node tinybuild.js",
+    "build": "cd example && node tinybuild.js",
+    "init": "node tinybuild/init.js",
+    "concurrent": "concurrently \"npm run python\" \"npm run startdev\"",
+    "dev": "npm run pip && npm i --save-dev concurrently && npm i --save-dev nodemon && npm run concurrent",
+    "startdev": "nodemon --exec \"cd example && node tinybuild.js\" -e ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv",
+    "python": "python tinybuild/python/server.py",
+    "pip": "pip install quart && pip install websockets"
+  },
+  "keywords": [
+    "esbuild"
+  ],
+  "author": "Joshua Brewster",
+  "license": "AGPL-3.0-or-later",
+  "devDependencies": {
+    "chokidar": "~3.5.3",
+    "esbuild": "^0.14.38",
+    "esbuild-plugin-d.ts": "^1.1.0",
+    "ws": "^8.5.0"
+  },
+  "nodemonConfig": {
+    "env": {
+      "NODEMON": true,
+      "HOTRELOAD": true
+    },
+    "ignore": [
+      "dist/",
+      ".temp/"
+    ]
+  }
+}
