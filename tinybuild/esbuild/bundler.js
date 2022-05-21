@@ -6,6 +6,7 @@
 import esbuild from 'esbuild'
 import {dtsPlugin} from 'esbuild-plugin-d.ts'
 import {streamingImportsPlugin} from './streamingImportsPlugin.js'
+import {workerPlugin} from './workerPlugin.js'
 
 import fs from 'fs'
 
@@ -45,16 +46,21 @@ export const defaultBundler = {
   outputs:{ //overwrites main config settings for specific use cases
     node:{ 
       external:[] //externals for node environment builds
+    },
+    //commonjs:{}
+    browser:{
+      plugins:[
+        streamingImportsPlugin,
+        workerPlugin //worker plugin works on esm imported 'worker.js' ending files, or requires in node
+      ] 
     }
     //esm:{}
-    //commonjs:{}
-    //browser:{}
     //iife:{}
   },
   defaultConfig: true //indicates this object is the default config
-  //globalThis:null //'mymodule'
-  //globals:{'index.js':['Graph']}
-  //init:{'index.js':function(bundle) { console.log('prepackaged bundle script!', bundle); }}    
+  //globalThis:null //'brainsatplay'
+  //globals:{[this.entryPoints[0]]:['Graph']}
+  //init:{[this.entryPoints[0]:function(bundle) { console.log('prepackaged bundle script!', bundle); }]}
 }
 
 

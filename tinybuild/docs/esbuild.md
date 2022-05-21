@@ -124,6 +124,10 @@ If your script entry point is to your app, then this can automatically be served
 
 You may also use it if you want to write quick library or frontend tests with init scripts and test serving scripts to execute in-browser. Currently this test setting only applies to the browser bundle, which you could override to format for esm via .outputs.browser.format = 'esm' or .outputs.browser.platform = 'node'. 
 
+### Worker bundling
+
+We added a simple plugin for unofficial worker support. Right now it requires you import a worker file that has a 'worker.js' in it somewhere then it will bundle and inject the correct code so your browser or node env can find it when served. I'm not very clever with regex but its a little better than the example I ripped off, and it works yay!
+
 ### External
 
 For modules including node libraries that are meant to interoperate with the browser, make sure you exclude them in via the 'external' setting.
