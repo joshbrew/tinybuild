@@ -52,9 +52,9 @@ export const defaultBundler = {
     //iife:{}
   },
   defaultConfig: true //indicates this object is the default config
-  //globalThis:null //'brainsatplay'
-  //globals:{[this.entryPoints[0]]:['Graph']}
-  //init:{[this.entryPoints[0]:function(bundle) { console.log('prepackaged bundle script!', bundle); }]}
+  //globalThis:null //'mymodule'
+  //globals:{'index.js':['Graph']}
+  //init:{'index.js':function(bundle) { console.log('prepackaged bundle script!', bundle); }}    
 }
 
 

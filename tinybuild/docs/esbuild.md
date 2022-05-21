@@ -102,7 +102,7 @@ ESM bundles are for enabling the `import`/`export` syntax either in es6 or later
 
 ### Types Bundling
 
-As long as your entry point is a typescript file, this esbuild plugin can generate .d.ts type files for all of your local script files imported in your project. 
+As long as your entry point is a typescript file, this esbuild plugin can generate .d.ts type files for all of your local script files imported in your project. You also need a tsconfig in your project root. 
 
 These function sort of like header files in strongly-typed C, which show you all of the functions/classes/variables/etc. and their expected input/output formats (including detailed formatting for objects or array types) in each respective script file. Nice for reference, VSCode otherwise does this on-the-fly even in .js files when working.
 
