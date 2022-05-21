@@ -39,10 +39,10 @@ const config = {
         bundleHTML: false, //wrap the first entry point file as a plain js script in a boilerplate html file, frontend scripts can be run standalone like a .exe! Server serves this as start page if set to true.
         minify: true,
         sourcemap: false
-        //globalThis:null //'brainsatplay'
-        //globals:{[this.entryPoints[0]]:['Graph']}
-        //init:{[this.entryPoints[0]:function(bundle) { console.log('prepackaged bundle script!', bundle); }]}      
-    },
+        //globalThis:null //'mymodule'
+        //globals:{'index.js':['Graph']}
+        //init:{'index.js':function(bundle) { console.log('prepackaged bundle script!', bundle); }}      
+     },
     server: {  //node server settings, set false to skip server step or add serve:true to config object to only serve (alt methods)
         debug: false,
         protocol: "http",  //'http' or 'https'. HTTPS required for Nodejs <---> Python sockets. If using http, set production to False in python/server.py as well
