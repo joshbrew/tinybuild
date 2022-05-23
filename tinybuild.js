@@ -91,6 +91,8 @@ export async function runTinybuild(args) {
     if(!tinybuildCfg.path && tinybuildCfg.GLOBAL) tinybuildCfg.path = path.join(tinybuildCfg.GLOBAL,'global_packager.js');
     if(!tinybuildCfg.path) tinybuildCfg.path = 'tinybuild.js';
 
+    console.log(tinybuildCfg.path);
+
     //scenarios:
     /*     
         "start": "npm run startdev",
@@ -181,11 +183,10 @@ export async function runTinybuild(args) {
 
             if(!fs.existsSync(path.join(process.cwd(),'package.json')) || (!fs.existsSync(path.join(process.cwd(),'tinybuild.config.js')) && !fs.existsSync(path.join(process.cwd(),'tinybuild.js'))))
                 await checkBoilerPlate(); //install boilerplate if repo lacks package.json
-            
-            if(tinybuildCfg.server && !tinybuildCfg.bundle && !cmdargs.includes('bundle')) 
+                //console.log('spawning!!', tinybuildCfg)
+            if((tinybuildCfg.server && !tinybuildCfg.bundle && !cmdargs.includes('bundle')) || tinybuildCfg.path.includes('tinybuild.js')) { 
                 SERVER_PROCESS = runAndWatch(tinybuildCfg.path, [`config=${(JSON.stringify(tinybuildCfg))}`,...cmdargs]);
-            else if(tinybuildCfg.path.includes('tinybuild.js')) 
-                SERVER_PROCESS = spawn('node',[tinybuildCfg.path,`config=${(JSON.stringify(tinybuildCfg))}`,...cmdargs]);
+            }
             else packager(tinybuildCfg); //else just run the bundler and quit
 
         }
