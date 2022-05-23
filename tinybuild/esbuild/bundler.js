@@ -4,7 +4,8 @@
 
 //const cwd = process.cwd()
 import esbuild from 'esbuild'
-import {dtsPlugin} from 'esbuild-plugin-d.ts'
+import pkg from 'esbuild-plugin-d.ts';
+const {dtsPlugin} = pkg;
 import {streamingImportsPlugin} from './streamingImportsPlugin.js'
 import {workerPlugin} from './workerPlugin.js'
 
@@ -285,7 +286,7 @@ export async function bundleBrowser(config) {
     }
     
     //clean temp files we wrote extra code to
-    fs.rm(tempDir,{ recursive: true }, () => {})
+    fs.rm(tempDir,{ recursive: true })
 
   }).catch((er)=>{console.error('Exited with error:',er); process.exit();});
 }
