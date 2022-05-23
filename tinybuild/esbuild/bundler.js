@@ -32,6 +32,7 @@ export const defaultBundler = {
   allowOverwrite:true, 
   loader: {
     '.html': 'text', //not always necessary but it doesn't hurt
+    '.xml' : 'file',
     '.png' : 'file',
     '.jpg' : 'file',
     '.gif' : 'file',
