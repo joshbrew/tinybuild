@@ -68,7 +68,7 @@ export function runOnChange(
     if(args.length > 0) {
         args.forEach((a)=>{
        
-            if(a.includes('watch')) { //watch='../../otherlibraryfolder'
+            if(a.slice(0,5) === 'watch') { //watch='../../otherlibraryfolder'
                 watchPaths = a.split('=')[1];
                 if(watchPaths.includes('[')) watchPaths = JSON.parse(watchPaths).push(process.cwd());
                 else {
@@ -77,7 +77,7 @@ export function runOnChange(
                 }
             }
 
-            if(a.includes('extensions')) { //watchext='../../otherlibraryfolder'
+            if(a.slice(0,10) === 'extensions') { //watchext='../../otherlibraryfolder'
                 let extPaths = a.split('=')[1];
                 if(extPaths.includes('[')) extensions = JSON.parse(extPaths).push(...extensions);
                 else {
@@ -86,7 +86,7 @@ export function runOnChange(
                 }
             }
             
-            if(a.includes('ignore')) { //watch='../../otherlibraryfolder'
+            if(a.slice(0,6) === 'ignore') { //watch='../../otherlibraryfolder'
                 let ignorePaths = a.split('=')[1];
                 if(ignorePaths.includes('[')) ignore = JSON.parse(ignorePaths).push(...ignore);
                 else {
@@ -182,7 +182,7 @@ export function runAndWatch(
     if(args.length > 0) {
         args.forEach((a)=>{
        
-            if(a.includes('watch')) { //watch='../../otherlibraryfolder'
+            if(a.slice(0,5) === 'watch') { //watch='../../otherlibraryfolder'
                 watchPaths = a.split('=')[1];
                 if(watchPaths.includes('[')) watchPaths = JSON.parse(watchPaths).push(process.cwd());
                 else {
@@ -191,7 +191,7 @@ export function runAndWatch(
                 }
             }
 
-            if(a.includes('extensions')) { //watchext='../../otherlibraryfolder'
+            if(a.slice(0,10) === 'extensions') { //watchext='../../otherlibraryfolder'
                 let extPaths = a.split('=')[1];
                 if(extPaths.includes('[')) extensions = JSON.parse(extPaths).push(...extensions);
                 else {
@@ -200,7 +200,7 @@ export function runAndWatch(
                 }
             }
             
-            if(a.includes('ignore')) { //watch='../../otherlibraryfolder'
+            if(a.slice(0,6) === 'ignore') { //watch='../../otherlibraryfolder'
                 let ignorePaths = a.split('=')[1];
                 if(ignorePaths.includes('[')) ignore = JSON.parse(ignorePaths).push(...ignore);
                 else {
@@ -417,6 +417,77 @@ packager(config); // bundle and serve
     return false;
 }
 
+export async function checkTSConfig() {
+    if(!fs.existsSync(path.join(process.cwd(),'tsconfig.json'))) {
+        fs.writeFileSync(path.join(process.cwd(),'tsconfig.json'),
+        `{
+            "include": ["index.js"],
+            "compilerOptions": {
+              /* Visit https://aka.ms/tsconfig.json to read more about this file */
+              /* Basic Options */
+              // "incremental": true,                   /* Enable incremental compilation */
+              "target": "es2020" /* Specify ECMAScript target version: 'ES3' (default), 'ES5', 'ES2015', 'ES2016', 'ES2017', 'ES2018', 'ES2019', 'ES2020', or 'ESNEXT'. */,
+              "module": "es2020" /* Specify module code generation: 'none', 'commonjs', 'amd', 'system', 'umd', 'es2015', 'es2020', or 'ESNext'. */,
+              "declaration": true,                      /* Generates corresponding '.d.ts' file. */
+              "allowJs": true,                       /* Allow javascript files to be compiled. */
+              "skipLibCheck": true /* Skip type checking of declaration files. */,
+              "forceConsistentCasingInFileNames": true /* Disallow inconsistently-cased references to the same file. */,
+              "outDir": "./dist" /* Redirect output structure to the directory. */,
+              "strict": true /* Enable all strict type-checking options. */,
+              "esModuleInterop": true /* Enables emit interoperability between CommonJS and ES Modules via creation of namespace objects for all imports. Implies 'allowSyntheticDefaultImports'. */,
+              // "checkJs": true,                       /* Report errors in .js files. */
+              // "jsx": "preserve",                     /* Specify JSX code generation: 'preserve', 'react-native', or 'react'. */
+              // "lib": [],                             /* Specify library files to be included in the compilation. */  
+              // "declarationMap": true,                /* Generates a sourcemap for each corresponding '.d.ts' file. */
+              // "sourceMap": true,                     /* Generates corresponding '.map' file. */
+              // "outFile": "./",                       /* Concatenate and emit output to single file. */
+              // "rootDir": "./",                       /* Specify the root directory of input files. Use to control the output directory structure with --outDir. */
+              // "composite": true,                     /* Enable project compilation */
+              // "tsBuildInfoFile": "./",               /* Specify file to store incremental compilation information */
+              // "removeComments": true,                /* Do not emit comments to output. */
+              // "noEmit": true,                        /* Do not emit outputs. */
+              // "importHelpers": true,                 /* Import emit helpers from 'tslib'. */
+              // "downlevelIteration": true,            /* Provide full support for iterables in 'for-of', spread, and destructuring when targeting 'ES5' or 'ES3'. */
+              // "isolatedModules": true,               /* Transpile each file as a separate module (similar to 'ts.transpileModule'). */
+              /* Strict Type-Checking Options */
+              // "noImplicitAny": true,                 /* Raise error on expressions and declarations with an implied 'any' type. */
+              // "strictNullChecks": true,              /* Enable strict null checks. */
+              // "strictFunctionTypes": true,           /* Enable strict checking of function types. */
+              // "strictBindCallApply": true,           /* Enable strict 'bind', 'call', and 'apply' methods on functions. */
+              // "strictPropertyInitialization": true,  /* Enable strict checking of property initialization in classes. */
+              // "noImplicitThis": true,                /* Raise error on 'this' expressions with an implied 'any' type. */
+              // "alwaysStrict": true,                  /* Parse in strict mode and emit "use strict" for each source file. */
+              /* Additional Checks */
+              // "noUnusedLocals": true,                /* Report errors on unused locals. */
+              // "noUnusedParameters": true,            /* Report errors on unused parameters. */
+              // "noImplicitReturns": true,             /* Report error when not all code paths in function return a value. */
+              // "noFallthroughCasesInSwitch": true,    /* Report errors for fallthrough cases in switch statement. */
+              /* Module Resolution Options */
+              // "moduleResolution": "node",            /* Specify module resolution strategy: 'node' (Node.js) or 'classic' (TypeScript pre-1.6). */
+              // "baseUrl": "./",                       /* Base directory to resolve non-absolute module names. */
+              // "paths": {},                           /* A series of entries which re-map imports to lookup locations relative to the 'baseUrl'. */
+              // "rootDirs": [],                        /* List of root folders whose combined content represents the structure of the project at runtime. */
+              // "typeRoots": [],                       /* List of folders to include type definitions from. */
+              // "types": [],                           /* Type declaration files to be included in compilation. */
+              // "allowSyntheticDefaultImports": true,  /* Allow default imports from modules with no default export. This does not affect code emit, just typechecking. */
+              // "preserveSymlinks": true,              /* Do not resolve the real path of symlinks. */
+              // "allowUmdGlobalAccess": true,          /* Allow accessing UMD globals from modules. */
+              /* Source Map Options */
+              // "sourceRoot": "",                      /* Specify the location where debugger should locate TypeScript files instead of source locations. */
+              // "mapRoot": "",                         /* Specify the location where debugger should locate map files instead of generated locations. */
+              // "inlineSourceMap": true,               /* Emit a single file with source maps instead of having a separate file. */
+              // "inlineSources": true,                 /* Emit the source alongside the sourcemaps within a single file; requires '--inlineSourceMap' or '--sourceMap' to be set. */
+              /* Experimental Options */
+              // "experimentalDecorators": true,        /* Enables experimental support for ES7 decorators. */
+              // "emitDecoratorMetadata": true,         /* Enables experimental support for emitting type metadata for decorators. */
+              /* Advanced Options */
+              //"resolveJsonModule": true
+            }
+          }
+        `)
+    }
+}
+
 
 // NOTE: At a minimum, boilerplate includes a (1) a script / config , (1) a package.json and (3) an index.html file.
 // If these files exist, none of the others are created.
@@ -461,7 +532,7 @@ export async function checkBoilerPlate(tinybuildCfg=defaultConfig,onlyConfig=tru
         console.log('Creating package.json')
         fs.writeFileSync(packagePath,
 `{
-    "name": "tinybuildapp",
+    "name": "tinybuildapp${Math.floor(Math.random()*10000)}",
     "version": "0.0.0",
     "description": "Barebones esbuild and test node server implementation. For building",
     "main": "index.js",
@@ -534,6 +605,13 @@ export async function checkBoilerPlate(tinybuildCfg=defaultConfig,onlyConfig=tru
         if (needEntry) fs.writeFileSync(entryFilePath,
             'console.log("Hello World!"); if(typeof window !== "undefined") document.body.innerHTML = "Hello World!";')
     }
+
+    if(tinybuildCfg.bundleTypes) {
+        checkTSConfig(); //create boilerplate tsconfig if it doesn't exist when bundling types :D
+    }
+
+
+
 }
 
 
@@ -603,7 +681,7 @@ packager(config);
         //package.json, used to run npm install then npm start
         fs.writeFileSync(dirName+'/package.json',`
 {
-    "name": "tinybuild",
+    "name": "tinybuild${Math.floor(Math.random()*10000)}",
     "version": "0.0.0",
     "description": "Barebones esbuild and test node server implementation. For building",
     "main": "index.js",
@@ -679,7 +757,7 @@ packager(config);
         //package.json, used to run npm install then npm start
         fs.writeFileSync(path.join(dirName,'package.json'),`
 {
-    "name": "tinybuild",
+    "name": "tinybuild${Math.floor(Math.random()*10000)}",
     "version": "0.0.0",
     "description": "Barebones esbuild and test node server implementation. For building",
     "main": "index.js",
@@ -743,7 +821,7 @@ dist
 
 
 export function parseArgs(args=process.argv) {
-    let tinybuildCfg = {
+    let tcfg = {
         server:{},
         bundler:{}
     }
@@ -778,7 +856,7 @@ export function parseArgs(args=process.argv) {
     
             if(argIdx){ //after 5 args we probably aren't on these args anymore
                 if(command.includes('help')) {
-                    tinybuildCfg.mode = 'help';
+                    tcfg.mode = 'help';
                     console.log(
 `
 tinybuild commands:
@@ -834,120 +912,120 @@ Server arguments:
                     process.exit();
                 }
                 if(command.includes('mode=')) {
-                    tinybuildCfg.mode = command.split('=').pop(); //extra modes are 'python' and 'dev'. 
+                    tcfg.mode = command.split('=').pop(); //extra modes are 'python' and 'dev'. 
                 }
                 if(command.includes('GLOBAL')) { //path to global bin file inserted when running the 'tinybuild' script, which will run tinybuild and the restarting server as a child process
-                    tinybuildCfg.GLOBAL = command.split('=').pop()
+                    tcfg.GLOBAL = command.split('=').pop()
                 }
                 if(command.includes('start')) {
-                    tinybuildCfg.start = true; //starts the entryPoints with 'node tinybuild.js' (or specified path), does not use nodemon (e.g. for production), just run tinybuild without 'start' to use the dev server config by default
+                    tcfg.start = true; //starts the entryPoints with 'node tinybuild.js' (or specified path), does not use nodemon (e.g. for production), just run tinybuild without 'start' to use the dev server config by default
                 }
                 if(command.includes('bundle') && !command.includes('bundler')) {
-                    tinybuildCfg.bundle = true; //bundle the local app?
+                    tcfg.bundle = true; //bundle the local app?
                 }
                 if(command.includes('serve') && !command.includes('server')) {
-                    tinybuildCfg.serve = true; //serve the local (assumed built) dist?
+                    tcfg.serve = true; //serve the local (assumed built) dist?
                 }
                 if(command.includes('path')) { //path to the tinybuild script where the packager or plain bundler etc. are being run. defaults to look for 'tinybuild.js'
-                    tinybuildCfg.path = command.split('=').pop()
+                    tcfg.path = command.split('=').pop()
                 }
                 if(command.includes('init')) {
-                    tinybuildCfg.init = true; //initialize a repo with the below settings?
+                    tcfg.init = true; //initialize a repo with the below settings?
                 }
                 if(command.includes('debug')) {
-                    tinybuildCfg.server.debug = JSON.parse(command.split('=').pop()) //debug?
+                    tcfg.server.debug = JSON.parse(command.split('=').pop()) //debug?
                 }
                 if(command.includes('socket_protocol')) {
-                    tinybuildCfg.server.socket_protocol = command.split('=').pop() //node server socket protocol (wss for hosted, or ws for localhost, depends)
+                    tcfg.server.socket_protocol = command.split('=').pop() //node server socket protocol (wss for hosted, or ws for localhost, depends)
                 }
                 if(command.includes('pwa')) {
-                    tinybuildCfg.server.pwa = command.split('=').pop() //pwa service worker relative path
+                    tcfg.server.pwa = command.split('=').pop() //pwa service worker relative path
                 }
                 if(command.includes('hotreload')) {
-                    tinybuildCfg.server.hotreload = command.split('=').pop() //pwa service worker relative path
+                    tcfg.server.hotreload = command.split('=').pop() //pwa service worker relative path
                 }
                 if(command.includes('keypath')) {
-                    tinybuildCfg.server.keypath = command.split('=').pop() //https key path
+                    tcfg.server.keypath = command.split('=').pop() //https key path
                 }
                 if(command.includes('certpath')) {
-                    tinybuildCfg.server.certpath = command.split('=').pop() //https cert path 
+                    tcfg.server.certpath = command.split('=').pop() //https cert path 
                 }
                 if(command.includes('watch')) {
-                    tinybuildCfg.server.watch = command.split('=').pop() //pwa service worker relative path
+                    tcfg.server.watch = command.split('=').pop() //pwa service worker relative path
                 }
                 if(command.includes('ignore')) {
-                    tinybuildCfg.server.ignore = command.split('=').pop() //pwa service worker relative path
+                    tcfg.server.ignore = command.split('=').pop() //pwa service worker relative path
                 }
                 if(command.includes('extensions')) {
-                    tinybuildCfg.server.ignore = command.split('=').pop() //pwa service worker relative path
+                    tcfg.server.ignore = command.split('=').pop() //pwa service worker relative path
                 }
                 if(command.includes('python')) {
-                    tinybuildCfg.server.python = command.split('=').pop() //python port
+                    tcfg.server.python = command.split('=').pop() //python port
                 }
                 if(command.includes('host')) {
-                    tinybuildCfg.server.host = command.split('=').pop() //node host
+                    tcfg.server.host = command.split('=').pop() //node host
                 }
                 if(command.includes('port')) {
-                    tinybuildCfg.server.port = command.split('=').pop() //node port
+                    tcfg.server.port = command.split('=').pop() //node port
                 }
                 if(command.includes('protocol')) {
-                    tinybuildCfg.server.protocol = command.split('=').pop() //node http or https protocols
+                    tcfg.server.protocol = command.split('=').pop() //node http or https protocols
                 }
                 if(command.includes('startpage')) {
-                    tinybuildCfg.server.startpage = command.split('=').pop() //node http or https protocols
+                    tcfg.server.startpage = command.split('=').pop() //node http or https protocols
                 }
                 if(command.includes('core')) {
-                    tinybuildCfg.includeCore = command.split('=').pop() //use tinybuild's source instead of the npm packages?
+                    tcfg.includeCore = command.split('=').pop() //use tinybuild's source instead of the npm packages?
                 }
                 if(command.includes('bundleBrowser')) {
-                    tinybuildCfg.bundler.bundleBrowser = JSON.parse(command.split('=').pop())
+                    tcfg.bundler.bundleBrowser = JSON.parse(command.split('=').pop())
                 }
                 if(command.includes('bundleESM')) {
-                    tinybuildCfg.bundler.bundleESM = JSON.parse(command.split('=').pop())
+                    tcfg.bundler.bundleESM = JSON.parse(command.split('=').pop())
                 }
                 if(command.includes('bundleTypes')) {
-                    tinybuildCfg.bundler.bundleTypes = JSON.parse(command.split('=').pop())
+                    tcfg.bundler.bundleTypes = JSON.parse(command.split('=').pop())
                 }
                 if(command.includes('bundleNode')) {
-                    tinybuildCfg.bundler.bundleNode = JSON.parse(command.split('=').pop())
+                    tcfg.bundler.bundleNode = JSON.parse(command.split('=').pop())
                 }
                 if(command.includes('bundleHTML')) {
-                    tinybuildCfg.bundler.bundleHTML = JSON.parse(command.split('=').pop())
+                    tcfg.bundler.bundleHTML = JSON.parse(command.split('=').pop())
                 }
                 if(command.includes('entryPoints')) {
-                    tinybuildCfg.bundler.entryPoints = [command.split('=').pop()]; //entry point script name to be created
-                    if(tinybuildCfg.bundler.entryPoints.includes('[')) tinybuildCfg.bundler.entryPoints = JSON.parse(tinybuildCfg.bundler.entryPoints);
+                    tcfg.bundler.entryPoints = [command.split('=').pop()]; //entry point script name to be created
+                    if(tcfg.bundler.entryPoints.includes('[')) tcfg.bundler.entryPoints = JSON.parse(tcfg.bundler.entryPoints);
                 }
                 if(command.includes('outfile')) {
-                    tinybuildCfg.bundler.outfile = JSON.parse(command.split('=').pop())
+                    tcfg.bundler.outfile = JSON.parse(command.split('=').pop())
                 }
                 if(command.includes('outdir')) {
-                    tinybuildCfg.bundler.outdir = JSON.parse(command.split('=').pop())
+                    tcfg.bundler.outdir = JSON.parse(command.split('=').pop())
                 }
                 if(command.includes('platform')) {
-                    tinybuildCfg.bundler.platform = JSON.parse(command.split('=').pop())
+                    tcfg.bundler.platform = JSON.parse(command.split('=').pop())
                 }
                 if(command.includes('external')) {
-                    tinybuildCfg.bundler.external = JSON.parse(command.split('=').pop())
+                    tcfg.bundler.external = JSON.parse(command.split('=').pop())
                 }
                 if(command.includes('globalThis')) {
-                    tinybuildCfg.bundler.globalThis = JSON.parse(command.split('=').pop())
+                    tcfg.bundler.globalThis = JSON.parse(command.split('=').pop())
                 }
                 if(command.includes('globals')) {
-                    tinybuildCfg.bundler.globals = JSON.parse(decodeURIComponent(command.split('=').pop()))
+                    tcfg.bundler.globals = JSON.parse(decodeURIComponent(command.split('=').pop()))
                 }
                 if(command.includes('minify')) {
-                    tinybuildCfg.bundler.minify = JSON.parse(command.split('=').pop())
+                    tcfg.bundler.minify = JSON.parse(command.split('=').pop())
                 }
                 if(command.includes('script')) {
                     let parsed = decodeURIComponent(command.slice(command.indexOf('=')+1));
                     //console.log('script parsed: ', parsed);
-                    tinybuildCfg.initScript = parsed; //encoded URI string of a javascript file
+                    tcfg.initScript = parsed; //encoded URI string of a javascript file
                 }
                 if(command.includes('config')) {
                     let parsed = JSON.parse(command.split('=').pop());
                     //console.log('config parsed: ', parsed);
-                    Object.assign(tinybuildCfg, parsed); //encoded URI string of a packager config.
+                    Object.assign(tcfg, parsed); //encoded URI string of a packager config.
                 }
                 tick++;
             }
@@ -955,8 +1033,8 @@ Server arguments:
     
     })
 
-    if(Object.keys(tinybuildCfg.server).length === 0) delete tinybuildCfg.server;
-    if(Object.keys(tinybuildCfg.bundler).length === 0) delete tinybuildCfg.bundler; 
+    if(tcfg.server) if(Object.keys(tcfg.server).length === 0) delete tcfg.server;
+    if(tcfg.bundler) if(Object.keys(tcfg.bundler).length === 0) delete tcfg.bundler; 
 
-    return tinybuildCfg;
+    return tcfg;
 }

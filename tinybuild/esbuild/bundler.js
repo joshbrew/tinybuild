@@ -4,8 +4,7 @@
 
 //const cwd = process.cwd()
 import esbuild from 'esbuild'
-import pkg from 'esbuild-plugin-d.ts';
-const {dtsPlugin} = pkg;
+import {dtsPlugin} from 'tinybuild/tinybuild/esbuild/.d.ts_plugin/index.cjs';
 import {streamingImportsPlugin} from './streamingImportsPlugin.js'
 import {workerPlugin} from './workerPlugin.js'
 import { installerPlugin } from './installerPlugin.js';
@@ -14,7 +13,7 @@ import fs from 'fs'
 import path from 'path'
 
 export const defaultBundler = {
-  bundleBrowser:true, //create plain js build? Can include globals and init scripts
+  bundleBrowser:false, //create plain js build? Can include globals and init scripts
   bundleESM:false,     //create esm module js files
   bundleTypes:false,   //create .d.ts files, the entry point must be a typescript file! (ts, tsx, etc)
   bundleNode:false,   //create node platform plain js build, specify platform:'node' to do the rest of the files 
@@ -30,7 +29,7 @@ export const defaultBundler = {
   sourcemap: false,
   plugins:[streamingImportsPlugin,workerPlugin({blobWorkers:true}),installerPlugin], //{importmap:{imports:{[key:string]: string}}, directory: string}
   //plugins:[cache(defaultBundler.cachePluginSettings), dtsPlugin()],
-  external: ['node-fetch'], // [];
+  external: ['node-fetch'], //node-fetch here by default excludes a lot of default libraries if we want to compile the same code for browser and node envs (e.g. checking if process exists)
   allowOverwrite:true, 
   loader: { //just a bunch of path import resolvers, will supply urls if marked 'file', text if marked 'text', and dataurls (blobs) if marked 'dataurl'
     '.html': 'text', //not always necessary but it doesn't hurt
@@ -63,7 +62,9 @@ export const defaultBundler = {
     //commonjs:{}
     //browser:{}
     //esm:{}
-    //iife:{}
+    iife:{
+      external:[] //we only use the iife for types so it doesn't really matter if it bundles node, just note otherwise if you need iife for some obscure reason
+    }
   },
   defaultConfig: true //indicates this object is the default config
   //globalThis:null //'brainsatplay'
@@ -84,12 +85,9 @@ export async function bundle(configs) {
   await Promise.all(configs.map(async (config, i) => {
 
     config = Object.assign(defaultBundler, config);
-    // ------------------ START PROVISIONAL CODE ------------------
-    // NOTE: This object works for all Brains@Play bundles. 
-    // To save time, I've just conformed some early syntax to this model.
-    // TODO: In the future, we should use this format (similar to Rollup) for the bundle() function
-
-    // ------------------ END PROVISIONAL CODE ------------------
+    if(!config.bundleBrowser && !config.bundleNode && !config.bundleCommonJS && !config.bundleESM && !config.bundleCommonJS && !config.bundleIIFE) 
+      config.bundleBrowser = true; //need one thing true
+      
     if(config.entryPoints && !Array.isArray(config.entryPoints)) config.entryPoints = [config.entryPoints]; 
     if(config.input)
       config.entryPoints = Array.isArray(config.index) ? config.input : [config.input]
