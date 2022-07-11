@@ -22,7 +22,11 @@ export const workerPlugin = (config={blobWorkers:true}) => {
                     // bundle worker entry in a sub-process
                     //console.time('👷 Bundled worker!')
                     //console.log('onLoad',args,builder);
-                    if(!path.extname(outfile)) outfile += '.js';
+                    let splitpath = outfile.split('.');
+                    if(splitpath[splitpath.length-1] === 'ts') splitpath[splitpath.length-1] = 'js';
+                    else if (splitpath[splitpath.length-1] !== 'js') splitpath.push('js');
+                    outfile = splitpath.join('.');
+
                     await build({
                         entryPoints: [args.path],//[path.join(process.cwd(),'.temp','workerwrapper.js')],
                         outfile,
