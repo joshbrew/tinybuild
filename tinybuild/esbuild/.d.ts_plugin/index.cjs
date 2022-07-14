@@ -84,8 +84,7 @@ function humanFileSize(size) {
 
 // src/plugin.ts
 var import_path = __toModule(require("path"));
-var import_tmp = __toModule(require("tmp"));
-var import_jju = __toModule(require("jju"));
+//var import_tmp = __toModule(require("tmp"));
 var dtsPlugin = (opts = {}) => ({
   name: "dts-plugin",
   async setup(build) {
@@ -95,7 +94,7 @@ var dtsPlugin = (opts = {}) => ({
     const finalconf = conf.conf;
     if (Object.prototype.hasOwnProperty.call(conf.conf, "extends")) {
       const extendedfile = (0, import_fs2.readFileSync)((0, import_path.resolve)((0, import_path.dirname)(conf.loc), conf.conf.extends), "utf-8");
-      const extended = (0, import_jju.parse)(extendedfile);
+      const extended = (0, JSON.parse)(extendedfile);
       if (Object.prototype.hasOwnProperty.call(extended, "compilerOptions") && Object.prototype.hasOwnProperty.call(finalconf, "compilerOptions")) {
         finalconf.compilerOptions = __spreadValues(__spreadValues({}, extended.compilerOptions), finalconf.compilerOptions);
       }
@@ -106,10 +105,10 @@ var dtsPlugin = (opts = {}) => ({
     copts.incremental = true;
     if (!copts.declarationDir)
       copts.declarationDir = (_b = (_a = opts.outDir) != null ? _a : build.initialOptions.outdir) != null ? _b : copts.outDir;
-    const pjloc = (0, import_path.resolve)(conf.loc, "../", "package.json");
-    if ((0, import_fs2.existsSync)(pjloc)) {
-      copts.tsBuildInfoFile = (0, import_path.resolve)(import_tmp.tmpdir, (_c = require(pjloc).name) != null ? _c : "unnamed", ".esbuild", ".tsbuildinfo");
-    }
+    //const pjloc = (0, import_path.resolve)(conf.loc, "../", "package.json");
+    // if ((0, import_fs2.existsSync)(pjloc)) { //?
+    //   copts.tsBuildInfoFile = (0, import_path.resolve)(import_tmp.tmpdir, (_c = require(pjloc).name) != null ? _c : "unnamed", ".esbuild", ".tsbuildinfo");
+    // }
     copts.listEmittedFiles = true;
     const host = import_typescript2.default.createIncrementalCompilerHost(copts);
     const files = [];
