@@ -1,6 +1,5 @@
 # examples
 backend_server
-src
 **/dist/**
 **/node_modules/**
 **/*.pem

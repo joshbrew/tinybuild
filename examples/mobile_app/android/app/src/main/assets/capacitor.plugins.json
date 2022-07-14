@@ -1,0 +1,6 @@
+[
+	{
+		"pkg": "@capacitor-community/bluetooth-le",
+		"classpath": "com.capacitorjs.community.plugins.bluetoothle.BluetoothLe"
+	}
+]
