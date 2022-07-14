@@ -2,9 +2,10 @@ import fs from 'fs';
 import path from 'path';
 import chokidar from 'chokidar';
 import {execSync, spawn} from 'child_process';
-import { defaultServer } from './node_server/server.js';
+// import { defaultServer } from './node_server/server.js';
 import { defaultConfig } from './packager.js';
-
+import * as commandUtil from './command.js';
+import * as commands from './commands/index.js';
 
 //https://stackoverflow.com/questions/13786160/copy-folder-recursively-in-node-js
 export function copyFolderRecursiveSync( source, target ) {
@@ -818,204 +819,19 @@ dist
 
 }
 
-
-export const getCommands = (args=process.argv) => {
-    const argMap = {}
-    const reversedArgv = args
-    reversedArgv.forEach((v,i) => {
-        if (v.includes('-')) {
-            const key = v.replaceAll('-', '').trim()
-            argMap[key] = reversedArgv[i+1]
-        }
-    })
-
-    return argMap
-}
-
 export function parseArgs(args=process.argv) {
-
-    // Map argv to an object
-    const argMap = getCommands(args)
-
+    
     let tcfg = {
         server:{},
         bundler:{}
     }
 
-                if(argMap.help) {
-                    tcfg.mode = 'help';
-                    console.log(
-`
-tinybuild commands:
-
-global command:
-- 'tinybuild' -- runs the boilerplate tinybuild bundler + server settings in the current working directory. It will create missing index.js, package.json (with auto npm/yarn install), and tinybuild.js, and serve with watched folders in the working directory (minus node_modules because it slows down) for hot reloading.
-
-local command:
-- 'node path/to/tinybuild.js' -- will use the current working directory as reference to run this packager config
-
-tinybuild arguments (applies to packager or tinybuild commands):
-- 'start' -- runs the equivalent of 'node tinybuild.js' in the current working directory.
-- 'bundle' -- runs the esbuild bundler, can specify config with 'config={"bundler":{}}' via a jsonified (and URI-encoded if there are spaces) object
-- 'serve' -- runs the node development server, can specify config with 'config={"server":{}}' via a jsonified object and (URI-encoded if there are spaces) object
-- 'mode=python' -- runs the development server as well as python which also serves the dist from a separate port (7000 by default). 
-- 'mode=dev' for the dev server mode (used by default if you just type 'tinybuild' on boilerplate)
-- 'path=custom.js' -- target a custom equivalent tinybuild.js entry file (to run the packager or bundler/server)st' - host name for the server, localhost by default
-
-esbuild arguments:
-- 'entryPoints=index.js' -- set an entry point for your script, can also be a JSONified array of strings.
-- 'outfile=dist/index' -- set the output directory and file name (minus the extension name)
-- 'outdir=['dist/index']' -- alternatively use outdir when using multiple entry points
-- 'bundleBrowser=true' -- produce a plain .js bundle that is browser-friendly, true by default. 
-- 'bundleESM=false' -- produce an ESM module bundle, false by default, Will be identified by .esm.js
-- 'bundleTypes=false' -- produce .d.ts files, false by default, entry point needs to by a typescript file but it will attempt to generate types for js files in the repo otherwise. The files are organized like your repo in the dist folder used. 
-- 'bundleNode=false' -- create a separate bundle set to include node dependencies. Identified by .node.js
-- 'bundleHTML=true' -- bundle an HTML boilerplate that wraps and executes the browser bundle as a quick test. If true the packager command will set this file as the startpage, otherwise you have an index.html you can customize and use that has the same base boilerplate. Find e.g. index.build.html in dist.
-- 'external=['node-fetch']' -- mark externals in your repo, node-fetch is used in a lot of our work so it's there by default, the node bundle has its own excludes (see our esbuild options in readme)
-- 'platform=browser' -- the non-node bundles use browser by default, set to node to have all bundles target the node platform. Externals must be set appropriately.
-- 'globalThis=myCustomBundle' -- You can set any exports on your entry points on the bundleBrowser setting to be accessible as a global variable. Not set by default.
-- 'globals={['index.js']:['myFunction']}' -- you can specify any additional functions, classes, variables etc. exported from your bundle to be installed as globals on the bundleBrowser setting.
-
-Server arguments:
-- 'host=localhost' -- set the hostname for the server, localhost by default. You can set it to your server url or IP address when serving. Generally use port 80 when serving.
-- 'port=8080' - port for the server, 8080 by default
-- 'protocol=http' - http or https? You need ssl cert and key to run https
-- 'python=7000' - port for python server so the node server can send a kill signal, 7000 by default. Run the python server concurrently or use 'mode=python'
-- 'hotreload=5000' - hotreload port for the node server, 5000 by default
-- 'watch=../../path/to/other/src' OR 'watch=['path/to/src1','src2','.xml']' - watch extra folders and extensions
-- 'extensions=xml,3ds' OR 'extensions=['xml','3ds']' watch specific extensions for changes
-- 'ignore=../../path/to/other/src,path2/src2' OR 'ignore=['path/to/src1','../path2/src2']'- ignore files and folders
-- 'startpage=index.html' - entry html page for the home '/' page, index.html by default
-- 'certpath=tinybuild/node_server/ssl/cert.pem' - cert file for https 
-- 'keypath=tinybuild/node_server/ssl/key.pem' - key file for https
-- 'pwa=tinybuild/pwa/workbox-config.js' - service worker config for pwa using workbox-cli (installed separately via package.json), the server will install a manifest.json in the main folder if not found, https required
-- 'config="{"server":{},"bundler":{}}"' -- pass a jsonified config object for the packager. See the bundler and server settings in the docs.
-- 'init' -- initialize a folder as a new tinybuild repository with the necessary files, you can include the source using the below command
-- 'core=true' -- include the tinybuild source in the new repository with an appropriate package.json
-- 'entry=index.js' --name the entry point file you want to create, defaults to index.js
-- 'script=console.log("Hello%20World!")' -- pass a jsonified and URI-encoded (for spaces etc.) javascript string, defaults to a console.log of Hello World!
-`
-                    )
-                    process.exit();
-                }
-                if(argMap.mode) {
-                    tcfg.mode = argMap.mode; //extra modes are 'python' and 'dev'. 
-                }
-                if(argMap.global) { //path to global bin file inserted when running the 'tinybuild' script, which will run tinybuild and the restarting server as a child process
-                    tcfg.GLOBAL = argMap.global
-                }
-                if(argMap.start) {
-                    tcfg.start = true; //starts the entryPoints with 'node tinybuild.js' (or specified path), does not use nodemon (e.g. for production), just run tinybuild without 'start' to use the dev server config by default
-                }
-                if(argMap.bundle && !argMap.bundler) {
-                    tcfg.bundle = true; //bundle the local app?
-                }
-
-                if(argMap.serve && !argMap.server) {
-                    tcfg.serve = true; //serve the local (assumed built) dist?
-                }
-                if(argMap.path) {
-                    //path to the tinybuild script where the packager or plain bundler etc. are being run. defaults to look for 'tinybuild.js'
-                    tcfg.path = argMap.path
-                }
-                if(argMap.init) {
-                    tcfg.init = true; //initialize a repo with the below settings?
-                }
-                if(argMap.debug) {
-                    tcfg.server.debug = JSON.parse(argMap.debug) //debug?
-                }
-                if(argMap.socket_protocol) {
-                    tcfg.server.socket_protocol = argMap.socket_protocol //node server socket protocol (wss for hosted, or ws for localhost, depends)
-                }
-                if(argMap.pwa) {
-                    tcfg.server.pwa = argMap.pwa //pwa service worker relative path
-                }
-                if(argMap.hotreload) {
-                    tcfg.server.hotreload = argMap.hotreload //pwa service worker relative path
-                }
-                if(argMap.keypath) {
-                    tcfg.server.keypath = argMap.keypath //https key path
-                }
-                if(argMap.certpath) {
-                    tcfg.server.certpath = argMap.certpath//https cert path 
-                }
-                if(argMap.watch) {
-                    tcfg.server.watch = argMap.watch //pwa service worker relative path
-                }
-                if(argMap.ignore) {
-                    tcfg.server.ignore = argMap.ignore //pwa service worker relative path
-                }
-                if(argMap.extensions) {
-                    tcfg.server.extensions = argMap.extensions //pwa service worker relative path
-                }
-                if(argMap.python) {
-                    tcfg.server.python = argMap.python //python port
-                }
-                if(argMap.host) {
-                    tcfg.server.host = argMap.host //node host
-                }
-                if(argMap.port) {
-                    tcfg.server.port = argMap.port //node port
-                }
-                if(argMap.protocol) {
-                    tcfg.server.protocol = argMap.protocol //node http or https protocols
-                }
-                if(argMap.startpage) {
-                    tcfg.server.startpage = cargMap.startpage //node http or https protocols
-                }
-                if(argMap.bundleCore) {
-                    tcfg.includeCore = argMap.bundleCore //use tinybuild's source instead of the npm packages?
-                }
-                if(argMap.bundleBrowser) {
-                    tcfg.bundler.bundleBrowser = JSON.parse(argMap.bundleBrowser)
-                }
-                if(argMap.bundleESM) {
-                    tcfg.bundler.bundleESM = JSON.parse(argMap.bundleESM)
-                }
-                if(argMap.bundleTypes) {
-                    tcfg.bundler.bundleTypes = JSON.parse(argMap.bundleTypes)
-                }
-                if(argMap.bundleNode) {
-                    tcfg.bundler.bundleNode = JSON.parse(argMap.bundleNode)
-                }
-                if(argMap.bundleHTML) {
-                    tcfg.bundler.bundleHTML = JSON.parse(argMap.bundleHTML)
-                }
-                if(argMap.entrypoints) {
-                    tcfg.bundler.entryPoints = [argMap.entryPoints]; //entry point script name to be created
-                    if(tcfg.bundler.entryPoints.includes('[')) tcfg.bundler.entryPoints = JSON.parse(tcfg.bundler.entryPoints);
-                }
-                if(argMap.outfile) {
-                    tcfg.bundler.outfile = JSON.parse(argMap.outfile)
-                }
-                if(argMap.outdir) {
-                    tcfg.bundler.outdir = JSON.parse(argMap.outdir)
-                }
-                if(argMap.platform) {
-                    tcfg.bundler.platform = JSON.parse(argMap.platform)
-                }
-                if(argMap.external) {
-                    tcfg.bundler.external = JSON.parse(argMap.external)
-                }
-                if(argMap.globalThis) {
-                    tcfg.bundler.globalThis = JSON.parse(argMap.globalThis)
-                }
-                if(argMap.globals) {
-                    tcfg.bundler.globals = JSON.parse(decodeURIComponent(argMap.globals))
-                }
-                if(argMap.minify) {
-                    tcfg.bundler.minify = JSON.parse(argMap.minify)
-                }
-                if(argMap.script) {
-                    let parsed = decodeURIComponent(argMap.script);
-                    //console.log('script parsed: ', parsed);
-                    tcfg.initScript = parsed; //encoded URI string of a javascript file
-                }
-                if(argMap.config) {
-                    let parsed = argMap.config
-                    //console.log('config parsed: ', parsed);
-                    Object.assign(tcfg, parsed); //encoded URI string of a packager config.
-                }
+    commandUtil.check(args, (name, value) => {
+        if (value === null) return // ignore if null
+        else if (commands.server.includes(name)) tcfg.server[name] = value
+        else if (commands.bundler.includes(name)) tcfg.bundler[name] = value
+        else tcfg[name] = value
+    }, tcfg)
 
     if(tcfg.server) if(Object.keys(tcfg.server).length === 0) delete tcfg.server;
     if(tcfg.bundler) if(Object.keys(tcfg.bundler).length === 0) delete tcfg.bundler; 

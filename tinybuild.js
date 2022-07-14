@@ -6,7 +6,8 @@ import path from 'path'
 
 //uncomment and run `node tinybuild.js`
 import {packager} from './tinybuild/packager.js'
-import { checkBoilerPlate, checkCoreExists, checkNodeModules, runAndWatch, runOnChange, parseArgs, getCommands } from './tinybuild/repo.js'
+import * as commandUtils from './tinybuild/command.js'
+import { checkBoilerPlate, checkCoreExists, checkNodeModules, runAndWatch, runOnChange, parseArgs } from './tinybuild/repo.js'
 
 // let config = {
 //     bundler:{
@@ -223,7 +224,7 @@ export async function runTinybuild(args) {
 }
 
 
-const args = getCommands(process.argv);
+const args = commandUtils.get(process.argv);
 let cfgPath = args.path
 if(!cfgPath) cfgPath = 'tinybuild.config.js';
 
