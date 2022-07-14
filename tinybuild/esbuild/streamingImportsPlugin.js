@@ -9,8 +9,11 @@ export const streamingImportsPlugin = {
     // Handle all import/require paths starting with "http://" or "https://"
     build.onResolve({ filter: /^https?:\/\// }, async (args) => {
       if(args.kind?.includes('import') || args.kind?.includes('require')) {
-        let cachepath = path.join(process.cwd(),'node_modules','.cache',path.basename(args.path));
-        
+        const pathSlice = args.path.split('/').slice(2)
+        const filename = pathSlice.pop()
+        const pathAddition = ['node_modules','.cache', ...pathSlice]
+        let cachepath = path.join(process.cwd(), ...pathAddition, filename);
+
         if(!path.extname(cachepath)){ 
           cachepath += '.js'; //should account for other file types like css if they can be imported without extensions
         }
@@ -20,7 +23,14 @@ export const streamingImportsPlugin = {
         //resolve new path to local cache for bundler to target 
 
         if(!fs.existsSync(cachepath)) {
-          if(!fs.existsSync(path.join('node_modules','.cache'))) fs.mkdirSync(path.join('node_modules','.cache'));
+          const pathAccum = []
+          pathAddition.forEach(str => {
+            pathAccum.push(str)
+            const thisPath = path.join(process.cwd(), ...pathAccum)
+            if(!fs.existsSync(thisPath)) fs.mkdirSync(thisPath);
+          })
+
+
           console.time('esbuild cached streamed http(s) import at ' + cachepath);
           let text = await (await httpGet(args.path)).toString('utf-8');
           fs.writeFileSync(cachepath, text); //cache cdn imports etc.
@@ -44,6 +54,7 @@ export const streamingImportsPlugin = {
 
 import http from 'http';
 import https from 'https';
+import { cwd } from 'process';
 //custom plugin to resolve http imports
 export function httpGet(url) {
   return new Promise((resolve, reject) => {
