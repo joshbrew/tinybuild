@@ -6,7 +6,7 @@ import path from 'path'
 
 //uncomment and run `node tinybuild.js`
 import {packager} from './tinybuild/packager.js'
-import { checkBoilerPlate, checkCoreExists, checkNodeModules, runAndWatch, runOnChange, parseArgs } from './tinybuild/repo.js'
+import { checkBoilerPlate, checkCoreExists, checkNodeModules, runAndWatch, runOnChange, parseArgs, getCommands } from './tinybuild/repo.js'
 
 // let config = {
 //     bundler:{
@@ -106,8 +106,6 @@ export async function runTinybuild(args) {
     if(!tinybuildCfg.path && fs.existsSync(path.join(process.cwd(),'tinybuild.js'))) tinybuildCfg.path = path.join(process.cwd(),'tinybuild.js')
     if(!tinybuildCfg.path && tinybuildCfg.GLOBAL) tinybuildCfg.path = path.join(tinybuildCfg.GLOBAL,'global_packager.js');
     if(!tinybuildCfg.path) tinybuildCfg.path = 'tinybuild.js';
-
-    console.log(tinybuildCfg.path);
 
     //scenarios:
     /*     
@@ -225,23 +223,18 @@ export async function runTinybuild(args) {
 }
 
 
-let GLOBALPATH = process.argv.find((a) => {
-    if(a.includes('GLOBAL')) return true;
-});
-
-let cfgPath = process.argv.find((a) => {
-    if(a.includes('path')) return true;
-});
-if(cfgPath) cfgPath = cfgPath.split('=')[1]
-
+const args = getCommands(process.argv);
+let cfgPath = args.path
 if(!cfgPath) cfgPath = 'tinybuild.config.js';
 
-if(GLOBALPATH) {
+if(args.GLOBAL) {
     if(fs.existsSync(path.join(process.cwd(),cfgPath))) {
+
         import('file:///'+process.cwd()+'/'+cfgPath).then((m) => {
+
             if(typeof m.default?.bundler !== 'undefined' || typeof m.default?.server !== 'undefined' ) {
-                console.log('Using local ',cfgPath)
-                runTinybuild(Object.assign({GLOBAL:GLOBALPATH.split('=').pop()},m.default));
+                console.log('Config:',cfgPath)
+                runTinybuild(Object.assign({GLOBAL:args.GLOBAL},m.default));
             } else {
                 runTinybuild(process.argv);
             }

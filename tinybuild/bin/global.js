@@ -41,7 +41,7 @@ if(!fs.existsSync(path.join(mainpath,'node_modules'))) {
 // process.on('SIGINT', exitHandler.bind(null, {exit:true}));
 
 
-let CHILDPROCESS = fork(path.join(mainpath,'tinybuild.js'), [...process.argv.splice(2),'GLOBAL='+globalpath], {cwd:process.cwd()});
+let CHILDPROCESS = fork(path.join(mainpath,'tinybuild.js'), [...process.argv.splice(2), '--GLOBAL', globalpath], {cwd:process.cwd()});
 
 // CHILDPROCESS.on('error',(er)=>{console.error(er);});
 CHILDPROCESS.on('close',(er)=>{console.log("TINYBUILD EXIT CODE: ",er); process.exit()});

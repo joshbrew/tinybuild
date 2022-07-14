@@ -819,43 +819,30 @@ dist
 }
 
 
+export const getCommands = (args=process.argv) => {
+    const argMap = {}
+    const reversedArgv = args
+    reversedArgv.forEach((v,i) => {
+        if (v.includes('-')) {
+            const key = v.replaceAll('-', '').trim()
+            argMap[key] = reversedArgv[i+1]
+        }
+    })
+
+    return argMap
+}
 
 export function parseArgs(args=process.argv) {
+
+    // Map argv to an object
+    const argMap = getCommands(args)
+
     let tcfg = {
         server:{},
         bundler:{}
     }
 
-    let argIdx = null;
-    let tick = 0;
-    let fileName;
-
-    if(typeof __filename =='undefined') {
-        globalThis['__filename'] = args[1];
-        let dirname = args[1];
-        dirname = dirname.split(path.sep);
-        dirname.pop();
-        globalThis['__dirname'] = dirname.join(path.sep);
-
-        fileName = path.basename(globalThis['__filename']);
-    } else {
-        fileName = path.basename(__filename);
-    }
-
-    args.forEach((v,i,arr) => {
-
-            //idx = 0: 'node'
-            //idx = 1: 'tinybuild/init.js
-            // dir='example'
-            // entry='index.js'
-            // core=false/true
-            // script=``   //no spaces
-            // config={} //no spaces
-            
-            let command = v;
-    
-            if(argIdx){ //after 5 args we probably aren't on these args anymore
-                if(command.includes('help')) {
+                if(argMap.help) {
                     tcfg.mode = 'help';
                     console.log(
 `
@@ -911,127 +898,124 @@ Server arguments:
                     )
                     process.exit();
                 }
-                if(command.includes('mode=')) {
-                    tcfg.mode = command.split('=').pop(); //extra modes are 'python' and 'dev'. 
+                if(argMap.mode) {
+                    tcfg.mode = argMap.mode; //extra modes are 'python' and 'dev'. 
                 }
-                if(command.includes('GLOBAL')) { //path to global bin file inserted when running the 'tinybuild' script, which will run tinybuild and the restarting server as a child process
-                    tcfg.GLOBAL = command.split('=').pop()
+                if(argMap.global) { //path to global bin file inserted when running the 'tinybuild' script, which will run tinybuild and the restarting server as a child process
+                    tcfg.GLOBAL = argMap.global
                 }
-                if(command.includes('start')) {
+                if(argMap.start) {
                     tcfg.start = true; //starts the entryPoints with 'node tinybuild.js' (or specified path), does not use nodemon (e.g. for production), just run tinybuild without 'start' to use the dev server config by default
                 }
-                if(command.includes('bundle') && !command.includes('bundler')) {
+                if(argMap.bundle && !argMap.bundler) {
                     tcfg.bundle = true; //bundle the local app?
                 }
-                if(command.includes('serve') && !command.includes('server')) {
+
+                if(argMap.serve && !argMap.server) {
                     tcfg.serve = true; //serve the local (assumed built) dist?
                 }
-                if(command.includes('path')) { //path to the tinybuild script where the packager or plain bundler etc. are being run. defaults to look for 'tinybuild.js'
-                    tcfg.path = command.split('=').pop()
+                if(argMap.path) {
+                    //path to the tinybuild script where the packager or plain bundler etc. are being run. defaults to look for 'tinybuild.js'
+                    tcfg.path = argMap.path
                 }
-                if(command.includes('init')) {
+                if(argMap.init) {
                     tcfg.init = true; //initialize a repo with the below settings?
                 }
-                if(command.includes('debug')) {
-                    tcfg.server.debug = JSON.parse(command.split('=').pop()) //debug?
+                if(argMap.debug) {
+                    tcfg.server.debug = JSON.parse(argMap.debug) //debug?
                 }
-                if(command.includes('socket_protocol')) {
-                    tcfg.server.socket_protocol = command.split('=').pop() //node server socket protocol (wss for hosted, or ws for localhost, depends)
+                if(argMap.socket_protocol) {
+                    tcfg.server.socket_protocol = argMap.socket_protocol //node server socket protocol (wss for hosted, or ws for localhost, depends)
                 }
-                if(command.includes('pwa')) {
-                    tcfg.server.pwa = command.split('=').pop() //pwa service worker relative path
+                if(argMap.pwa) {
+                    tcfg.server.pwa = argMap.pwa //pwa service worker relative path
                 }
-                if(command.includes('hotreload')) {
-                    tcfg.server.hotreload = command.split('=').pop() //pwa service worker relative path
+                if(argMap.hotreload) {
+                    tcfg.server.hotreload = argMap.hotreload //pwa service worker relative path
                 }
-                if(command.includes('keypath')) {
-                    tcfg.server.keypath = command.split('=').pop() //https key path
+                if(argMap.keypath) {
+                    tcfg.server.keypath = argMap.keypath //https key path
                 }
-                if(command.includes('certpath')) {
-                    tcfg.server.certpath = command.split('=').pop() //https cert path 
+                if(argMap.certpath) {
+                    tcfg.server.certpath = argMap.certpath//https cert path 
                 }
-                if(command.includes('watch')) {
-                    tcfg.server.watch = command.split('=').pop() //pwa service worker relative path
+                if(argMap.watch) {
+                    tcfg.server.watch = argMap.watch //pwa service worker relative path
                 }
-                if(command.includes('ignore')) {
-                    tcfg.server.ignore = command.split('=').pop() //pwa service worker relative path
+                if(argMap.ignore) {
+                    tcfg.server.ignore = argMap.ignore //pwa service worker relative path
                 }
-                if(command.includes('extensions')) {
-                    tcfg.server.ignore = command.split('=').pop() //pwa service worker relative path
+                if(argMap.extensions) {
+                    tcfg.server.extensions = argMap.extensions //pwa service worker relative path
                 }
-                if(command.includes('python')) {
-                    tcfg.server.python = command.split('=').pop() //python port
+                if(argMap.python) {
+                    tcfg.server.python = argMap.python //python port
                 }
-                if(command.includes('host')) {
-                    tcfg.server.host = command.split('=').pop() //node host
+                if(argMap.host) {
+                    tcfg.server.host = argMap.host //node host
                 }
-                if(command.includes('port')) {
-                    tcfg.server.port = command.split('=').pop() //node port
+                if(argMap.port) {
+                    tcfg.server.port = argMap.port //node port
                 }
-                if(command.includes('protocol')) {
-                    tcfg.server.protocol = command.split('=').pop() //node http or https protocols
+                if(argMap.protocol) {
+                    tcfg.server.protocol = argMap.protocol //node http or https protocols
                 }
-                if(command.includes('startpage')) {
-                    tcfg.server.startpage = command.split('=').pop() //node http or https protocols
+                if(argMap.startpage) {
+                    tcfg.server.startpage = cargMap.startpage //node http or https protocols
                 }
-                if(command.includes('core')) {
-                    tcfg.includeCore = command.split('=').pop() //use tinybuild's source instead of the npm packages?
+                if(argMap.bundleCore) {
+                    tcfg.includeCore = argMap.bundleCore //use tinybuild's source instead of the npm packages?
                 }
-                if(command.includes('bundleBrowser')) {
-                    tcfg.bundler.bundleBrowser = JSON.parse(command.split('=').pop())
+                if(argMap.bundleBrowser) {
+                    tcfg.bundler.bundleBrowser = JSON.parse(argMap.bundleBrowser)
                 }
-                if(command.includes('bundleESM')) {
-                    tcfg.bundler.bundleESM = JSON.parse(command.split('=').pop())
+                if(argMap.bundleESM) {
+                    tcfg.bundler.bundleESM = JSON.parse(argMap.bundleESM)
                 }
-                if(command.includes('bundleTypes')) {
-                    tcfg.bundler.bundleTypes = JSON.parse(command.split('=').pop())
+                if(argMap.bundleTypes) {
+                    tcfg.bundler.bundleTypes = JSON.parse(argMap.bundleTypes)
                 }
-                if(command.includes('bundleNode')) {
-                    tcfg.bundler.bundleNode = JSON.parse(command.split('=').pop())
+                if(argMap.bundleNode) {
+                    tcfg.bundler.bundleNode = JSON.parse(argMap.bundleNode)
                 }
-                if(command.includes('bundleHTML')) {
-                    tcfg.bundler.bundleHTML = JSON.parse(command.split('=').pop())
+                if(argMap.bundleHTML) {
+                    tcfg.bundler.bundleHTML = JSON.parse(argMap.bundleHTML)
                 }
-                if(command.includes('entryPoints')) {
-                    tcfg.bundler.entryPoints = [command.split('=').pop()]; //entry point script name to be created
+                if(argMap.entrypoints) {
+                    tcfg.bundler.entryPoints = [argMap.entryPoints]; //entry point script name to be created
                     if(tcfg.bundler.entryPoints.includes('[')) tcfg.bundler.entryPoints = JSON.parse(tcfg.bundler.entryPoints);
                 }
-                if(command.includes('outfile')) {
-                    tcfg.bundler.outfile = JSON.parse(command.split('=').pop())
+                if(argMap.outfile) {
+                    tcfg.bundler.outfile = JSON.parse(argMap.outfile)
                 }
-                if(command.includes('outdir')) {
-                    tcfg.bundler.outdir = JSON.parse(command.split('=').pop())
+                if(argMap.outdir) {
+                    tcfg.bundler.outdir = JSON.parse(argMap.outdir)
                 }
-                if(command.includes('platform')) {
-                    tcfg.bundler.platform = JSON.parse(command.split('=').pop())
+                if(argMap.platform) {
+                    tcfg.bundler.platform = JSON.parse(argMap.platform)
                 }
-                if(command.includes('external')) {
-                    tcfg.bundler.external = JSON.parse(command.split('=').pop())
+                if(argMap.external) {
+                    tcfg.bundler.external = JSON.parse(argMap.external)
                 }
-                if(command.includes('globalThis')) {
-                    tcfg.bundler.globalThis = JSON.parse(command.split('=').pop())
+                if(argMap.globalThis) {
+                    tcfg.bundler.globalThis = JSON.parse(argMap.globalThis)
                 }
-                if(command.includes('globals')) {
-                    tcfg.bundler.globals = JSON.parse(decodeURIComponent(command.split('=').pop()))
+                if(argMap.globals) {
+                    tcfg.bundler.globals = JSON.parse(decodeURIComponent(argMap.globals))
                 }
-                if(command.includes('minify')) {
-                    tcfg.bundler.minify = JSON.parse(command.split('=').pop())
+                if(argMap.minify) {
+                    tcfg.bundler.minify = JSON.parse(argMap.minify)
                 }
-                if(command.includes('script')) {
-                    let parsed = decodeURIComponent(command.slice(command.indexOf('=')+1));
+                if(argMap.script) {
+                    let parsed = decodeURIComponent(argMap.script);
                     //console.log('script parsed: ', parsed);
                     tcfg.initScript = parsed; //encoded URI string of a javascript file
                 }
-                if(command.includes('config')) {
-                    let parsed = JSON.parse(command.split('=').pop());
+                if(argMap.config) {
+                    let parsed = argMap.config
                     //console.log('config parsed: ', parsed);
                     Object.assign(tcfg, parsed); //encoded URI string of a packager config.
                 }
-                tick++;
-            }
-            if(v.includes(fileName)) argIdx = true;
-    
-    })
 
     if(tcfg.server) if(Object.keys(tcfg.server).length === 0) delete tcfg.server;
     if(tcfg.bundler) if(Object.keys(tcfg.bundler).length === 0) delete tcfg.bundler; 
