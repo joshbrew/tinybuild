@@ -193,7 +193,7 @@ export async function runTinybuild(args) {
         else if (tinybuildCfg.serve || cmdargs.includes('serve')) {
             delete tinybuildCfg.bundle; //don't use either arg to run both
             tinybuildCfg.bundler = null;
-            SERVER_PROCESS = runAndWatch(tinybuildCfg.path,  [`config=${(JSON.stringify(tinybuildCfg))}`,...cmdargs]);
+            SERVER_PROCESS = runAndWatch(tinybuildCfg.path,  [`--config ${(JSON.stringify(tinybuildCfg))}`,...cmdargs]);
         }
         else {
 
@@ -204,7 +204,7 @@ export async function runTinybuild(args) {
                 }
                 //console.log('spawning!!', tinybuildCfg)
             if((tinybuildCfg.server && !tinybuildCfg.bundle && !cmdargs.includes('bundle')) || tinybuildCfg.path.includes('tinybuild.js')) { 
-                SERVER_PROCESS = runAndWatch(tinybuildCfg.path, [`config=${(JSON.stringify(tinybuildCfg))}`,...cmdargs]);
+                SERVER_PROCESS = runAndWatch(tinybuildCfg.path, [`--config ${(JSON.stringify(tinybuildCfg))}`,...cmdargs]);
             }
             else packager(tinybuildCfg); //else just run the bundler and quit
 

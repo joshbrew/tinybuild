@@ -6,6 +6,8 @@ import {execSync, spawn} from 'child_process';
 import { defaultConfig } from './packager.js';
 import * as commandUtil from './command.js';
 import * as commands from './commands/index.js';
+import create from './create.js';
+
 
 //https://stackoverflow.com/questions/13786160/copy-folder-recursively-in-node-js
 export function copyFolderRecursiveSync( source, target ) {
@@ -65,12 +67,12 @@ export function runOnChange(
     extensions=['js','ts','css','html','jpg','png','txt','csv','xls']
 ) { 
 
+    const argMap = commandUtil.get(args)
+
     let watchPaths = process.cwd();
-    if(args.length > 0) {
-        args.forEach((a)=>{
        
-            if(a.slice(0,5) === 'watch') { //watch='../../otherlibraryfolder'
-                watchPaths = a.split('=')[1];
+            if(argMap.watch) { //watch='../../otherlibraryfolder'
+                watchPaths = argMap.watch
                 if(watchPaths.includes('[')) watchPaths = JSON.parse(watchPaths).push(process.cwd());
                 else {
                     watchPaths = watchPaths.split(',');
@@ -78,8 +80,8 @@ export function runOnChange(
                 }
             }
 
-            if(a.slice(0,10) === 'extensions') { //watchext='../../otherlibraryfolder'
-                let extPaths = a.split('=')[1];
+            if(argMap.extensions) { //watchext='../../otherlibraryfolder'
+                let extPaths = argMap.extensions
                 if(extPaths.includes('[')) extensions = JSON.parse(extPaths).push(...extensions);
                 else {
                     extPaths = extPaths.split(',');
@@ -87,16 +89,14 @@ export function runOnChange(
                 }
             }
             
-            if(a.slice(0,6) === 'ignore') { //watch='../../otherlibraryfolder'
-                let ignorePaths = a.split('=')[1];
+            if(argMap.ignore) { //watch='../../otherlibraryfolder'
+                let ignorePaths = argMap.ignore
                 if(ignorePaths.includes('[')) ignore = JSON.parse(ignorePaths).push(...ignore);
                 else {
                     ignorePaths = ignorePaths.split(',');
                     ignore = [...ignore,...ignorePaths];
                 }
             }
-        })
-    }
 
 
     const watcher = chokidar.watch(
@@ -180,11 +180,10 @@ export function runAndWatch(
 
     let watchPaths = process.cwd();
 
-    if(args.length > 0) {
-        args.forEach((a)=>{
+    const argMap = commandUtil.get(args)
        
-            if(a.slice(0,5) === 'watch') { //watch='../../otherlibraryfolder'
-                watchPaths = a.split('=')[1];
+            if(argMap.watch) { //watch='../../otherlibraryfolder'
+                watchPaths = argMap.watch
                 if(watchPaths.includes('[')) watchPaths = JSON.parse(watchPaths).push(process.cwd());
                 else {
                     watchPaths = watchPaths.split(',');
@@ -192,8 +191,8 @@ export function runAndWatch(
                 }
             }
 
-            if(a.slice(0,10) === 'extensions') { //watchext='../../otherlibraryfolder'
-                let extPaths = a.split('=')[1];
+            if(argMap.extensions) { //watchext='../../otherlibraryfolder'
+                let extPaths = argMap.extensions
                 if(extPaths.includes('[')) extensions = JSON.parse(extPaths).push(...extensions);
                 else {
                     extPaths = extPaths.split(',');
@@ -201,16 +200,14 @@ export function runAndWatch(
                 }
             }
             
-            if(a.slice(0,6) === 'ignore') { //watch='../../otherlibraryfolder'
-                let ignorePaths = a.split('=')[1];
+            if(argMap.ignore) { //watch='../../otherlibraryfolder'
+                let ignorePaths = argMap.ignore
                 if(ignorePaths.includes('[')) ignore = JSON.parse(ignorePaths).push(...ignore);
                 else {
                     ignorePaths = ignorePaths.split(',');
                     ignore = [...ignore,...ignorePaths];
                 }
             }
-        })
-    }
 
     const watcher = chokidar.watch(
         watchPaths,{
@@ -312,6 +309,12 @@ export function checkNodeModules() {
     }
 }
 
+export async function checkTSConfig() {
+    const location = path.join(process.cwd(),'tsconfig.json')
+    if(!fs.existsSync(location)) create.tsconfig(location)
+}
+
+
 export function checkCoreExists() {
     if(!fs.existsSync(path.join(process.cwd(), 'tinybuild'))) {
         const nodeMods = path.join('node_modules', 'tinybuild','tinybuild');
@@ -329,54 +332,7 @@ export async function checkConfig(cfgpath = path.join(process.cwd(),'tinybuild.c
     if(cfgexists) return false;
     else {
 
-        let template = `
-const config = {
-    bundler: { //esbuild settings, set false to skip build step or add bundle:true to config object to only bundle (alt methods)
-        entryPoints: [ //entry point file(s). These can include .js, .mjs, .ts, .jsx, .tsx, or other javascript files. Make sure your entry point is a ts file if you want to generate types
-        "index.js"
-        ],
-        outfile: "dist/index", //exit point file, will append .js as well as indicators like .esm.js, .node.js for other build flags
-        //outdir:[]               //exit point files, define for multiple bundle files
-        bundleBrowser: true, //create plain js build? Can include globals and init scripts
-        bundleESM: false, //create esm module js files
-        bundleTypes: false, //create .d.ts files, the entry point must be a typescript file! (ts, tsx, etc)
-        bundleNode: false, //create node platform plain js build, specify platform:'node' to do the rest of the files 
-        bundleHTML: false, //wrap the first entry point file as a plain js script in a boilerplate html file, frontend scripts can be run standalone like a .exe! Server serves this as start page if set to true.
-        minify: true,
-        sourcemap: false
-        //globalThis:null //'mymodule'
-        //globals:{'index.js':['Graph']}
-        //init:{'index.js':function(bundle) { console.log('prepackaged bundle script!', bundle); }}      
-     },
-    server: {  //node server settings, set false to skip server step or add serve:true to config object to only serve (alt methods)
-        debug: false,
-        protocol: "http",  //'http' or 'https'. HTTPS required for Nodejs <---> Python sockets. If using http, set production to False in python/server.py as well
-        host: "localhost", //'localhost' or '127.0.0.1' etc.
-        port: 8080, //e.g. port 80, 443, 8000
-        startpage: "index.html", //home page
-        socket_protocol: "ws", //frontend socket protocol, wss for served, ws for localhost
-        hotreload: 5000,  //hotreload websocket server port
-        //watch: ['../'], //watch additional directories other than the current working directory
-        pwa: "dist/service-worker.js",  //pwa mode? Injects service worker registry code in (see pwa README.md)
-        python: false,//7000,  //quart server port (configured via the python server script file still)
-        python_node: 7001, //websocket relay port (relays messages to client from nodejs that were sent to it by python)
-        errpage: "node_modules/tinybuild/tinybuild/node_server/other/404.html",  //default error page, etc.
-        certpath: "node_modules/tinybuild/tinybuild/node_server/ssl/cert.pem", //if using https, this is required. See cert.pfx.md for instructions
-        keypath: "node_modules/tinybuild/tinybuild/node_server/ssl/key.pem" //if using https, this is required. See cert.pfx.md for instructions
-    }
-}
-
-`;
-
-        if(fs.existsSync(path.join(process.cwd(),'package.json'))) {
-            let contents = fs.readFileSync(path.join(process.cwd(),'package.json'));
-            if(!contents.includes('"module"')) template += 'module.exports = config; //export default config; //es6' //es5
-            else template += 'export default config; //module.exports = config; //es5' //es6
-
-        } else template += 'export default config; //module.exports = config; //es5' //es6
-
-
-        fs.writeFileSync(cfgpath,template);
+        create.config(cfgpath)
 
         return true;
     }
@@ -388,107 +344,11 @@ export async function checkBuildScript() {
     const tinybuildPath = path.join(process.cwd(), 'tinybuild.js')
 
     if(!fs.existsSync(tinybuildPath)) {
-        fs.writeFileSync(tinybuildPath,
-`
-import { packager } from "tinybuild";
-
-let config = {
-    bundler: {
-        entryPoints: ['index.js'],
-        outfile: 'dist/index',
-        bundleBrowser: true, //plain js format
-        bundleESM: false, //.esm format
-        bundleTypes: false, //entry point should be a ts or jsx (or other typescript) file
-        bundleNode: false, // bundle a package with platform:node and separate externals
-        bundleHTML: true, //can wrap the built outfile (or first file in outdir) automatically and serve it or click and run the file without hosting.
-        minify: true,
-        sourcemap: false
-        //globalThis:null //'mymodule'
-        //globals:{'index.js':['Graph']}
-        //init:{'index.js':function(bundle) { console.log('prepackaged bundle script!', bundle); }}      
-    },
-    server: defaultServer
-}
-
-
-packager(config); // bundle and serve
-`);
+        create.tinybuild(tinybuildPath)
         return true;
     }
     return false;
 }
-
-export async function checkTSConfig() {
-    if(!fs.existsSync(path.join(process.cwd(),'tsconfig.json'))) {
-        fs.writeFileSync(path.join(process.cwd(),'tsconfig.json'),
-        `{
-            "include": ["index.js"],
-            "compilerOptions": {
-              /* Visit https://aka.ms/tsconfig.json to read more about this file */
-              /* Basic Options */
-              // "incremental": true,                   /* Enable incremental compilation */
-              "target": "es2020" /* Specify ECMAScript target version: 'ES3' (default), 'ES5', 'ES2015', 'ES2016', 'ES2017', 'ES2018', 'ES2019', 'ES2020', or 'ESNEXT'. */,
-              "module": "es2020" /* Specify module code generation: 'none', 'commonjs', 'amd', 'system', 'umd', 'es2015', 'es2020', or 'ESNext'. */,
-              "declaration": true,                      /* Generates corresponding '.d.ts' file. */
-              "allowJs": true,                       /* Allow javascript files to be compiled. */
-              "skipLibCheck": true /* Skip type checking of declaration files. */,
-              "forceConsistentCasingInFileNames": true /* Disallow inconsistently-cased references to the same file. */,
-              "outDir": "./dist" /* Redirect output structure to the directory. */,
-              "strict": true /* Enable all strict type-checking options. */,
-              "esModuleInterop": true /* Enables emit interoperability between CommonJS and ES Modules via creation of namespace objects for all imports. Implies 'allowSyntheticDefaultImports'. */,
-              // "checkJs": true,                       /* Report errors in .js files. */
-              // "jsx": "preserve",                     /* Specify JSX code generation: 'preserve', 'react-native', or 'react'. */
-              // "lib": [],                             /* Specify library files to be included in the compilation. */  
-              // "declarationMap": true,                /* Generates a sourcemap for each corresponding '.d.ts' file. */
-              // "sourceMap": true,                     /* Generates corresponding '.map' file. */
-              // "outFile": "./",                       /* Concatenate and emit output to single file. */
-              // "rootDir": "./",                       /* Specify the root directory of input files. Use to control the output directory structure with --outDir. */
-              // "composite": true,                     /* Enable project compilation */
-              // "tsBuildInfoFile": "./",               /* Specify file to store incremental compilation information */
-              // "removeComments": true,                /* Do not emit comments to output. */
-              // "noEmit": true,                        /* Do not emit outputs. */
-              // "importHelpers": true,                 /* Import emit helpers from 'tslib'. */
-              // "downlevelIteration": true,            /* Provide full support for iterables in 'for-of', spread, and destructuring when targeting 'ES5' or 'ES3'. */
-              // "isolatedModules": true,               /* Transpile each file as a separate module (similar to 'ts.transpileModule'). */
-              /* Strict Type-Checking Options */
-              // "noImplicitAny": true,                 /* Raise error on expressions and declarations with an implied 'any' type. */
-              // "strictNullChecks": true,              /* Enable strict null checks. */
-              // "strictFunctionTypes": true,           /* Enable strict checking of function types. */
-              // "strictBindCallApply": true,           /* Enable strict 'bind', 'call', and 'apply' methods on functions. */
-              // "strictPropertyInitialization": true,  /* Enable strict checking of property initialization in classes. */
-              // "noImplicitThis": true,                /* Raise error on 'this' expressions with an implied 'any' type. */
-              // "alwaysStrict": true,                  /* Parse in strict mode and emit "use strict" for each source file. */
-              /* Additional Checks */
-              // "noUnusedLocals": true,                /* Report errors on unused locals. */
-              // "noUnusedParameters": true,            /* Report errors on unused parameters. */
-              // "noImplicitReturns": true,             /* Report error when not all code paths in function return a value. */
-              // "noFallthroughCasesInSwitch": true,    /* Report errors for fallthrough cases in switch statement. */
-              /* Module Resolution Options */
-              // "moduleResolution": "node",            /* Specify module resolution strategy: 'node' (Node.js) or 'classic' (TypeScript pre-1.6). */
-              // "baseUrl": "./",                       /* Base directory to resolve non-absolute module names. */
-              // "paths": {},                           /* A series of entries which re-map imports to lookup locations relative to the 'baseUrl'. */
-              // "rootDirs": [],                        /* List of root folders whose combined content represents the structure of the project at runtime. */
-              // "typeRoots": [],                       /* List of folders to include type definitions from. */
-              // "types": [],                           /* Type declaration files to be included in compilation. */
-              // "allowSyntheticDefaultImports": true,  /* Allow default imports from modules with no default export. This does not affect code emit, just typechecking. */
-              // "preserveSymlinks": true,              /* Do not resolve the real path of symlinks. */
-              // "allowUmdGlobalAccess": true,          /* Allow accessing UMD globals from modules. */
-              /* Source Map Options */
-              // "sourceRoot": "",                      /* Specify the location where debugger should locate TypeScript files instead of source locations. */
-              // "mapRoot": "",                         /* Specify the location where debugger should locate map files instead of generated locations. */
-              // "inlineSourceMap": true,               /* Emit a single file with source maps instead of having a separate file. */
-              // "inlineSources": true,                 /* Emit the source alongside the sourcemaps within a single file; requires '--inlineSourceMap' or '--sourceMap' to be set. */
-              /* Experimental Options */
-              // "experimentalDecorators": true,        /* Enables experimental support for ES7 decorators. */
-              // "emitDecoratorMetadata": true,         /* Enables experimental support for emitting type metadata for decorators. */
-              /* Advanced Options */
-              //"resolveJsonModule": true
-            }
-          }
-        `)
-    }
-}
-
 
 // NOTE: At a minimum, boilerplate includes a (1) a script / config , (1) a package.json and (3) an index.html file.
 // If these files exist, none of the others are created.
@@ -503,6 +363,7 @@ export async function checkBoilerPlate(tinybuildCfg=defaultConfig,onlyConfig=tru
     checkConfig();
     
     let packagePath = path.join(process.cwd(),'package.json')
+
     let htmlPath = process.cwd()+'/index.html'
 
     let entryFile = 'index.js';
@@ -530,45 +391,7 @@ export async function checkBoilerPlate(tinybuildCfg=defaultConfig,onlyConfig=tru
 
     if(needPackage) {
 
-        console.log('Creating package.json')
-        fs.writeFileSync(packagePath,
-`{
-    "name": "tinybuildapp${Math.floor(Math.random()*10000)}",
-    "version": "0.0.0",
-    "description": "Barebones esbuild and test node server implementation. For building",
-    "main": "index.js",
-    "type":"module",
-    "scripts": {
-        "start": "tinybuild",
-        "build": "tinybuild build",
-        "serve": "tinybuild serve",
-        "init": "node tinybuild/init.js",
-        "concurrent": "concurrently \\"npm run python\\" \\"npm start\\"",
-        "dev": "npm run pip && npm i --save-dev concurrently && npm i --save-dev nodemon && npm run concurrent",
-        "startdev": "nodemon --exec \\"node tinybuild.js\\" -e ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv",
-        "python": "python python/server.py",
-        "pip": "pip install quart && pip install websockets",
-        "pwa": "npm i workbox-cli && workbox generateSW node_server/pwa/workbox-config.js && npm run build && npm start"
-    },
-    "keywords": [
-        "esbuild"
-    ],
-    "author": "",
-    "license": "AGPL-3.0-or-later",
-    "dependencies": {
-    },
-    "devDependencies": {
-    },
-    "nodemonConfig": {
-        "env": {
-            "NODEMON": true
-        },
-        "ignore": [
-            "dist/",
-            ".temp/"
-        ]
-    }
-}`);
+        create.package(packagePath)
 
         //console.log("Installing node modules...");
         
@@ -603,8 +426,7 @@ export async function checkBoilerPlate(tinybuildCfg=defaultConfig,onlyConfig=tru
         console.log('Creating entry file: ', entryFilePath)
 
         // Make index.js if it doesn't exist
-        if (needEntry) fs.writeFileSync(entryFilePath,
-            'console.log("Hello World!"); if(typeof window !== "undefined") document.body.innerHTML = "Hello World!";')
+        if (needEntry) create.entry(entryFilePath) 
     }
 
     if(tinybuildCfg.bundleTypes) {
@@ -622,22 +444,7 @@ export async function checkBoilerPlate(tinybuildCfg=defaultConfig,onlyConfig=tru
 export async function initRepo(
     dirName='example',    
     entryPoints=['index.js'], //your head js file
-    initScript=`
-/* 
-    esbuild + nodejs (with asyncio python) development/production server. 
-    Begin your javascript application here. This file serves as a simplified entry point to your app, 
-    all other scripts you want to build can stem from here if you don't want to define more entryPoints 
-    and an outdir in the bundler settings.
-*/
-
-document.body.style.backgroundColor = '#101010'; //page color
-document.body.style.color = 'white'; //text color
-let div = document.createElement('div');
-div.innerHTML = 'Hello World!';
-document.body.appendChild(div);
-
-alert('tinybuild successful!');
-    `,
+    initScript=undefined,
     config={
         bundler:{
             entryPoints:entryPoints,
@@ -656,19 +463,15 @@ alert('tinybuild successful!');
 
     if(!fs.existsSync(dirName)) fs.mkdirSync(dirName); //will be made in the folder calling the init script
 
-
-    fs.writeFileSync(dirName+'/'+entryPoints,
-        // app initial entry point
-        initScript
-    )
-
+    create.initScript(path.join(dirName, entryPoints), initScript)
 
     //copy the bundler files
     const tinybuildPath = path.join(dirName, 'tinybuild.js')
+    let packagePath = path.join(dirName, 'package.json')
 
     if(!includeCore){
         //tinybuild.js file using the npm package 
-        fs.writeFileSync(tinybuildPath,
+        create.tinybuild(tinybuildPath,
         `
 //use command 'node tinybuild.js' to build and run after doing npm install!
 
@@ -679,46 +482,7 @@ let config = ${JSON.stringify(config)};
 packager(config);
         `);
     
-        //package.json, used to run npm install then npm start
-        fs.writeFileSync(dirName+'/package.json',`
-{
-    "name": "tinybuild${Math.floor(Math.random()*10000)}",
-    "version": "0.0.0",
-    "description": "Barebones esbuild and test node server implementation. For building",
-    "main": "index.js",
-    "type":"module",
-    "scripts": {
-        "start": "npm run startdev",
-        "build": "node tinybuild.js",
-        "init": "node tinybuild/init.js",
-        "concurrent": "concurrently \\"npm run python\\" \\"npm run startdev\\"",
-        "dev": "npm run pip && npm i --save-dev concurrently && npm i --save-dev nodemon && npm run concurrent",
-        "startdev": "nodemon --exec \\"node tinybuild.js\\" -e ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv",
-        "python": "python python/server.py",
-        "pip": "pip install quart && pip install websockets",
-        "pwa": "npm i -g workbox-cli && workbox generateSW node_server/pwa/workbox-config.js && npm run build && npm start"
-    },
-    "keywords": [
-        "esbuild"
-    ],
-    "author": "",
-    "license": "AGPL-3.0-or-later",
-    "dependencies": {
-    },
-    "devDependencies": {
-    },
-    "nodemonConfig": {
-        "env": {
-            "HOTRELOAD": true,
-            "NODEMON": true
-        },
-        "ignore": [
-            "dist/"
-        ]
-    }
-}
-        `);
-
+        create.package(packagePath)
 
     }
     else { //tinybuild js using a copy of the source and other prepared build files
@@ -741,7 +505,7 @@ packager(config);
 
         copyFolderRecursiveSync('tinybuild',tinybuildPath);
 
-        fs.writeFileSync(tinybuildPath,`
+        create.tinybuild(tinybuildPath,`
 //create an init script (see example)
 //node init.js to run the packager function
 
@@ -755,65 +519,8 @@ packager(config);
         `);
 
             
-        //package.json, used to run npm install then npm start
-        fs.writeFileSync(path.join(dirName,'package.json'),`
-{
-    "name": "tinybuild${Math.floor(Math.random()*10000)}",
-    "version": "0.0.0",
-    "description": "Barebones esbuild and test node server implementation. For building",
-    "main": "index.js",
-    "type":"module",
-    "scripts": {
-        "start": "npm run startdev",
-        "build": "node tinybuild.js",
-        "init": "node tinybuild/init.js",
-        "concurrent": "concurrently \\"npm run python\\" \\"npm run startdev\\"",
-        "dev": "npm run pip && npm i --save-dev concurrently && npm i --save-dev nodemon && npm run concurrent",
-        "startdev": "nodemon --exec \\"node tinybuild.js\\" -e ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv",
-        "python": "python python/server.py",
-        "pip": "pip install quart && pip install websockets",
-        "pwa": "npm i -g workbox-cli && workbox generateSW node_server/pwa/workbox-config.js && npm run build && npm start"
-    },
-    "keywords": [
-        "esbuild"
-    ],
-    "author": "",
-    "license": "AGPL-3.0-or-later",
-    "dependencies": {
-    },
-    "devDependencies": {
-        "concurrently": "^7.1.0",
-        "esbuild": "^0.14.38",
-        "esbuild-plugin-d.ts":"^1.1.0",
-        "nodemon": "^2.0.15",
-        "ws": "^8.5.0"
-    },
-    "nodemonConfig": {
-        "env": {
-        "HOTRELOAD": true,
-        "NODEMON": true
-        },
-        "ignore": [
-        "dist/"
-        ]
-    }
-}
-        `);
-
-
-        fs.writeFileSync(path.join(dirName,'.gitignore'),
-`
-dist
-**/node_modules/**
-**/*.pem
-**/*.pfxs
-**/*.key
-**/*.lock
-**/package-lock.json
-**/*.key
-**/*.log
-`
-        )
+        create.package(packagePath)
+        create.gitignore()
 
     }
 
