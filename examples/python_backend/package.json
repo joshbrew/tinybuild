@@ -5,7 +5,7 @@
     "main": "index.js",
     "type":"module",
     "scripts": {
-        "start": "tinybuild",
+        "start": "tinybuild mode=python",
         "build": "tinybuild build",
         "serve": "tinybuild serve",
         "init": "node tinybuild/init.js",
