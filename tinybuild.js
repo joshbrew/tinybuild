@@ -229,11 +229,18 @@ let GLOBALPATH = process.argv.find((a) => {
     if(a.includes('GLOBAL')) return true;
 });
 
+let cfgPath = process.argv.find((a) => {
+    if(a.includes('path')) return true;
+});
+if(cfgPath) cfgPath = cfgPath.split('=')[1]
+
+if(!cfgPath) cfgPath = 'tinybuild.config.js';
+
 if(GLOBALPATH) {
-    if(fs.existsSync(path.join(process.cwd(),'tinybuild.config.js'))) {
-        import('file:///'+process.cwd()+'/tinybuild.config.js').then((m) => {
+    if(fs.existsSync(path.join(process.cwd(),cfgPath))) {
+        import('file:///'+process.cwd()+'/'+cfgPath).then((m) => {
             if(typeof m.default?.bundler !== 'undefined' || typeof m.default?.server !== 'undefined' ) {
-                console.log('Using local tinybuild.config.js')
+                console.log('Using local ',cfgPath)
                 runTinybuild(Object.assign({GLOBAL:GLOBALPATH.split('=').pop()},m.default));
             } else {
                 runTinybuild(process.argv);
