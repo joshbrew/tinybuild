@@ -180,10 +180,7 @@ export function runAndWatch(
 
     let watchPaths = process.cwd();
 
-    const accumulator = {}
-    const argMap = commandUtil.check(args, (k, v) => {
-        accumulator[k] = v;
-    }, accumulator)
+    const argMap = commandUtil.check(args)
        
             if(argMap.watch) { //watch='../../otherlibraryfolder'
                 watchPaths = argMap.watch
@@ -227,7 +224,7 @@ export function runAndWatch(
     if(p.stderr) p.stderr.on('data',(dat) => {
         console.error(dat.toString());
         p.on('exit',(code,sig) => {
-            process.exit();
+            if (code) process.exit();
         });
     });
 
