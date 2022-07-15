@@ -227,7 +227,7 @@ export function runAndWatch(
     if(p.stderr) p.stderr.on('data',(dat) => {
         console.error(dat.toString());
         p.on('exit',(code,sig) => {
-            process.exit();
+            if(typeof code === 'number') process.exit();
         });
     });
 

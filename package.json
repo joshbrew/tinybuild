@@ -25,7 +25,7 @@
   "license": "AGPL-3.0-or-later",
   "dependencies": {
     "chokidar": "~3.5.3",
-    "esbuild": "~0.14.41",
+    "esbuild": "~0.14.49",
     "ws": "^8.5.0"
   },
   "peerDependencies": {
