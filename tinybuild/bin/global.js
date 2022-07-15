@@ -39,16 +39,14 @@ if(!fs.existsSync(path.join(mainpath,'node_modules'))) {
 
 // //catches ctrl+c event
 // process.on('SIGINT', exitHandler.bind(null, {exit:true}));
-
+const temp = process.exit
 
 let CHILDPROCESS = fork(path.join(mainpath,'tinybuild.js'), [...process.argv.splice(2), '--GLOBAL', globalpath], {cwd:process.cwd()});
 
 // CHILDPROCESS.on('error',(er)=>{console.error(er);});
-CHILDPROCESS.on('close',(er)=>{console.log("TINYBUILD EXIT CODE: ",er); process.exit()});
-CHILDPROCESS.on('exit',(er)=>{console.log("TINYBUILD EXIT CODE: ",er); process.exit()});
+CHILDPROCESS.on('close',(er)=>{console.log("TINYBUILD EXIT CODE (close): ",er); process.exit()});
+CHILDPROCESS.on('exit',(er)=>{console.log("TINYBUILD EXIT CODE (exit): ",er); process.exit()});
 // CHILDPROCESS.on('crash',(er)=>{console.log('crash');});
 // if(CHILDPROCESS.stderr) CHILDPROCESS.stderr.on('data',(er)=>{console.error(er);});
 // if(CHILDPROCESS.stdout) CHILDPROCESS.stdout.on('data',(dat)=>{console.error(dat.toString());});
-
-
 

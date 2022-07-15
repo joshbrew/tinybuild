@@ -31,7 +31,9 @@ export const get = (args=process.argv) => {
 }
 
 
-export const check = (args=process.argv, callback, accumulator={}) => {
+export const check = (args=process.argv, callback=(k, v) => {
+    accumulator[k] = v;
+}, accumulator={}) => {
     const argMap = get(args)
 
     // Check Prefixed Commands

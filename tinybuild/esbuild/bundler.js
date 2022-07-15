@@ -75,7 +75,6 @@ export const defaultBundler = {
 
 export async function bundle(configs) {
 
-
   console.time('✨ esbuild');
   console.log('✨ esbuild starting! ✨');
   
