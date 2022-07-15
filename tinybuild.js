@@ -199,7 +199,6 @@ export async function runTinybuild(args) {
 
             if(!fs.existsSync(path.join(process.cwd(),'package.json')) || (!fs.existsSync(path.join(process.cwd(),'tinybuild.config.js')) && !fs.existsSync(path.join(process.cwd(),'tinybuild.js'))))
                 {
-                    console.log('Check')
                     await checkBoilerPlate(tinybuildCfg); //install boilerplate if repo lacks package.json
                     tinybuildCfg.path = path.join(process.cwd(),'tinybuild.config.js');
                 }
