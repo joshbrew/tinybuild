@@ -180,7 +180,10 @@ export function runAndWatch(
 
     let watchPaths = process.cwd();
 
-    const argMap = commandUtil.get(args)
+    const accumulator = {}
+    const argMap = commandUtil.check(args, (k, v) => {
+        accumulator[k] = v;
+    }, accumulator)
        
             if(argMap.watch) { //watch='../../otherlibraryfolder'
                 watchPaths = argMap.watch

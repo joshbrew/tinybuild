@@ -193,18 +193,20 @@ export async function runTinybuild(args) {
         else if (tinybuildCfg.serve || cmdargs.includes('serve')) {
             delete tinybuildCfg.bundle; //don't use either arg to run both
             tinybuildCfg.bundler = null;
-            SERVER_PROCESS = runAndWatch(tinybuildCfg.path,  [`--config ${(JSON.stringify(tinybuildCfg))}`,...cmdargs]);
+            SERVER_PROCESS = runAndWatch(tinybuildCfg.path,  [`--config`, `${(JSON.stringify(tinybuildCfg))}`,...cmdargs]);
         }
         else {
 
             if(!fs.existsSync(path.join(process.cwd(),'package.json')) || (!fs.existsSync(path.join(process.cwd(),'tinybuild.config.js')) && !fs.existsSync(path.join(process.cwd(),'tinybuild.js'))))
                 {
+                    console.log('Check')
                     await checkBoilerPlate(tinybuildCfg); //install boilerplate if repo lacks package.json
                     tinybuildCfg.path = path.join(process.cwd(),'tinybuild.config.js');
                 }
                 //console.log('spawning!!', tinybuildCfg)
+            
             if((tinybuildCfg.server && !tinybuildCfg.bundle && !cmdargs.includes('bundle')) || tinybuildCfg.path.includes('tinybuild.js')) { 
-                SERVER_PROCESS = runAndWatch(tinybuildCfg.path, [`--config ${(JSON.stringify(tinybuildCfg))}`,...cmdargs]);
+                SERVER_PROCESS = runAndWatch(tinybuildCfg.path, ['--config', `${(JSON.stringify(tinybuildCfg))}`,...cmdargs]);
             }
             else packager(tinybuildCfg); //else just run the bundler and quit
 

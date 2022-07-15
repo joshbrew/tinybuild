@@ -1,15 +1,23 @@
 import * as commands from './commands/index.js'
 
+export const set = (name, transformation=(v) => v) => {
+    commandMap.set(name, {
+        transformation,
+        name
+    })
+}
+
 const commandMap = new Map()
 const commandSets = [commands.basic, commands.server, commands.bundler]
-commandSets.forEach(set => {
-    for ( let name in set) commandMap.set(name, set[name])
+commandSets.forEach(commandSet => {
+    for ( let name in commandSet) set(name, commandSet[name])
 })
 
 export const get = (args=process.argv) => {
     const argMap = {}
     const reversedArgv = args
     reversedArgv.forEach((v,i) => {
+
         if (v.includes('-')) {
             const key = v.replaceAll('-', '').trim()
             argMap[key] = reversedArgv[i+1]
@@ -20,11 +28,6 @@ export const get = (args=process.argv) => {
     })
 
     return argMap
-}
-
-export const set = (name, o) => {
-    if (!o.transformation) o.transformation = (v) => v
-    commandMap.set(name, o)
 }
 
 
@@ -49,4 +52,6 @@ export const check = (args=process.argv, callback, accumulator={}) => {
             } else callback(o.name, true)
         }
     }
+
+    return accumulator
 }

@@ -16,7 +16,7 @@ export const defaultConfig = {
 
 export async function packager(config=defaultConfig, exitOnBundle=true) {
     console.time('🎂🎆 Packager finished!');
-    //console.log(config);
+    // console.log(config);
 
     if(process?.argv) { //add any command line arguments
         let parsed = parseArgs(process.argv);

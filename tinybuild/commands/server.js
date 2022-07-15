@@ -1,6 +1,6 @@
 import { json } from "./utils.js"
 
-const server = {
+export const server = {
     'debug': json, // debug?
     'socket_protocol': undefined, //node server socket protocol (wss for hosted, or ws for localhost, depends)
     'pwa': undefined, //pwa service worker relative path
@@ -16,5 +16,3 @@ const server = {
     'protocol': undefined, // node http or https protocols
     'startpage': undefined, // html page to start your app
 }
-
-export default server

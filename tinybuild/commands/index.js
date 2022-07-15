@@ -1,4 +1,4 @@
-export * as bare from './bare.js'
-export * as basic from './basic/index.js'
-export * as bundler from './bundler.js'
-export * as server from './server.js'
+export * from './bare.js'
+export * from './basic/index.js'
+export * from './bundler.js'
+export * from './server.js'

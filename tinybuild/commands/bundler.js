@@ -1,6 +1,6 @@
 import { json, uri } from "./utils.js";
 
-const bundler = {
+export const bundler = {
     bundleBrowser: json, 
     bundleESM: undefined, 
     bundleTypes: undefined, 
@@ -18,5 +18,3 @@ const bundler = {
     globals: uri,
     minify: json
 }
-
-export default bundler

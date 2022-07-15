@@ -1,5 +1,6 @@
 //node tinybuild/init.js
 
+import { get } from "./command";
 import { initRepo } from "./repo";
 
 let defaultRepo = {
@@ -35,46 +36,23 @@ alert('tinybuild successful!');
     includeCore:true, //include the core bundler and node server files, not necessary if you are building libraries or quickly testing an app.js
 }
 
-let argIdx = null;
-let tick = 0;
-var fileName;
-if(typeof __filename =='undefined') 
-    fileName = path.basename(fileURLToPath(import.meta.url));
-else
-    fileName = path.basename(__filename);
+const commandMap = get(process.argv)
 
-process.argv.forEach((val, idx, array) => {
-    //idx = 0: 'node'
-    //idx = 1: 'tinybuild/init.js
-    // dir='example'
-    // entry='index.js'
-    // core=false/true
-    // script=``   //no spaces
-    // config={} //no spaces
-    
-    let command = val;
-
-    if(argIdx && tick < 5){ //after 5 args we probably aren't on these args anymore
-        if(command.includes('dir')) {
-            defaultRepo.dirName = command.split('=').pop()
+        if(commandMap.dir) {
+            defaultRepo.dirName = commandMap.dir
         }
-        if(command.includes('entry')) {
-            defaultRepo.entryPoints = command.split('=').pop()
+        if(commandMap.entry) {
+            defaultRepo.entryPoints = commandMap.entry
         }
-        if(command.includes('core')) {
-            defaultRepo.includeCore = command.split('=').pop()
+        if(commandMap.core) {
+            defaultRepo.includeCore = commandMap.core
         }
-        if(command.includes('script')) {
-            defaultRepo.initScript = decodeURIComponent(command.split('=').pop())
+        if(commandMap.script) {
+            defaultRepo.initScript = decodeURIComponent(commandMap.script)
         }
-        if(command.includes('config')) {
-            defaultRepo.config = JSON.parse(decodeURIComponent(command.split('=').pop()))
+        if(commandMap.config) {
+            defaultRepo.config = JSON.parse(decodeURIComponent(commandMap.config))
         }
-        tick++;
-    }
-    if(val === fileName) argIdx = true;
-
-});
 
 initRepo(
     defaultRepo.dirName,    
