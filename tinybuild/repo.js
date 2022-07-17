@@ -71,8 +71,8 @@ export function runOnChange(
 
     let watchPaths = process.cwd();
        
-            if(argMap.watch) { //watch='../../otherlibraryfolder'
-                watchPaths = argMap.watch
+            if(argMap.server.watch) { //watch='../../otherlibraryfolder'
+                watchPaths = argMap.server.watch
                 if(watchPaths.includes('[')) watchPaths = JSON.parse(watchPaths).push(process.cwd());
                 else {
                     watchPaths = watchPaths.split(',');
@@ -80,8 +80,8 @@ export function runOnChange(
                 }
             }
 
-            if(argMap.extensions) { //watchext='../../otherlibraryfolder'
-                let extPaths = argMap.extensions
+            if(argMap.server.extensions) { //watchext='../../otherlibraryfolder'
+                let extPaths = argMap.server.extensions
                 if(extPaths.includes('[')) extensions = JSON.parse(extPaths).push(...extensions);
                 else {
                     extPaths = extPaths.split(',');
@@ -89,8 +89,8 @@ export function runOnChange(
                 }
             }
             
-            if(argMap.ignore) { //watch='../../otherlibraryfolder'
-                let ignorePaths = argMap.ignore
+            if(argMap.server.ignore) { //watch='../../otherlibraryfolder'
+                let ignorePaths = argMap.server.ignore
                 if(ignorePaths.includes('[')) ignore = JSON.parse(ignorePaths).push(...ignore);
                 else {
                     ignorePaths = ignorePaths.split(',');
@@ -182,8 +182,8 @@ export function runAndWatch(
 
     const argMap = commandUtil.check(args)
        
-            if(argMap.watch) { //watch='../../otherlibraryfolder'
-                watchPaths = argMap.watch
+            if(argMap.server.watch) { //watch='../../otherlibraryfolder'
+                watchPaths = argMap.server.watch
                 if(watchPaths.includes('[')) watchPaths = JSON.parse(watchPaths).push(process.cwd());
                 else {
                     watchPaths = watchPaths.split(',');
@@ -191,8 +191,8 @@ export function runAndWatch(
                 }
             }
 
-            if(argMap.extensions) { //watchext='../../otherlibraryfolder'
-                let extPaths = argMap.extensions
+            if(argMap.server.extensions) { //watchext='../../otherlibraryfolder'
+                let extPaths = argMap.server.extensions
                 if(extPaths.includes('[')) extensions = JSON.parse(extPaths).push(...extensions);
                 else {
                     extPaths = extPaths.split(',');
@@ -200,8 +200,8 @@ export function runAndWatch(
                 }
             }
             
-            if(argMap.ignore) { //watch='../../otherlibraryfolder'
-                let ignorePaths = argMap.ignore
+            if(argMap.server.ignore) { //watch='../../otherlibraryfolder'
+                let ignorePaths = argMap.server.ignore
                 if(ignorePaths.includes('[')) ignore = JSON.parse(ignorePaths).push(...ignore);
                 else {
                     ignorePaths = ignorePaths.split(',');
@@ -535,8 +535,8 @@ export function parseArgs(args=process.argv) {
 
     commandUtil.check(args, (name, value) => {
         if (value === null) return // ignore if null
-        else if (commands.server.includes(name)) tcfg.server[name] = value
-        else if (commands.bundler.includes(name)) tcfg.bundler[name] = value
+        else if (name in commands.server) tcfg.server[name] = value
+        else if (name in commands.bundler) tcfg.bundler[name] = value
         else tcfg[name] = value
     }, tcfg)
 
