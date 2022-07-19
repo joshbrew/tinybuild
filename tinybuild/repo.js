@@ -71,32 +71,32 @@ export function runOnChange(
 
     let watchPaths = process.cwd();
        
-            if(argMap.server.watch) { //watch='../../otherlibraryfolder'
-                watchPaths = argMap.server.watch
-                if(watchPaths.includes('[')) watchPaths = JSON.parse(watchPaths).push(process.cwd());
-                else {
-                    watchPaths = watchPaths.split(',');
-                    watchPaths = [process.cwd(),...watchPaths];
-                }
-            }
+    if(argMap.server.watch) { //watch='../../otherlibraryfolder'
+        watchPaths = argMap.server.watch
+        if(watchPaths.includes('[')) watchPaths = JSON.parse(watchPaths).push(process.cwd());
+        else {
+            watchPaths = watchPaths.split(',');
+            watchPaths = [process.cwd(),...watchPaths];
+        }
+    }
 
-            if(argMap.server.extensions) { //watchext='../../otherlibraryfolder'
-                let extPaths = argMap.server.extensions
-                if(extPaths.includes('[')) extensions = JSON.parse(extPaths).push(...extensions);
-                else {
-                    extPaths = extPaths.split(',');
-                    extensions = [...extensions,...watchPaths];
-                }
-            }
-            
-            if(argMap.server.ignore) { //watch='../../otherlibraryfolder'
-                let ignorePaths = argMap.server.ignore
-                if(ignorePaths.includes('[')) ignore = JSON.parse(ignorePaths).push(...ignore);
-                else {
-                    ignorePaths = ignorePaths.split(',');
-                    ignore = [...ignore,...ignorePaths];
-                }
-            }
+    if(argMap.server.extensions) { //watchext='../../otherlibraryfolder'
+        let extPaths = argMap.server.extensions
+        if(extPaths.includes('[')) extensions = JSON.parse(extPaths).push(...extensions);
+        else {
+            extPaths = extPaths.split(',');
+            extensions = [...extensions,...watchPaths];
+        }
+    }
+    
+    if(argMap.server.ignore) { //watch='../../otherlibraryfolder'
+        let ignorePaths = argMap.server.ignore
+        if(ignorePaths.includes('[')) ignore = JSON.parse(ignorePaths).push(...ignore);
+        else {
+            ignorePaths = ignorePaths.split(',');
+            ignore = [...ignore,...ignorePaths];
+        }
+    }
 
 
     const watcher = chokidar.watch(
@@ -181,33 +181,33 @@ export function runAndWatch(
     let watchPaths = process.cwd();
 
     const argMap = commandUtil.check(args)
-       
-            if(argMap.server.watch) { //watch='../../otherlibraryfolder'
-                watchPaths = argMap.server.watch
-                if(watchPaths.includes('[')) watchPaths = JSON.parse(watchPaths).push(process.cwd());
-                else {
-                    watchPaths = watchPaths.split(',');
-                    watchPaths = [process.cwd(),...watchPaths];
-                }
-            }
 
-            if(argMap.server.extensions) { //watchext='../../otherlibraryfolder'
-                let extPaths = argMap.server.extensions
-                if(extPaths.includes('[')) extensions = JSON.parse(extPaths).push(...extensions);
-                else {
-                    extPaths = extPaths.split(',');
-                    extensions = [...extensions,...watchPaths];
-                }
-            }
-            
-            if(argMap.server.ignore) { //watch='../../otherlibraryfolder'
-                let ignorePaths = argMap.server.ignore
-                if(ignorePaths.includes('[')) ignore = JSON.parse(ignorePaths).push(...ignore);
-                else {
-                    ignorePaths = ignorePaths.split(',');
-                    ignore = [...ignore,...ignorePaths];
-                }
-            }
+    if(argMap.server.watch) { //watch='../../otherlibraryfolder'
+        watchPaths = argMap.server.watch
+        if(watchPaths.includes('[')) watchPaths = JSON.parse(watchPaths).push(process.cwd());
+        else {
+            watchPaths = watchPaths.split(',');
+            watchPaths = [process.cwd(),...watchPaths];
+        }
+    }
+
+    if(argMap.server.extensions) { //watchext='../../otherlibraryfolder'
+        let extPaths = argMap.server.extensions
+        if(extPaths.includes('[')) extensions = JSON.parse(extPaths).push(...extensions);
+        else {
+            extPaths = extPaths.split(',');
+            extensions = [...extensions,...watchPaths];
+        }
+    }
+    
+    if(argMap.server.ignore) { //watch='../../otherlibraryfolder'
+        let ignorePaths = argMap.server.ignore
+        if(ignorePaths.includes('[')) ignore = JSON.parse(ignorePaths).push(...ignore);
+        else {
+            ignorePaths = ignorePaths.split(',');
+            ignore = [...ignore,...ignorePaths];
+        }
+    }
 
     const watcher = chokidar.watch(
         watchPaths,{

@@ -6,4 +6,10 @@ const getTemplate = async (filename) => {
     )
 }
 
+const getTemplateSync =  (filename) => {
+    return readFileSync(
+        new URL(`./${filename}`, import.meta.url)
+    )
+}
+
 export default getTemplate

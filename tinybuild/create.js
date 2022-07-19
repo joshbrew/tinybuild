@@ -1,15 +1,16 @@
 import fs from 'fs';
 import path from 'path';
-import getTemplate from "./templates/get.js";
+import getTemplateSync from "./templates/get.js";
 
+//FIX: Don't read the files just to import strings when unused.
 const textDecoder = new TextDecoder();
-const entryFileTemplate = textDecoder.decode(await getTemplate('index.js'))
-const tinybuildConfigTemplate = textDecoder.decode(await getTemplate('tinybuild.config.js'))
-const tinybuildTemplate = textDecoder.decode(await getTemplate('tinybuild.js'))
-const defaultInitScript = textDecoder.decode(await getTemplate('initScript.js'))
-const packageTemplate = JSON.parse(await getTemplate('package.json'));
-const tsconfigTemplate = await getTemplate('tsconfig.json');
-const gitignoreTemplate = await getTemplate('gitignore.md');
+const entryFileTemplate =       ()=>{return textDecoder.decode(getTemplateSync('index.js'))}
+const tinybuildConfigTemplate = ()=>{return textDecoder.decode(getTemplateSync('tinybuild.config.js'))}
+const tinybuildTemplate =       ()=>{return textDecoder.decode(getTemplateSync('tinybuild.js'))}
+const defaultInitScript =       ()=>{return textDecoder.decode(getTemplateSync('initScript.js'))}
+const packageTemplate =         ()=>{return JSON.parse(getTemplateSync('package.json'));}
+const tsconfigTemplate =        ()=>{return getTemplateSync('tsconfig.json');}
+const gitignoreTemplate =       ()=>{return getTemplateSync('gitignore.md');}
 
 const templates = {
     'index.js': entryFileTemplate,
@@ -22,6 +23,7 @@ const templates = {
 }
 
 const exportPackage = (location, content=packageTemplate) => {
+    if(typeof content === 'function') content = content();
     const template = Object.assign({}, content)
     console.log('Creating package.json')
     template.name += Math.floor(Math.random()*10000)
@@ -29,15 +31,18 @@ const exportPackage = (location, content=packageTemplate) => {
 }
 
 const tsconfig = (location, content=tsconfigTemplate) => {
+    if(typeof content === 'function') content = content();
     fs.writeFileSync(location, content)
 
 }
 
 const entry = (location, content=entryFileTemplate) => {
+    if(typeof content === 'function') content = content();
     fs.writeFileSync(location, content)
 }
 
 const config = (location, content=tinybuildConfigTemplate) => {
+    if(typeof content === 'function') content = content();
     let template = new String(content);
     const jsonLocation = path.join(process.cwd(),'package.json')
 
@@ -50,15 +55,17 @@ const config = (location, content=tinybuildConfigTemplate) => {
 }
 
 const tinybuild = (location, content=tinybuildTemplate) => {
+    if(typeof content === 'function') content = content();
     fs.writeFileSync(location, content)
 }
 
 const initScript = (name, content=defaultInitScript) => {
+    if(typeof content === 'function') content = content();
     fs.writeFileSync(name, content)
 }
 
 const gitignore = () => {
-    fs.writeFileSync(path.join(dirName,'.gitignore'), gitignoreTemplate)
+    fs.writeFileSync(path.join(dirName,'.gitignore'), gitignoreTemplate())
 }
 
 export default {
