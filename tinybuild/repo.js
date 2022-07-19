@@ -520,7 +520,7 @@ packager(config);
 
             
         if(!fs.existsSync(packagePath)) create.package(packagePath)
-        if(!fs.existsSync('.gitignore')) create.gitignore()
+        if(!fs.existsSync(path.join(process.cwd(),'.gitignore'))) create.gitignore()
 
     }
 
