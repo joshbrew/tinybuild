@@ -39,8 +39,8 @@ const handleImport = async (pathStr, tryFileExtension=true) => {
       if (!text.includes("Couldn't find the requested file")) {
         return text
       } else {
+        const fileExtensionPath = pathPrefix + path.join(...pathDir, filename, 'index.js')
         if (tryFileExtension) {
-          const fileExtensionPath = pathPrefix + path.join(...pathDir, filename, 'index.js')
         const {cachename, text} = await handleImport( fileExtensionPath, false)
       } else console.error('Could not find file', fileExtensionPath)
 
