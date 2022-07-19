@@ -463,7 +463,7 @@ export async function initRepo(
 
     if(!fs.existsSync(dirName)) fs.mkdirSync(dirName); //will be made in the folder calling the init script
 
-    create.initScript(path.join(dirName, entryPoints), initScript)
+    if(!fs.existsSync(path.join(dirName, entryPoints))) create.initScript(path.join(dirName, entryPoints), initScript)
 
     //copy the bundler files
     const tinybuildPath = path.join(dirName, 'tinybuild.js')
@@ -482,7 +482,7 @@ let config = ${JSON.stringify(config)};
 packager(config);
         `);
     
-        create.package(packagePath)
+        if(!fs.existsSync(packagePath)) create.package(packagePath)
 
     }
     else { //tinybuild js using a copy of the source and other prepared build files
@@ -505,7 +505,7 @@ packager(config);
 
         copyFolderRecursiveSync('tinybuild',tinybuildPath);
 
-        create.tinybuild(tinybuildPath,`
+        if(!fs.existsSync(tinybuildPath)) create.tinybuild(tinybuildPath,`
 //create an init script (see example)
 //node init.js to run the packager function
 
@@ -519,8 +519,8 @@ packager(config);
         `);
 
             
-        create.package(packagePath)
-        create.gitignore()
+        if(!fs.existsSync(packagePath)) create.package(packagePath)
+        if(!fs.existsSync('.gitignore')) create.gitignore()
 
     }
 
