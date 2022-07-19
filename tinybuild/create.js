@@ -9,7 +9,7 @@ const tinybuildTemplate = textDecoder.decode(await getTemplate('tinybuild.js'))
 const defaultInitScript = textDecoder.decode(await getTemplate('initScript.js'))
 const packageTemplate = JSON.parse(await getTemplate('package.json'));
 const tsconfigTemplate = await getTemplate('tsconfig.json');
-const gitignoreTemplate = await getTemplate('getignore.md');
+const gitignoreTemplate = await getTemplate('gitignore.md');
 
 const templates = {
     'index.js': entryFileTemplate,
