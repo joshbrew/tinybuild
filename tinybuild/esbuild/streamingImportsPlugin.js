@@ -11,8 +11,8 @@ const handleImport = async (pathStr, tryFileExtension=true) => {
   const pathArr = pathStr.split('/')
   const pathSlice = pathArr.splice(2)
   const pathAddition = ['node_modules','.cache', ...pathSlice]
-  const pathDir = path.dirname(path.join(...pathSlice)).split('/')
-  const dir = path.dirname(path.join(...pathAddition)).split('/')
+  const pathDir = path.dirname(path.join(...pathSlice)).split(path.sep)
+  const dir = path.dirname(path.join(...pathAddition)).split(path.sep)
   const filename = path.basename(pathStr) ?? 'index.js'
   let cachepath = path.join(process.cwd(), ...dir, filename);
 
