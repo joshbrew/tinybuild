@@ -3,7 +3,9 @@
 import fs from 'fs'
 import path from 'path';
 
-const re = /import([ \n\t]*(?:\* (?:as .*))?(?:[^ \n\t\{\}]+[ \n\t]*,?)?(?:[ \n\t]*\{(?:[ \n\t]*[^ \n\t"'\{\}]+[ \n\t]*,?)+\})?[ \n\t]*)from[ \n\t]*(['"])([^'"\n]+)(?:['"])([ \n\t]*assert[ \n\t]*{type:[ \n\t]*(['"])([^'"\n]+)(?:['"])})?/g 
+// NOTE: Will be thrown by comments, but is not catastrophic
+const re = /import([ \n\t]*(?:(?:\* (?:as .+))|(?:[^ \n\t\{\}]+[ \n\t]*,?)|(?:[ \n\t]*\{(?:[ \n\t]*[^ \n\t"'\{\}]+[ \n\t]*,?)+\}))[ \n\t]*)from[ \n\t]*(['"])([^'"\n]+)(?:['"])([ \n\t]*assert[ \n\t]*{type:[ \n\t]*(['"])([^'"\n]+)(?:['"])})?/g 
+
 
 const handleImport = async (pathStr, tryFileExtension=true) => {
   const pathArr = pathStr.split('/')
@@ -43,10 +45,10 @@ const handleImport = async (pathStr, tryFileExtension=true) => {
         if (tryFileExtension) {
         const {cachename, text} = await handleImport( fileExtensionPath, false)
       } else console.error('Could not find file', fileExtensionPath)
-
         return 
       }
     })
+
     
     if (text) {
      text = await text.toString('utf-8')
@@ -55,12 +57,17 @@ const handleImport = async (pathStr, tryFileExtension=true) => {
     let m;
     do {
         m = re.exec(text)
+
         if (m == null) m = re.exec(text); // be extra sure (weird bug)
         if (m) {
             text = text.replace(m[0], ``) // Replace found text
             const importPath = m[3]
-            const updatedPath = pathPrefix + path.join(...pathDir, importPath)
-            await handleImport(updatedPath)
+
+            // Only cache JS files
+            if (importPath.slice(-2) === 'js'){
+              const updatedPath = pathPrefix + path.join(...pathDir, importPath)
+              await handleImport(updatedPath)
+            } else break; // abort further imports. TODO: Check whether we can 
         }
     } while (m);
 
