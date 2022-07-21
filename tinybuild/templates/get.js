@@ -1,15 +1,13 @@
-import { readFile } from 'fs/promises';
+import { readFile, readFileSync } from 'fs';
 
-const getTemplate = async (filename) => {
+export const getTemplate = async (filename) => {
     return await readFile(
         new URL(`./${filename}`, import.meta.url)
     )
 }
 
-const getTemplateSync =  (filename) => {
+export const getTemplateSync =  (filename) => {
     return readFileSync(
         new URL(`./${filename}`, import.meta.url)
     )
 }
-
-export default getTemplate
