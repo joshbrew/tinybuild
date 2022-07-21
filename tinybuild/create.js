@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import getTemplateSync from "./templates/get.js";
+import {getTemplateSync} from "./templates/get.js";
 
 //FIX: Don't read the files just to import strings when unused.
 const textDecoder = new TextDecoder();
