@@ -8,7 +8,7 @@ If not included, copy the index.html to dist so it copies to the mobile project 
 #### In your project root
 `npm i`
 
-Edit the index.js and optionally the index.html in the `www/` folder. All public asset files need to end up in `www/`
+Edit the index.js and optionally the index.html in the `dist/` folder. All public asset files need to end up in `dist/`
 
 
 #### Build step: 
