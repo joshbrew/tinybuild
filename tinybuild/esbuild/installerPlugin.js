@@ -10,7 +10,7 @@ export const installerPlugin = { //modified from https://github.com/evanw/esbuil
         builder.onResolve({ filter: /.*/}, async (args) => {
             if((args.kind.includes('import') || args.kind.includes('require')) && !args.importer.includes('node_modules')){
                 if(args.path.includes('@') || !(args.path.includes('/') || args.path.includes('\\'))) {
-                    if(!fs.existsSync(path.join('node_modules',path.basename(args.path)))) {
+                    if(!fs.existsSync(path.join('node_modules',path.basename(args.path))) && !fs.existsSync(path.join('node_modules', args.path))) {
                         try {
                             let dep = await import(args.path)//.meta.resolve(args.path);
                             if(!dep) throw 'Not found';
