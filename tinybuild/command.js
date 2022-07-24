@@ -22,6 +22,11 @@ export const get = (args=process.argv) => {
             const key = v.replaceAll('-', '').trim()
             argMap[key] = reversedArgv[i+1]
         } 
+        else if (v.includes('=')) {
+            let split = v.split('=');
+            const key = split[0];
+            argMap[key] = split[1];
+        }
         else if (Object.keys(commands.bare).includes(v)) {
             argMap[v] = true
         }
