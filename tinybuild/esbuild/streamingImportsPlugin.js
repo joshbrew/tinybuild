@@ -53,14 +53,17 @@ const handleImport = async (pathStr, tryFileExtension=true) => {
     if (text) {
      text = await text.toString('utf-8')
 
+    let textCopy = text
     // Get Internal Imports
     let m;
     do {
-        m = re.exec(text)
+        m = re.exec(textCopy)
 
-        if (m == null) m = re.exec(text); // be extra sure (weird bug)
+        if (m == null) m = re.exec(textCopy); // be extra sure (weird bug)
         if (m) {
-            text = text.replace(m[0], ``) // Replace found text
+          console.log('found', m[0])
+
+            textCopy = textCopy.replace(m[0], ``) // Replace found text in checked string
             const importPath = m[3]
 
             // Only cache JS files
