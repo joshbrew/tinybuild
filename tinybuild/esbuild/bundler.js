@@ -25,7 +25,7 @@ export const defaultBundler = {
   //outdir:[]               //exit point files, define for multiple bundle files
   bundle:true,
   platform: 'browser', //'node' //bundleNode will use 'node' mode by default
-  minify: true,
+  minify: true, //https://esbuild.github.io/api/#minify
   sourcemap: false,
   plugins:[streamingImportsPlugin,workerPlugin({blobWorkers:true}),installerPlugin], //{importmap:{imports:{[key:string]: string}}, directory: string}
   //plugins:[cache(defaultBundler.cachePluginSettings), dtsPlugin()],
@@ -489,6 +489,8 @@ function cleanupConfig(cfg={}) { //should just use a defaults list for the esbui
   delete cfg.init;
   delete cfg.bundleHTML;
   delete cfg.defaultConfig;
+
+  if(cfg.minifyWhitespace || cfg.minifySyntax || cfg.minifyIdentifiers) cfg.minify = false;
 }
 
 

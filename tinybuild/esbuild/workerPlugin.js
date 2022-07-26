@@ -30,7 +30,7 @@ export const workerPlugin = (config={blobWorkers:true}) => {
                     await build({
                         entryPoints: [args.path],//[path.join(process.cwd(),'.temp','workerwrapper.js')],
                         outfile,
-                        minify: false,
+                        minifyWhitespace: true,
                         bundle: true,
                     });
     
