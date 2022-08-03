@@ -57,7 +57,7 @@ process.on('SIGINT', exitHandler.bind(null, {exit:true}));
 //pass string argument array or pass a config object
 export async function runTinybuild(args) {
 
-    console.time('🚀 Starting tinybuild...');
+    console.time('\n🚀   Starting tinybuild...');
 
     //console.log(args)
     let tinybuildCfg = {}
@@ -214,10 +214,10 @@ export async function runTinybuild(args) {
     } 
 
 
-    if(!SERVER_PROCESS) console.timeEnd('🚀 Starting tinybuild...');
+    if(!SERVER_PROCESS) console.timeEnd('\n🚀   Starting tinybuild...');
     else {
         SERVER_PROCESS.process.on('spawn',()=>{
-            console.timeEnd('🚀 Starting tinybuild...');
+            console.timeEnd('\n🚀   Starting tinybuild...');
         })
     }
 

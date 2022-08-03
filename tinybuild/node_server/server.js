@@ -283,10 +283,8 @@ function onUpgrade(request, socket, head, cfg, sockets) { //https://github.com/w
 //runs when the server starts successfully.
 function onStarted(cfg) {      
     
-    console.timeEnd(`🐱 Node server started!`);
-    console.log(`Server running at 
-        ${cfg.protocol}://${cfg.host}:${cfg.port}/`
-    );
+    console.timeEnd(`\n🐱   Node server started!`);
+    console.log(`Server running at ${cfg.protocol}://${cfg.host}:${cfg.port}/`);
 }
 
 // create the http/https server. For hosted servers, use the IP and open ports. Default html port is 80 or sometimes 443
@@ -311,7 +309,7 @@ export const serve = (cfg=defaultServer) => {
     //catches ctrl+c event
     process.on('SIGINT', exitHandler.bind(null, {exit:true}));
 
-    console.time(`🐱 Node server started!`);
+    console.time(`\n🐱   Node server started!`);
 
 
     let obj = Object.assign({}, defaultServer); // Make modules editable
