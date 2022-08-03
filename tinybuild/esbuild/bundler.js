@@ -4,7 +4,6 @@
 
 //const cwd = process.cwd()
 import esbuild from 'esbuild'
-import {dtsPlugin} from './.d.ts_plugin/index.cjs';
 import {streamingImportsPlugin} from './streamingImportsPlugin.js'
 import {workerPlugin} from './workerPlugin.js'
 import { installerPlugin } from './installerPlugin.js';
@@ -423,6 +422,9 @@ export async function bundleCommonJS(config) {
 ///bundle .d.ts and .iife.js files
 export async function bundleTypes(config) {
   console.time(`\n 🪐 Built .d.ts files`);
+
+  const plugin = await import('./.d.ts_plugin/index.cjs'); // Dynamic import to avoid typescript requirement
+  const dtsPlugin = plugin.dtsPlugin
   
   if(!config.defaultConfig) config = Object.assign(JSON.parse(JSON.stringify(defaultBundler)),config); //add defaults 
 
