@@ -421,6 +421,7 @@ export async function bundleCommonJS(config) {
 
 ///bundle .d.ts and .iife.js files
 export async function bundleTypes(config) {
+  console.log(`\n🪐   Starting to bundle types   🪐`);
   console.time(`\n🪐   Built .d.ts files`);
 
   let dtsPlugin;
