@@ -1,5 +1,14 @@
 # tinybuild
-Minimal [esbuild](https://esbuild.github.io/getting-started/#your-first-bundle), [Nodejs](https://developer.mozilla.org/en-US/docs/Learn/Server-side/Node_server_without_framework), and [Python Quart](https://pgjones.gitlab.io/quart/) concurrent build and test env.  
+- Minimal [esbuild](https://esbuild.github.io/getting-started/#your-first-bundle) presets with custom plugins for all of your common javascript packaging needs, 
+- [Nodejs](https://developer.mozilla.org/en-US/docs/Learn/Server-side/Node_server_without_framework) hot reloading test environment, 
+- Bonus [Python Quart](https://pgjones.gitlab.io/quart/) concurrent build and test env. 
+
+The repo contains examples for hybrid web and native mobile apps with a lightweight test environment with minimal dependencies.
+
+Create PWAs, multithreaded programs with web workers, any js or ts packages, generate types, minify, set global variables, etc. 
+- It's easier, faster, and leaner than webpack or any other common bundler.
+
+The bundler and server presets include a full CLI, config file, or functional (in-script) wrapper for esbuild and server customization, and for creating multiple distributions from a single config (e.g. for browser, esm, node). Bundles and serves complicated libraries and programs in milliseconds with a hot reloading test environment, and makes it easier to scale to production.
 
 ![tinybuild-status](https://img.shields.io/npm/v/tinybuild.svg) 
 ![tinybuild-downloads](https://img.shields.io/npm/dt/tinybuild.svg)
