@@ -128,8 +128,8 @@ var dtsPlugin = (opts = {}) => ({
       const emit = finalprogram.emit();
       let final = "";
       if (emit.emitSkipped || typeof emit.emittedFiles === "undefined") {
-        if (l.includes("warning"))
-          console.log(`Typescript did not emit anything`);
+        // if (l.includes("warning"))
+        //   console.log(`Typescript did not emit anything`);
       } else {
         for (const emitted of emit.emittedFiles) {
           if ((0, import_fs2.existsSync)(emitted) && !emitted.endsWith(".tsbuildinfo")) {
