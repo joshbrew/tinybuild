@@ -59,23 +59,27 @@ function onRequest(request, response, cfg) {
         requestURL = cfg.startpage; //point to the start page
     }
 
+    const missing = (content) => {
+        response.writeHead(404, { 'Content-Type': 'text/html' }); //set response headers
+
+                        
+        //add hot reload if specified
+        if(process.env.HOTRELOAD && requestURL.endsWith('.html') && cfg.hotreload) {
+            content = addHotReloadClient(content,`${cfg.socket_protocol}://${cfg.host}:${cfg.port}/hotreload`);
+        }
+
+        response.end(content, 'utf-8'); //set response content
+
+        //console.log(content); //debug
+    }
+
     //read the file on the server
     if(fs.existsSync(requestURL)){
         fs.readFile(requestURL, (error, content) => {
             if (error) {
                 if(error.code == 'ENOENT') { //page not found: 404
                     fs.readFile(cfg.errpage, (er, content) => {
-                        response.writeHead(404, { 'Content-Type': 'text/html' }); //set response headers
-
-                        
-                        //add hot reload if specified
-                        if(process.env.HOTRELOAD && requestURL.endsWith('.html') && cfg.hotreload) {
-                            content = addHotReloadClient(content,`${cfg.socket_protocol}://${cfg.host}:${cfg.port}/hotreload`);
-                        }
-
-                        response.end(content, 'utf-8'); //set response content
-
-                        //console.log(content); //debug
+                        missing(content)
                     });
                 }
                 else { //other error
@@ -251,6 +255,7 @@ function onRequest(request, response, cfg) {
         });
     } else {
         if(cfg.debug) console.log(`File ${requestURL} does not exist on path!`);
+        missing()
     }
 
     //console.log(response); //debug
