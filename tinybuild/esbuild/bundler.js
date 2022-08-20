@@ -246,7 +246,7 @@ export async function bundleBrowser(config) {
       if(typeof config.globals === 'object') {
         if(config.globals[f]) { //e.g. {globals:{entryPoints[0]:['Graph','Router','AcyclicGraph']}
           bundleWrapper += `
-          (${JSON.stringify(otherkeys)}).forEach((key) => {
+          (${JSON.stringify(Object.keys(config.globals[f]))}).forEach((key) => {
             if(bundle[key]) {
               globalThis[key] = bundle[key];
             }
