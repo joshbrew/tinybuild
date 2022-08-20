@@ -68,7 +68,7 @@ export const defaultBundler = {
   defaultConfig: true //indicates this object is the default config
   //globalThis:null //'brainsatplay'
   //globals:{[this.entryPoints[0]]:['Graph']}
-  //init:{[this.entryPoints[0]:function(bundle) { console.log('prepackaged bundle script!', bundle); }]}
+  //init:{[this.entryPoints[0]]:function(bundle) { console.log('prepackaged bundle script!', bundle); }.toString()}
 }
 
 
@@ -237,8 +237,10 @@ export async function bundleBrowser(config) {
 
       if(propname) {    
         bundleWrapper += `   
-          if(typeof globalThis['${propname}'] !== 'undefined') Object.assign(globalThis['${propname}'],bundle); //we can keep assigning the same namespaces more module objects without error!
-          else globalThis['${propname}'] = bundle;
+          if(typeof globalThis['${propname}'] !== 'undefined') 
+            Object.assign(globalThis['${propname}'],bundle); //we can keep assigning the same namespaces more module objects without error!
+          else 
+            globalThis['${propname}'] = bundle;
         `
       }
 
@@ -246,7 +248,7 @@ export async function bundleBrowser(config) {
       if(typeof config.globals === 'object') {
         if(config.globals[f]) { //e.g. {globals:{entryPoints[0]:['Graph','Router','AcyclicGraph']}
           bundleWrapper += `
-          (${JSON.stringify(Object.keys(config.globals[f]))}).forEach((key) => {
+          (${JSON.stringify(config.globals[f])}).forEach((key) => {
             if(bundle[key]) {
               globalThis[key] = bundle[key];
             }
@@ -260,21 +262,24 @@ export async function bundleBrowser(config) {
               console.log('this is a prebundled script to provide some initial values! bundle:', bundle);
             }}
       */
+
+      //console.log(config.init);
+
       if(typeof config.init === 'object') {
         if(config.init[f]) { 
-          bundleWrapper += `eval(${o.inif[f].toString()})(bundle)`;
+          bundleWrapper += "(0, eval)("+config.init[f]+")(bundle);";
         }
       }
 
-      if(propname) {    
-        const tempName = cwd + '/' + tempDir + '/temp_'+f.split('/').pop();
-        fs.writeFileSync( //lets make temp files to bundle our bundles (a wrapper) into globalThis properties (still import-friendly in esm!)
-          tempName,
-          bundleWrapper
-        );
+      //console.log(bundleWrapper);
+  
+      const tempName = cwd + '/' + tempDir + '/temp_'+f.split('/').pop();
+      fs.writeFileSync( //lets make temp files to bundle our bundles (a wrapper) into globalThis properties (still import-friendly in esm!)
+        tempName,
+        bundleWrapper
+      );
 
-        temp_files[i] = tempName;  
-      }
+      temp_files[i] = tempName;  
 
     }
   });

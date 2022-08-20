@@ -1,4 +1,4 @@
-import { json, uri } from "./utils.js";
+import { json } from "./utils.js";
 
 export const bundler = {
     bundleBrowser: json, 
@@ -15,6 +15,7 @@ export const bundler = {
     platform: json,
     external: json,
     globalThis: json,
-    globals: uri,
+    globals: json,
+    init: json,
     minify: json
 }

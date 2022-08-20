@@ -14,7 +14,7 @@ const config = {
         sourcemap: false
         //globalThis:null //'mymodule'
         //globals:{'index.js':['Graph']}
-        //init:{'index.js':function(bundle) { console.log('prepackaged bundle script!', bundle); }}      
+        //init:{'index.js':function(bundle) { console.log('prepackaged bundle script!', bundle); }.toString(); } //pass stringified functions in to init bundle scripts in a custom way (e.g. for quick rebundling)     
      },
     server: {  //node server settings, set false to skip server step or add serve:true to config object to only serve (alt methods)
         debug: false,
