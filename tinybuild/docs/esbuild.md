@@ -81,8 +81,8 @@ const bundlerSettings = {
     //iife:{}
   }
   //globalThis:null //'brainsatplay'
-  //globals:{[this.entryPoints[0]]:['Graph']}
-  //init:{[this.entryPoints[0]]:function(bundle) { console.log('prepackaged bundle script!', bundle); }}
+  //globals:{['index.ts']:['Graph']}
+  //init:{['index.ts']:function(bundle) { console.log('prepackaged bundle script!', bundle); }.toString() }
 }
 //the rest are based on what esbuild offers
 

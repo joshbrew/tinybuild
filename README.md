@@ -49,7 +49,7 @@ const config = {
         sourcemap: false
         //globalThis:null //'mymodule'
         //globals:{'index.js':['Graph']}
-        //init:{'index.js':function(bundle) { console.log('prepackaged bundle script!', bundle); }}      
+        //init:{'index.js':function(bundle) { console.log('prepackaged bundle script!', bundle); }.toString(); }      
      },
     server: {  //node server settings, set false to skip server step or add serve:true to config object to only serve (alt methods)
         debug: false,
