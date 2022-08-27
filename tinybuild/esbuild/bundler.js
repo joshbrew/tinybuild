@@ -26,7 +26,7 @@ export const defaultBundler = {
   platform: 'browser', //'node' //bundleNode will use 'node' mode by default
   minify: true, //https://esbuild.github.io/api/#minify
   sourcemap: false,
-  plugins:[streamingImportsPlugin,workerPlugin({blobWorkers:true}),installerPlugin], //{importmap:{imports:{[key:string]: string}}, directory: string}
+  plugins:[streamingImportsPlugin,workerPlugin({blobWorkers:true,bundler:{minifyWhitespace:true}}),installerPlugin], //{importmap:{imports:{[key:string]: string}}, directory: string}
   //plugins:[cache(defaultBundler.cachePluginSettings), dtsPlugin()],
   external: ['node-fetch'], //node-fetch here by default excludes a lot of default libraries if we want to compile the same code for browser and node envs (e.g. checking if process exists)
   allowOverwrite:true, 

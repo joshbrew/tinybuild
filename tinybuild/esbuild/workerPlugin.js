@@ -5,7 +5,11 @@ import fs from 'fs';
 import pkg from 'esbuild';
 const { build } = pkg;
 
-export const workerPlugin = (config={blobWorkers:true}) => {
+export const workerPlugin = (
+    config={
+        blobWorkers:true,  //if false you get a url to a relative file path, if true you get a compiled dataurl that can be loaded with new Worker(url) in either situation. The blob workers are nice for easier distribution
+        bundler:{minifyWhitespace:true} //apply any desired esbuild settings
+    }) => {
     return { //modified from https://github.com/evanw/esbuild/issues/312#issuecomment-698649833
         name:'workerloader',
         setup(builder) {
@@ -27,12 +31,11 @@ export const workerPlugin = (config={blobWorkers:true}) => {
                     else if (splitpath[splitpath.length-1] !== 'js') splitpath.push('js');
                     outfile = splitpath.join('.');
 
-                    await build({
+                    await build(Object.assign({
                         entryPoints: [args.path],//[path.join(process.cwd(),'.temp','workerwrapper.js')],
                         outfile,
-                        minifyWhitespace: true,
                         bundle: true,
-                    });
+                    },config.bundler ? config.bundler : {}));
     
                     console.log('👷 Bundled worker!', args)
             

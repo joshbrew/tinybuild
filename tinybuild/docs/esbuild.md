@@ -46,7 +46,7 @@ const bundlerSettings = {
   bundleTypes:false,   //create .d.ts files, //you need a .tsconfig for this to work
   bundleNode:false,   //create node platform plain js build, specify platform:'node' to do the rest of the files 
   bundleIIFE:false,   //create an iife build, this is compiled temporarily to create the types files
-  bundleCommonJS:false, //cjs format outputted as .cjs.js
+  bundleCommonJS:false, //cjs format outputted as .cjs
   bundleHTML:false,   //wrap the first entry point file as a plain js script in a boilerplate html file, frontend scripts can be run standalone like a .exe!
   entryPoints:['index.ts'], //entry point file(s). These can include .js, .mjs, .ts, .jsx, .tsx, or other javascript files. Make sure your entry point is a ts file if you want to generate types
   outfile:'dist/index',     //exit point file, will append .js as well as indicators like .esm.js, .node.js for other build flags
@@ -134,11 +134,12 @@ import worker from 'worker.js' //or if the worker is a ts file, '.worker' will r
 let w = new Worker(worker);
 
 ```
+
 And esbuild will bundle the worker with your distribution! You'll find the bundled workers in the same output file location. You can bundle workers directly in your app/library using our plugin (applied by default) which bundles and inserts the worker code as an inline object url. 
 
-If you set the blobWorkers setting to false using the workerPlugin in your config, it will supply the expected url to the server's node_modules folder when you install the worker library.
+If you set the blobWorkers setting to false using the workerPlugin manually in your config, it will supply the expected url to the server's node_modules folder when you install the worker library. You can set the bundler settings for the worker in the workerPlugin initialization as well, it defaults to only setting `minifyWhitespace:true` in the bundler settings. 
 
-Find our [MagicWorker](https://github.com/joshbrew/MagicWorker) library for an example bundling GPUjs and ThreeJS into a convenient worker system. 
+Find our [graphscript](https://github.com/brainsatplay/graphscript/examples) examples for multiple worker implementations for graphics rendering with threejs.
 
 ### External
 
