@@ -103,9 +103,13 @@ export async function runTinybuild(args) {
     // let scriptsrc = path.join(process.cwd(), (cliArgs.path) ? cliArgs.path : 'tinybuild.js')
     // const hasScript= fs.existsSync(scriptsrc)
 
-    if(!tinybuildCfg.path && tinybuildCfg.GLOBAL && fs.existsSync(path.join(process.cwd(),'tinybuild.config.js')) && !fs.existsSync(path.join(process.cwd(),'tinybuild.js')))  tinybuildCfg.path = path.join(tinybuildCfg.GLOBAL,'global_packager.js');
-    if(!tinybuildCfg.path && fs.existsSync(path.join(process.cwd(),'tinybuild.js'))) tinybuildCfg.path = path.join(process.cwd(),'tinybuild.js')
-    if(!tinybuildCfg.path && tinybuildCfg.GLOBAL) tinybuildCfg.path = path.join(tinybuildCfg.GLOBAL,'global_packager.js');
+    const config = path.join(process.cwd(),'tinybuild.config.js')
+    const script = path.join(process.cwd(),'tinybuild.js')
+    const global = path.join(tinybuildCfg.GLOBAL,'global_packager.js');
+
+    if(!tinybuildCfg.path && fs.existsSync(config) && !fs.existsSync(script))  tinybuildCfg.path = global
+    if(!tinybuildCfg.path && fs.existsSync(script)) tinybuildCfg.path = script
+    if(!tinybuildCfg.path && tinybuildCfg.GLOBAL) tinybuildCfg.path = global;
     if(!tinybuildCfg.path) tinybuildCfg.path = 'tinybuild.js';
 
     //scenarios:

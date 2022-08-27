@@ -173,7 +173,7 @@ export async function bundleBrowser(config) {
 
   let entryPoints = config.entryPoints;
   const cwd = process.cwd()
-  if(!config.entryPoints[0]?.includes(cwd)) config.entryPoints = config.entryPoints.map(v => cwd+'/'+v) // Append file name to current dir to get it in node
+  if(!config.entryPoints[0]?.includes(cwd)) config.entryPoints = config.entryPoints.map(v => path.join(cwd, v)) // Append file name to current dir to get it in node
   
   let cfg = Object.assign({},config);
   let modifier;
@@ -215,17 +215,18 @@ export async function bundleBrowser(config) {
       let ext = f.split('.')[f.split('.').length-1];
       let subpath = f.substring(0,f.indexOf('.'+ext));
 
+      const correctPath = path.join('../', subpath);
+
       let propname = config.globalThis;
-  
       let bundleWrapper = `
 
       //we can't circularly export a namespace for index.ts so this is the intermediary
       //import * as bundle from './x' then set globalThis[key] = bundle; The only other option is dynamic importing or a bigger bundler with more of these features built in
       
-      export * from '../${subpath}' //still works in esm, getting out of .temp
+      export * from '${correctPath}' //still works in esm, getting out of .temp
       
       //this takes all of the re-exported modules in index.ts and contains them in an object
-      import * as bundle from '../${subpath}' // getting out of .temp
+      import * as bundle from '${correctPath}' // getting out of .temp
       
       //webpack? i.e. set the bundled index.ts modules to be globally available? 
       // You can set many modules and assign more functions etc. to the same globals without error
@@ -272,8 +273,11 @@ export async function bundleBrowser(config) {
       }
 
       //console.log(bundleWrapper);
+      const split = f.split('/').pop().split('.')
+      if (split.length === 1) split.push('js');
+      const fileName = split.join('.')
   
-      const tempName = cwd + '/' + tempDir + '/temp_'+f.split('/').pop();
+      const tempName = path.join(cwd,tempDir,'temp_'+fileName);
       fs.writeFileSync( //lets make temp files to bundle our bundles (a wrapper) into globalThis properties (still import-friendly in esm!)
         tempName,
         bundleWrapper
