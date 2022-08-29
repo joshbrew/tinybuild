@@ -222,7 +222,7 @@ export async function bundleBrowser(config) {
       let ext = f.split('.')[f.split('.').length-1];
       let subpath = f.substring(0,f.indexOf('.'+ext));
 
-      const correctPath = path.join('../', subpath);
+      const correctPath = '../'+subpath;//path.join('../', subpath); //broken on windows
 
       let propname = config.globalThis;
       let bundleWrapper = `
