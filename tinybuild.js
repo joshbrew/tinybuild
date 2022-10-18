@@ -136,7 +136,7 @@ export async function runTinybuild(args) {
 
     // with the extra settings we can apply them to the packager config
 
-    if(!fs.existsSync(path.join(process.cwd(),'node_modules','tinybuild')) && !fs.existsSync(path.join(process.cwd(),'tinybuild'))) { 
+    if(!fs.existsSync(path.join(process.cwd(),'node_modules','tinybuild'))) { 
         execSync('npm link tinybuild');
     }
 

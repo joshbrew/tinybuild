@@ -193,16 +193,17 @@ export async function bundleBrowser(config) {
     }
   }
 
-  if(cfg.format) delete cfg.format;
-  if(cfg.outfile) {
-    if(!cfg.outfile.endsWith('.js')) cfg.outfile += '.js';
-  }
-  else if (cfg.outdir) {
+  if(cfg.format) delete cfg.format; 
+  
+  if (cfg.outdir) {
     if(cfg.outfile) delete cfg.outfile;
     cfg.outdir = cfg.outdir.map(v => {
-      if(!cfg.outfile.endsWith('.js')) v += '.js';
+      if(!v.endsWith('.js')) v += '.js';
       return v;
     });
+  }
+  else if(cfg.outfile) {
+    if(!cfg.outfile.endsWith('.js')) cfg.outfile += '.js';
   }
 
   cleanupConfig(cfg);
