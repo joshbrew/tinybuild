@@ -52,14 +52,17 @@ function onRequest(request, response, cfg) {
     if(cfg.debug) console.log('request ', request.url);
     //console.log(request); //debug
 
+
     //process the request, in this case simply reading a file based on the request url    
-    var requestURL = '.' + request.url;
+    const testURL = 'http://localhost'
+    var requestURL = '.' + new URL( testURL +  request.url).pathname
 
     if (requestURL == './') { //root should point to start page
         requestURL = cfg.startpage; //point to the start page
     }
 
     const missing = (content) => {
+
         response.writeHead(404, { 'Content-Type': 'text/html' }); //set response headers
 
                         
