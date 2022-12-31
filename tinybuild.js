@@ -145,7 +145,7 @@ export async function runTinybuild(args) {
 
         if(tinybuildCfg.start) { //execute the tinybuild.js in the working directory instead of our straight packager.
 
-            if(!fs.existsSync(path.join(process.cwd(),'package.json')) || !fs.existsSync(path.join(process.cwd(),tinybuildCfg.path)) ||  (tinybuildCfg.bundleTypes && !fs.existsSync(path.join(process.cwd(),'tsconfig.json')))) {
+            if(!cliArgs.path && (!fs.existsSync(path.join(process.cwd(),'package.json')) || !fs.existsSync(path.join(process.cwd(),tinybuildCfg.path)) ||  (tinybuildCfg.bundleTypes && !fs.existsSync(path.join(process.cwd(),'tsconfig.json'))))) {
                 await checkBoilerPlate(tinybuildCfg);
             }
 
@@ -154,13 +154,13 @@ export async function runTinybuild(args) {
         }
         else if (cliArgs.mode === 'python') { //make sure your node_server config includes a python port otherwise it will serve the index.html and dist
             //check if python server.py folder exists, copy if not
-            if(!fs.existsSync(path.join(process.cwd(),'package.json')) || !fs.existsSync(path.join(process.cwd(),tinybuildCfg.path)) || !fs.existsSync(path.join(process.cwd(),'tinybuild')) || (tinybuildCfg.bundleTypes && !fs.existsSync(path.join(process.cwd(),'tsconfig.json')))) {
+            if(!cliArgs.path && (!fs.existsSync(path.join(process.cwd(),'package.json')) || !fs.existsSync(path.join(process.cwd(),tinybuildCfg.path)) || !fs.existsSync(path.join(process.cwd(),'tinybuild.js')) || (tinybuildCfg.bundleTypes && !fs.existsSync(path.join(process.cwd(),'tsconfig.json'))))) {
                 checkCoreExists();
                 await checkBoilerPlate(tinybuildCfg);
             }
 
-            let distpath = 'dist/index.js';
-            if(tinybuildCfg.bundler?.outfile) distpath = tinybuildCfg.bundler.outfile + '.js';
+            let distpath = 'dist/index';
+            if(tinybuildCfg.bundler?.outfile && !tinybuildCfg.bundler.outfile.endsWith('js')) distpath = tinybuildCfg.bundler.outfile + '.js';
             else if (tinybuildCfg.bundler.entryPoints) {
                 let entry = tinybuildCfg.bundler.entryPoints.split('.');
                 entry.pop();
@@ -172,7 +172,7 @@ export async function runTinybuild(args) {
 
             spawn('python',['tinybuild/python/server.py']); //this can exit independently or the node server will send a kill signal
 
-            if(!fs.existsSync(path.join(process.cwd(),'package.json')) || !fs.existsSync(path.join(process.cwd(),tinybuildCfg.path)))
+            if(!cliArgs.path && (!fs.existsSync(path.join(process.cwd(),'package.json')) || !fs.existsSync(path.join(process.cwd(),tinybuildCfg.path))))
                 await checkBoilerPlate(tinybuildCfg)
 
             SERVER_PROCESS = runAndWatch(tinybuildCfg.path, cmdargs); //runNodemon(tinybuildCfg.path);
@@ -181,7 +181,7 @@ export async function runTinybuild(args) {
         else if (cliArgs.mode === 'dev') { //run a local dev server copy
             //check if dev server folder exists, copy if not
         
-            if(!fs.existsSync(path.join(process.cwd(),'package.json')) || !fs.existsSync(path.join(process.cwd(),tinybuildCfg.path)) || !fs.existsSync(path.join(process.cwd(),'tinybuild')) || (tinybuildCfg.bundleTypes && !fs.existsSync(path.join(process.cwd(),'tsconfig.json')))) {
+            if(!cliArgs.path && (!fs.existsSync(path.join(process.cwd(),'package.json')) || !fs.existsSync(path.join(process.cwd(), tinybuildCfg.path)) || !fs.existsSync(path.join(process.cwd(),'tinybuild.js')) || (tinybuildCfg.bundleTypes && !fs.existsSync(path.join(process.cwd(),'tsconfig.json'))))) {
                 checkCoreExists();
                 checkNodeModules();
                 await checkBoilerPlate(tinybuildCfg);
@@ -201,7 +201,7 @@ export async function runTinybuild(args) {
         }
         else {
 
-            if(!fs.existsSync(path.join(process.cwd(),'package.json')) || (!fs.existsSync(path.join(process.cwd(),'tinybuild.config.js')) && !fs.existsSync(path.join(process.cwd(),'tinybuild.js'))) || (tinybuildCfg.bundleTypes && !fs.existsSync(path.join(process.cwd(),'tsconfig.json'))))
+            if(!cliArgs.path && (!fs.existsSync(path.join(process.cwd(),'package.json')) || (!fs.existsSync(path.join(process.cwd(),'tinybuild.config.js')) && !fs.existsSync(path.join(process.cwd(),'tinybuild.js'))) || (tinybuildCfg.bundleTypes && !fs.existsSync(path.join(process.cwd(),'tsconfig.json')))))
                 {
                     await checkBoilerPlate(tinybuildCfg); //install boilerplate if repo lacks package.json
                     tinybuildCfg.path = path.join(process.cwd(),'tinybuild.config.js');
