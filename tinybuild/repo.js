@@ -382,7 +382,9 @@ export async function checkBoilerPlate(tinybuildCfg=defaultConfig,onlyConfig=tru
     if(tinybuildCfg.server?.startpage) {
         htmlPath = tinybuildCfg.server.startpage;
     } 
-    needHTML = !fs.existsSync(htmlPath) && tinybuildCfg.server;
+    if(tinybuildCfg.server) {
+        needHTML = !fs.existsSync(htmlPath);
+    }
     if(tinybuildCfg.bundler?.entryPoints[0]) {
         entryFile = tinybuildCfg.bundler.entryPoints[0];
     } 
