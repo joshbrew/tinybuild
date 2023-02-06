@@ -132,3 +132,11 @@ Server arguments:
 ### Other notes:
 
 See README.md files in each subfolder for more explanation on how to work with these types of applications.
+
+#### Installation Issues
+If you've installed tinybuild on Mac and it isn't working, try running the following command in the terminal based in [this StackOverflow Post](https://stackoverflow.com/questions/30344858/node-script-executable-not-working-on-mac-env-node-r-no-such-file-or-directo):
+
+```
+brew install dos2unix
+sudo dos2unix node_modules/tinybuild/tinybuild/bin/global.js
+```
