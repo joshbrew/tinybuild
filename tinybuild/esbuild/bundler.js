@@ -63,13 +63,13 @@ export const defaultBundler = {
   },
   outputs:{ //overwrites main config settings for specific use cases
     node:{ 
-      external:[] //externals for node environment builds
+      // external:[] //externals for node environment builds
     },
     //commonjs:{}
     //browser:{}
     //esm:{}
     iife:{
-      external:[] //we only use the iife for types so it doesn't really matter if it bundles node, just note otherwise if you need iife for some obscure reason
+      // external:[] //we only use the iife for types so it doesn't really matter if it bundles node, just note otherwise if you need iife for some obscure reason
     }
   },
   defaultConfig: true //indicates this object is the default config
@@ -102,6 +102,7 @@ export async function bundle(configs) {
     const bundles = {
       config
     }
+
     
     if(config.bundleBrowser){ // kinda UMD
       bundles.browser = await bundleBrowser(config);
@@ -296,6 +297,7 @@ export async function bundleBrowser(config) {
     }
   });
 
+
   return await esbuild.build(cfg).then(()=>{
     console.timeEnd('\n☄️    Built UMD-like .js file(s) for browser');
 
@@ -367,7 +369,7 @@ export async function bundleNode(config) {
   if(!config.entryPoints[0]?.includes(cwd)) config.entryPoints = config.entryPoints.map(v => cwd+'/'+v) // Append file name to current dir to get it in node
 
   let cfg = Object.assign({},config);
-  cfg.external = config.node_external;
+
   let modifier;
   if(typeof config.bundleNode === 'object') modifier = config.bundleNode;
   else if(config.outputs?.node) modifier = config.outputs.node;
