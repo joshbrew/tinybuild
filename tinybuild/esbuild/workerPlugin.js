@@ -56,12 +56,14 @@ export const workerPlugin = (
                         name = name.split(':')[1].split('"')[1];
                         //console.log(name);
                     }
-    
+   
                     //console.log(outfile);
                     if(config?.blobWorkers) {
+
                         return { //resolve the file as an object url
                             contents:`
-                                let url = URL.createObjectURL(new Blob([String(${JSON.stringify(fs.readFileSync(outfile).toString())})],{type:"text/javascript"}));
+                                const str = String(${JSON.stringify(fs.readFileSync(outfile).toString())})
+                                let url = URL.createObjectURL(new globalThis.Blob([str],{type:"text/javascript"}));
                                 export default url;
                             `
                         }
