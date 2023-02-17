@@ -55,7 +55,7 @@ export async function packager(config=defaultConfig, exitOnBundle=true) {
             if(!outfile && config.bundler.outdir) outfile = config.bundler.outdir[0];
             if(!outfile) outfile = 'dist/index' //defaults
 
-            let path = outfile+'.build.html';
+            let path = outfile+'.html';
 
             console.log('Default HTML app bundled: ', path);
                         
