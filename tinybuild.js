@@ -72,8 +72,9 @@ export async function runTinybuild(args) {
         cmdargs = process.argv;
         let dupResults = (str) => {
             if(Array.isArray(tinybuildCfg.server[str])) tinybuildCfg.server[str] = tinybuildCfg.server[str].join(',');
-            let cmdarg, argidx;
+
             for(let i = 0; i<cmdargs.length; i++) {
+                let cmdarg, argidx;
                 if(cmdargs[i].includes(str)) {
                     cmdarg = cmdargs[i].split('=')[1];
                     if(cmdarg.includes('[')) cmdarg = JSON.parse(cmdarg);
@@ -81,11 +82,11 @@ export async function runTinybuild(args) {
                     argidx = i;
                     break;
                 }
+                if(cmdarg) {
+                    cmdargs[i] = str+'='+tinybuildCfg.server[str]+','+cmdarg;
+                }
+                else cmdargs.push(str+'='+tinybuildCfg.server[str]);
             }
-            if(cmdarg) {
-                cmdargs[i] = str+'='+tinybuildCfg.server[str]+','+cmdarg;
-            }
-            else cmdargs.push(str+'='+tinybuildCfg.server[str]);
         }
         dupResults('watch');
         dupResults('ignore');
