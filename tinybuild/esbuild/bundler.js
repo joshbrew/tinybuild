@@ -140,7 +140,7 @@ export async function bundle(configs) {
 export function bundleHTML(fromJSPath, config) {
 
   let split = fromJSPath.split('.'); split.pop();
-  let p = split.join('.')+'.build.html';
+  let p = split.join('.')+'.html';
 
   let template =     
   `<!DOCTYPE html>
