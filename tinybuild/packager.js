@@ -20,8 +20,8 @@ export async function packager(config=defaultConfig, exitOnBundle=true) {
 
     if(process?.argv) { //add any command line arguments
         let parsed = parseArgs(process.argv);
-        //console.log('args: ', process.argv);
-        //console.log('parsed args: ', parsed);
+        // console.log('args: ', process.argv);
+        // console.log('parsed args: ', parsed);
         
         if(parsed.bundler) Object.assign(config.bundler,parsed.bundler);
         else if ('bundler' in parsed) {
@@ -34,19 +34,15 @@ export async function packager(config=defaultConfig, exitOnBundle=true) {
             config.server = parsed.server;
             if(!parsed.bundler) delete parsed.bundler;
         }
-
-
-        //console.log(parsed);
          
         if(parsed.serve) config.serve = true;
-        if(parsed.bundle) config.bundle = true;
+        if(parsed.build) config.build = true;
     }
     
-    //console.log('using config: ',config);
-
     let packaged = {}
     
     if(config.bundler && !config.serve || (!config.bundler && !config.server && !config.serve)) {
+
         packaged.bundles = await bundler.bundle(config.bundler);
 
         if(config.bundler?.bundleHTML) { //serve the bundled app page 
@@ -63,12 +59,12 @@ export async function packager(config=defaultConfig, exitOnBundle=true) {
         }
     }
     
-    if((config.server && !config.bundle) || (!config.bundler && !config.server)) { //now serve the default server
+    if((config.server && !config.build) || (!config.bundler && !config.server)) { //now serve the default server
         packaged.server = await server.serve(config.server);
     }
     console.timeEnd('\n🎂   Packager finished!');
 
-    if(((config.bundle || !config.server) && !(!config.bundler && !config.server)) && exitOnBundle) {
+    if(((config.build || !config.server) && !(!config.bundler && !config.server)) && exitOnBundle) {
         process.exit();
     }
 

@@ -38,8 +38,6 @@ import {exec, execSync, spawn} from 'child_process';
 
 //import nodemon from 'nodemon';
 
-
-
 function exitHandler(options, exitCode) {
 
     //if (exitCode || exitCode === 0) console.log('tinybuild exit code: ',exitCode);
@@ -62,6 +60,10 @@ export async function runTinybuild(args) {
     //console.log(args)
     let tinybuildCfg = {}
     let cmdargs = [];
+
+    process.argv.forEach((v,i) => {
+        if (v === 'bundle') process.argv[i] = 'build'; // Build is the default, bundle is an alias
+    })
 
     if(Array.isArray(args)) {
         cmdargs = args;
@@ -190,13 +192,13 @@ export async function runTinybuild(args) {
 
             SERVER_PROCESS = runAndWatch(tinybuildCfg.path, cmdargs); //runNodemon(tinybuildCfg.path);
         }
-        // else if (tinybuildCfg.bundle || cmdargs.includes('bundle')) {
+        // else if (tinybuildCfg.build || cmdargs.includes('bundle')) {
         //     delete tinybuildCfg.serve; //don't use either arg to run both
         //     tinybuildCfg.server = null;
         //     runOnChange('node',[tinybuildCfg.path, `config=${(JSON.stringify(tinybuildCfg))}`, ...cmdargs])
         // }
         else if (tinybuildCfg.serve || cmdargs.includes('serve')) {
-            delete tinybuildCfg.bundle; //don't use either arg to run both
+            delete tinybuildCfg.build; //don't use either arg to run both
             tinybuildCfg.bundler = null;
             SERVER_PROCESS = runAndWatch(tinybuildCfg.path,  [`--config`, `${(JSON.stringify(tinybuildCfg))}`,...cmdargs]);
         }
@@ -209,7 +211,7 @@ export async function runTinybuild(args) {
                 }
                 //console.log('spawning!!', tinybuildCfg)
             
-            if((tinybuildCfg.server && !tinybuildCfg.bundle && !cmdargs.includes('bundle')) || tinybuildCfg.path.includes('tinybuild.js')) { 
+            if((tinybuildCfg.server && !tinybuildCfg.build && !cmdargs.includes('build')) || tinybuildCfg.path.includes('tinybuild.js')) { 
                 SERVER_PROCESS = runAndWatch(tinybuildCfg.path, ['--config', `${(JSON.stringify(tinybuildCfg))}`,...cmdargs]);
             }
             else packager(tinybuildCfg); //else just run the bundler and quit

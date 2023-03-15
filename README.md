@@ -86,7 +86,7 @@ local command:
 
 tinybuild arguments (applies to packager or tinybuild commands):
 - `start` -- runs the equivalent of `node tinybuild.js` in the current working directory.
-- `bundle` -- runs the esbuild bundler, can specify config with `config={"bundler":{}}` via a jsonified object
+- `build`/`bundle` -- runs the esbuild bundler, can specify config with `config={"bundler":{}}` via a jsonified object
 - `serve` -- runs the node development server, can specify config with `config={"server":{}}` via a jsonified object and object
 - `mode=python` -- runs the development server as well as python which also serves the dist from a separate port (7000 by default). 
 - `mode=dev` for the dev server mode (used by default if you just type `tinybuild` on boilerplate)

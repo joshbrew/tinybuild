@@ -10,7 +10,7 @@ export const set = (name, transformation=(v) => v) => {
 const commandMap = new Map()
 const commandSets = [commands.basic, commands.server, commands.bundler]
 commandSets.forEach(commandSet => {
-    for ( let name in commandSet) set(name, commandSet[name])
+    for (let name in commandSet) set(name, commandSet[name])
 })
 
 export const get = (args=process.argv) => {
@@ -54,9 +54,9 @@ export const check = (args=process.argv, callback=(k, v) => {
         const o = commands.bare[name]
         if (name in argMap) {
             if (o?.not) {
-                const hasNot = o.not.filter(str => !(str in argMap), true)
-                if (!hasNot) callback(o.name, true)
-            } else callback(o.name, true)
+                const hasNot = o.not.find(str => str in argMap)
+                if (!hasNot) callback(name, true)
+            } else callback(name, true)
         }
     }
 

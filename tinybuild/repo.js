@@ -535,8 +535,9 @@ export function parseArgs(args=process.argv) {
         bundler:{}
     }
 
+
     commandUtil.check(args, (name, value) => {
-        if (value === null) return // ignore if null
+        if (value === null ) return // ignore if null
         else if (name in commands.server) tcfg.server[name] = value
         else if (name in commands.bundler) tcfg.bundler[name] = value
         else tcfg[name] = value
