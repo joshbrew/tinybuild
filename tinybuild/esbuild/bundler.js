@@ -340,8 +340,10 @@ export async function bundleESM(config) {
   cfg.logLevel = 'error';
   cfg.format = 'esm';
   if(cfg.outfile) {
-    if(!cfg.outfile.includes('.esm')) cfg.outfile += '.esm';
-    if(!cfg.outfile.endsWith('.js')) cfg.outfile += '.js';
+    if(!cfg.outfile.endsWith('.js')) {
+      if(!cfg.outfile.includes('.esm')) cfg.outfile += '.esm';
+      cfg.outfile += '.js';
+    }
   }
   else if (cfg.outdir) {
     if(cfg.outfile) delete cfg.outfile;
@@ -383,14 +385,18 @@ export async function bundleNode(config) {
   cfg.logLevel = 'error';
   if(cfg.format) delete cfg.format;
   if(cfg.outfile) {
-    if(!cfg.outfile.includes('.node')) cfg.outfile += '.node';
-    if(!cfg.outfile.endsWith('.js')) cfg.outfile += '.js';
+    if(!cfg.outfile.endsWith('.js') && !cfg.outfile.endsWith('.cjs'))  {
+      if(!cfg.outfile.includes('.node')) cfg.outfile += '.node';
+        cfg.outfile += '.js';
+    }
   }
   else if (cfg.outdir) {
     if(cfg.outfile) delete cfg.outfile;
     cfg.outdir = cfg.outdir.map(v => {
-      if(!v.includes('.node')) v += '.node';
-      if(!v.endsWith('.js')) v += '.js';
+      if(!v.endsWith('.js')) {
+        if(!v.includes('.node')) v += '.node';
+        v += '.js';
+      }
       return v;
     });
   }
@@ -469,14 +475,18 @@ export async function bundleTypes(config) {
   cfg.logLevel = 'error';
   cfg.format = 'iife';
   if(cfg.outfile) {
-    if(!cfg.outfile.includes('.iife')) cfg.outfile += '.iife';
-    if(!cfg.outfile.endsWith('.js')) cfg.outfile += '.js';
+    if(!cfg.outfile.endsWith('.js')) {
+      if(!cfg.outfile.includes('.iife')) cfg.outfile += '.iife';
+      cfg.outfile += '.js';
+    }
   }
   else if (cfg.outdir) {
     if(cfg.outfile) delete cfg.outfile;
     cfg.outdir = cfg.outdir.map(v => {
-      if(!v.includes('.iife')) v += '.iife';
-      if(!v.endsWith('.js')) v += '.js';
+      if(!v.endsWith('.js')) {
+        if(!v.includes('.iife')) v += '.iife';
+        v += '.js';
+      }
       return v;
     });
   }
