@@ -35,28 +35,32 @@ export function copyFolderRecursiveSync( source, target ) {
 
 //BUG, REQUIRES NODEMON 
 export async function runNodemon(script) {
-    const nodemon = await import('nodemon').nodemon
-    process.env.HOTRELOAD = true; //enables the hot reloading port
-
-    console.log("nodemon watching for changes...");
-    let NODEMON_PROCESS = nodemon(`--ignore ${process.cwd()}/dist/ --ignore ${process.cwd()}/node_modules/ --ignore ${process.cwd()}/.temp/ --exec 'node ${script}' -e ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv`);
-    NODEMON_PROCESS.on('restart',()=>{console.log('nodemon restarted')})
-    NODEMON_PROCESS.on('start',()=>{console.log('nodemon started')})
-    //NODEMON_PROCESS.on('exit',()=>{console.log('nodemon exited'); process.exit()})
-    NODEMON_PROCESS.on('crash',()=>{console.log('nodemon CRASHED'); process.exit()})
-    NODEMON_PROCESS.on('log',(msg)=>{console.log('nodemon: ', msg.message)});
-    // // let process = spawn("nodemon", [`--exec \"node ${script}\"`, "-e ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv"]); //should just watch the directory and otherwise restart this script and run the packager here for even smaller footprint
+    let NODEMON_PROCESS;
+    try{
+        const nodemon = await import('nodemon').nodemon
+        process.env.HOTRELOAD = true; //enables the hot reloading port
     
-    // console.log(NODEMON_PROCESS.config);
-    if(NODEMON_PROCESS.stdout) NODEMON_PROCESS.stdout.on('data',(data)=>{
-        console.log('nodemon: ',data.toString());
-    });
-
-    if(NODEMON_PROCESS.stderr) NODEMON_PROCESS.stderr.on('data',(data)=>{
-        console.log('nodemon error: ',data.message.toString());
-    });
-
+        console.log("nodemon watching for changes...");
+        NODEMON_PROCESS = nodemon(`--ignore ${process.cwd()}/dist/ --ignore ${process.cwd()}/node_modules/ --ignore ${process.cwd()}/.temp/ --exec 'node ${script}' -e ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv`);
+        NODEMON_PROCESS.on('restart',()=>{console.log('nodemon restarted')})
+        NODEMON_PROCESS.on('start',()=>{console.log('nodemon started')})
+        //NODEMON_PROCESS.on('exit',()=>{console.log('nodemon exited'); process.exit()})
+        NODEMON_PROCESS.on('crash',()=>{console.log('nodemon CRASHED'); process.exit()})
+        NODEMON_PROCESS.on('log',(msg)=>{console.log('nodemon: ', msg.message)});
+        // // let process = spawn("nodemon", [`--exec \"node ${script}\"`, "-e ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv"]); //should just watch the directory and otherwise restart this script and run the packager here for even smaller footprint
+        
+        // console.log(NODEMON_PROCESS.config);
+        if(NODEMON_PROCESS.stdout) NODEMON_PROCESS.stdout.on('data',(data)=>{
+            console.log('nodemon: ',data.toString());
+        });
+    
+        if(NODEMON_PROCESS.stderr) NODEMON_PROCESS.stderr.on('data',(data)=>{
+            console.log('nodemon error: ',data.message.toString());
+        });
+    } catch {}
+    
     return NODEMON_PROCESS;
+
 }
 
 //spawns a child process when a change is detected in the working repository, e.g. a one-shot bundler script
@@ -67,11 +71,12 @@ export function runOnChange(
     extensions=['js','ts','css','html','jpg','png','txt','csv','xls']
 ) { 
 
-    const argMap = commandUtil.get(args)
+    let argMap; 
+    try {argMap = commandUtil.check(args) } catch {}
 
     let watchPaths = process.cwd();
        
-    if(argMap.server.watch) { //watch='../../otherlibraryfolder'
+    if(argMap && argMap.server?.watch) { //watch='../../otherlibraryfolder'
         watchPaths = argMap.server.watch
         if(watchPaths.includes('[')) watchPaths = JSON.parse(watchPaths).push(process.cwd());
         else {
@@ -80,7 +85,7 @@ export function runOnChange(
         }
     }
 
-    if(argMap.server.extensions) { //watchext='../../otherlibraryfolder'
+    if(argMap && argMap.server?.extensions) { //watchext='../../otherlibraryfolder'
         let extPaths = argMap.server.extensions
         if(extPaths.includes('[')) extensions = JSON.parse(extPaths).push(...extensions);
         else {
@@ -89,7 +94,7 @@ export function runOnChange(
         }
     }
     
-    if(argMap.server.ignore) { //watch='../../otherlibraryfolder'
+    if(argMap && argMap.server?.ignore) { //watch='../../otherlibraryfolder'
         let ignorePaths = argMap.server.ignore
         if(ignorePaths.includes('[')) ignore = JSON.parse(ignorePaths).push(...ignore);
         else {
@@ -128,7 +133,8 @@ export function runOnChange(
         if(!skip) {
             console.log('change detected at', path,'\n...Restarting...');
 
-            let newprocess = spawn(command,args, {
+            let newprocess = spawn(
+                command, args, {
                 cwd: process.cwd(),
                 env: process.env,
                 detached: true
@@ -180,9 +186,10 @@ export function runAndWatch(
 
     let watchPaths = process.cwd();
 
-    const argMap = commandUtil.check(args)
+    let argMap; 
+    try {argMap = commandUtil.check(args) } catch {}
 
-    if(argMap.server.watch) { //watch='../../otherlibraryfolder'
+    if(argMap && argMap.server?.watch) { //watch='../../otherlibraryfolder'
         watchPaths = argMap.server.watch
         if(watchPaths.includes('[')) watchPaths = JSON.parse(watchPaths).push(process.cwd());
         else {
@@ -191,7 +198,7 @@ export function runAndWatch(
         }
     }
 
-    if(argMap.server.extensions) { //watchext='../../otherlibraryfolder'
+    if(argMap && argMap.server?.extensions) { //watchext='../../otherlibraryfolder'
         let extPaths = argMap.server.extensions
         if(extPaths.includes('[')) extensions = JSON.parse(extPaths).push(...extensions);
         else {
@@ -200,7 +207,7 @@ export function runAndWatch(
         }
     }
     
-    if(argMap.server.ignore) { //watch='../../otherlibraryfolder'
+    if(argMap && argMap.server?.ignore) { //watch='../../otherlibraryfolder'
         let ignorePaths = argMap.server.ignore
         if(ignorePaths.includes('[')) ignore = JSON.parse(ignorePaths).push(...ignore);
         else {
@@ -535,13 +542,15 @@ export function parseArgs(args=process.argv) {
         bundler:{}
     }
 
-
-    commandUtil.check(args, (name, value) => {
-        if (value === null ) return // ignore if null
-        else if (name in commands.server) tcfg.server[name] = value
-        else if (name in commands.bundler) tcfg.bundler[name] = value
-        else tcfg[name] = value
-    }, tcfg)
+    try{
+        commandUtil.check(args, (name, value) => {
+            if (value === null ) return // ignore if null
+            else if (name in commands.server) tcfg.server[name] = value
+            else if (name in commands.bundler) tcfg.bundler[name] = value
+            else tcfg[name] = value
+        }, tcfg)
+    } catch {}
+  
 
     if(tcfg.server) if(Object.keys(tcfg.server).length === 0) delete tcfg.server;
     if(tcfg.bundler) if(Object.keys(tcfg.bundler).length === 0) delete tcfg.bundler; 
