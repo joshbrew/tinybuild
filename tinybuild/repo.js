@@ -426,7 +426,7 @@ export async function checkBoilerPlate(tinybuildCfg=defaultConfig,onlyConfig=tru
 <!DOCTYPE html>
 <html>
     <head>
-        <link type="stylesheet" href="${path.relative(path.join(htmlPath,'../'), path.join(process.cwd(),outfile)).split(path.sep).join('/')}.css">
+        <link rel="stylesheet" href="${path.relative(path.join(htmlPath,'../'), path.join(process.cwd(),outfile)).split(path.sep).join('/')}.css">
     </head>
     <body>  
         <script src="${path.relative(path.join(htmlPath,'../'), path.join(process.cwd(),outfile)).split(path.sep).join('/')}.js">
