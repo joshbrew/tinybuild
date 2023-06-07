@@ -62,11 +62,6 @@ const tinybuild = (name, content=tinybuildTemplate) => {
     fs.writeFileSync(name, content)
 }
 
-const initScript = (name, content=defaultInitScript) => {
-    if(typeof content === 'function') content = content();
-    fs.writeFileSync(name, content)
-}
-
 const gitignore = (location) => {
     fs.writeFileSync(path.join(location,'.gitignore'), gitignoreTemplate())
 }
@@ -76,7 +71,6 @@ export default {
     entry,
     config,
     tinybuild,
-    initScript,
     exportPackage,
     tsconfig,
     package: exportPackage,

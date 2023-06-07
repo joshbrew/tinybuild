@@ -486,7 +486,7 @@ export async function initRepo(
     //console.log(dirName);
 
     if(!fs.existsSync(path.join(dirName, Array.isArray(entryPoints) ? entryPoints[0] : entryPoints)) && !fs.existsSync(path.join(dirName, 'index.js')) && !fs.existsSync(path.join(dirName, 'index.ts'))) 
-        create.initScript(path.join(dirName, Array.isArray(entryPoints) ? entryPoints[0] : entryPoints), initScript)
+        create.entry(path.join(dirName, Array.isArray(entryPoints) ? entryPoints[0] : entryPoints))
 
     //copy the bundler files
     const tinybuildPath = path.join(dirName, 'tinybuild.js')
