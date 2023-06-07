@@ -2,7 +2,8 @@
     "name": "tinybuildapp",
     "version": "0.0.0",
     "description": "Barebones esbuild and test node server implementation. For building",
-    "main": "index.js",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
     "type":"module",
     "scripts": {
         "start": "tinybuild",

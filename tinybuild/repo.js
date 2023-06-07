@@ -33,6 +33,9 @@ export function copyFolderRecursiveSync( source, target ) {
     }
 }
 
+
+/// todo: fix the live reload functions as there are issues on mac
+
 //BUG, REQUIRES NODEMON 
 export async function runNodemon(script) {
     let NODEMON_PROCESS;
@@ -395,7 +398,8 @@ export async function checkBoilerPlate(tinybuildCfg=defaultConfig,onlyConfig=tru
     if(tinybuildCfg.bundler?.entryPoints[0]) {
         entryFile = tinybuildCfg.bundler.entryPoints[0];
     } 
-    needEntry = !fs.existsSync(path.join(process.cwd(),entryFile));
+
+    needEntry = !fs.existsSync(path.join(process.cwd(),entryFile)) && !fs.existsSync(path.join(process.cwd(),entryFile.replace(path.extname(entryFile),'.ts')));
     let entryFilePath = path.join(process.cwd(), entryFile) // assign index by first entrypoint
 
     if(needPackage) {
@@ -438,15 +442,21 @@ export async function checkBoilerPlate(tinybuildCfg=defaultConfig,onlyConfig=tru
         if (needEntry) create.entry(entryFilePath) 
     }
 
-    if(tinybuildCfg.bundleTypes) {
-        checkTSConfig(); //create boilerplate tsconfig if it doesn't exist when bundling types :D
+    
+    if(!fs.existsSync(path.join(process.cwd(),'.gitignore'))) {
+        console.log('Creating .gitignore');
+        create.gitignore(process.cwd());
     }
 
-
+    if(tinybuildCfg.bundler?.bundleTypes && !fs.existsSync(path.join(process.cwd(),'tsconfig.json'))) {
+        console.log('Creating tsconfig');
+        create.tsconfig(path.join(process.cwd(),'tsconfig.json'), undefined, entryFile); 
+    }
+        
 
 }
 
-
+//TODO: Make this more intelligent
 
 //initialize a project repo with a simplified packager set up for you.
 // If you set includeCore to true then the new repo can be used as a template for creating more repos with standalone tinybuild files
@@ -470,9 +480,13 @@ export async function initRepo(
 
         console.log('INIT REPO')
 
-    if(!fs.existsSync(dirName)) fs.mkdirSync(dirName); //will be made in the folder calling the init script
+    if(!fs.existsSync(dirName)) 
+        fs.mkdirSync(dirName); //will be made in the folder calling the init script
 
-    if(!fs.existsSync(path.join(dirName, entryPoints))) create.initScript(path.join(dirName, entryPoints), initScript)
+    //console.log(dirName);
+
+    if(!fs.existsSync(path.join(dirName, Array.isArray(entryPoints) ? entryPoints[0] : entryPoints)) && !fs.existsSync(path.join(dirName, 'index.js')) && !fs.existsSync(path.join(dirName, 'index.ts'))) 
+        create.initScript(path.join(dirName, Array.isArray(entryPoints) ? entryPoints[0] : entryPoints), initScript)
 
     //copy the bundler files
     const tinybuildPath = path.join(dirName, 'tinybuild.js')
@@ -490,8 +504,7 @@ let config = ${JSON.stringify(config)};
 //bundle and serve
 packager(config);
         `);
-    
-        if(!fs.existsSync(packagePath)) create.package(packagePath)
+
 
     }
     else { //tinybuild js using a copy of the source and other prepared build files
@@ -527,11 +540,13 @@ let config = ${JSON.stringify(config)};
 packager(config);
         `);
 
-            
-        if(!fs.existsSync(packagePath)) create.package(packagePath)
-        if(!fs.existsSync(path.join(process.cwd(),'.gitignore'))) create.gitignore()
-
     }
+
+    if(!fs.existsSync(packagePath)) create.package(packagePath);
+    if(!fs.existsSync(path.join(process.cwd(),'.gitignore'))) create.gitignore(process.cwd());
+
+    if(config.bundleTypes && !fs.existsSync(path.join(process.cwd(),'tsconfig.json'))) 
+        create.tsconfig(path.join(process.cwd(),'tsconfig.json')); 
 
 }
 

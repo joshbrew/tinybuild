@@ -36,6 +36,7 @@ alert('tinybuild successful!');
     includeCore:true, //include the core bundler and node server files, not necessary if you are building libraries or quickly testing an app.js
 }
 
+//wtf??
 const commandMap = get(process.argv)
 
         if(commandMap.dir) {

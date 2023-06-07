@@ -451,10 +451,11 @@ export async function bundleTypes(config) {
 
   let dtsPlugin;
   try {
-  const plugin = await import('./.d.ts_plugin/index.cjs'); // Dynamic import to avoid typescript requirement
-  dtsPlugin = plugin.dtsPlugin
-  } catch {
-    console.warn('\n⚠️    Warning: Must have TypeScript 4.6.4 installed to generate types')
+    const plugin = await import('./.d.ts_plugin/index.cjs'); // Dynamic import to avoid typescript requirement
+    dtsPlugin = plugin.dtsPlugin
+  } catch (er) {
+    console.error(er);
+    console.warn('\n⚠️    Warning: Must have TypeScript >= 4.6.4 installed to generate types');
   }
   
   if(!config.defaultConfig) config = Object.assign(JSON.parse(JSON.stringify(defaultBundler)),config); //add defaults 
