@@ -7,6 +7,7 @@ import { defaultConfig } from './packager.js';
 import * as commandUtil from './command.js';
 import * as commands from './commands/index.js';
 import create from './create.js';
+import { getTemplateSync } from './templates/get.js';
 
 
 //https://stackoverflow.com/questions/13786160/copy-folder-recursively-in-node-js
@@ -419,12 +420,13 @@ export async function checkBoilerPlate(tinybuildCfg=defaultConfig,onlyConfig=tru
     // Auto-assign distpath
     if(needHTML) { //the python server needs the index.html
 
-        console.log('Creating html boilerplate.')
+        console.log('Creating html boilerplate.');
 
         fs.writeFileSync(htmlPath,`
 <!DOCTYPE html>
 <html>
     <head>
+        <link type="stylesheet" href="${path.relative(path.join(htmlPath,'../'), path.join(process.cwd(),outfile)).split(path.sep).join('/')}.css">
     </head>
     <body>  
         <script src="${path.relative(path.join(htmlPath,'../'), path.join(process.cwd(),outfile)).split(path.sep).join('/')}.js">
@@ -440,6 +442,9 @@ export async function checkBoilerPlate(tinybuildCfg=defaultConfig,onlyConfig=tru
 
         // Make index.js if it doesn't exist
         if (needEntry) create.entry(entryFilePath) 
+
+        //add css boilerplate
+        fs.writeFileSync(path.join(process.cwd(),entryFile.replace(path.extname(entryFile),'.css')), getTemplateSync('index.css'));
     }
 
     

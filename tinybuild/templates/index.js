@@ -8,21 +8,13 @@
 
 */
 
+import './index.css' //compiles with esbuild, just link the stylesheet in your index.html (the boilerplate shows this example)
+
 document.body.style.backgroundColor = '#101010'; //page color
 document.body.style.color = 'white'; //text color
 let div = document.createElement('div');
 div.innerHTML = 'Hello World!';
 div.id = 'floatingDiv';
-
-Object.assign(div.style,{
-    position: 'absolute',
-    width: '100px',
-    height: '100px',
-    backgroundColor: 'red',
-    textAlign: 'center',
-    verticalAlign: 'middle',
-    lineHeight: '100px'       /* The same as your div height */
-})
 document.body.appendChild(div);
 
 console.warn('Tinybuild successful!');
