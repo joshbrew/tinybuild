@@ -7,6 +7,7 @@
 ![tinybuild-status](https://img.shields.io/npm/v/tinybuild.svg) 
 ![tinybuild-downloads](https://img.shields.io/npm/dt/tinybuild.svg)
 ![tinybuild-l](https://img.shields.io/npm/l/tinybuild)
+
 `npm i -g tinybuild` or `npm i tinybuild` in local projects.
 
 This is the bundler and development server combo you always wanted. Goodbye esoteric instructions, goodbye unwieldy dependencies, and goodbye time wasted staring at your compiler running! Move over Webpack, Parcel, and Vite, there's a new game in town.
