@@ -4,6 +4,9 @@
 </p>
 
 # tinybuild
+![tinybuild-status](https://img.shields.io/npm/v/tinybuild.svg) 
+![tinybuild-downloads](https://img.shields.io/npm/dt/tinybuild.svg)
+![tinybuild-l](https://img.shields.io/npm/l/tinybuild)
 `npm i -g tinybuild` or `npm i tinybuild` in local projects.
 
 This is the bundler and development server combo you always wanted. Goodbye esoteric instructions, goodbye unwieldy dependencies, and goodbye time wasted staring at your compiler running! Move over Webpack, Parcel, and Vite, there's a new game in town.
@@ -16,10 +19,6 @@ This is the bundler and development server combo you always wanted. Goodbye esot
 ![tinybuild](tinybuild/docs/globalOutput.png)
 
 ### Main Features
-
-![tinybuild-status](https://img.shields.io/npm/v/tinybuild.svg) 
-![tinybuild-downloads](https://img.shields.io/npm/dt/tinybuild.svg)
-![tinybuild-l](https://img.shields.io/npm/l/tinybuild)
 
 - Beginner-friendly purist bundler and development server for all of your most common web development needs. 
 - Pure esbuild wrapped with additional boilerplate settings for various needs (see bundleBrowser, bundleTypes, etc). Includes TS and JSX/TSX support, as well as CSS imports for bundling all of your stylesheets. Use esbuild plugins generically for more support (e.g. SCSS)
