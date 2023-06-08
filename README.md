@@ -13,6 +13,7 @@ This is the bundler and development server combo you always wanted. Goodbye esot
 - Bonus [Python Quart](https://pgjones.gitlab.io/quart/) concurrent build and test env (not required). 
 
 
+![tinybuild](tinybuild/docs/globalOutput.png)
 
 ### Main Features
 
@@ -38,8 +39,6 @@ The bundler and server presets include a full CLI, config file, or functional (i
 ### [Node development/production server](tinybuild/docs/server.md)
 ### [Python development/production server](tinybuild/docs/python.md)
 
-
-![tinybuild](tinybuild/docs/globalOutput.png)
 
 ### Globally install Tinybuild:
 `npm i -g tinybuild`
