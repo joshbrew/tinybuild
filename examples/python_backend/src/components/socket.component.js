@@ -12,7 +12,7 @@ export class Socket extends DOMElement {
     template=component;
 
     //DOMElement custom callbacks:
-    oncreate=(props)=>{
+    oncreate = (props) => {
         //let host = 'localhost';
         //let port = 7000;
 

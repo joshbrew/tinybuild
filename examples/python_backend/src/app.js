@@ -3,7 +3,9 @@ import './components/components.index'
 import './styles.css'
 
 
+let elm = document.createElement('socket-test');
 
+document.body.insertAdjacentElement('afterbegin',elm);
 
 
 // import {WorkerManager} from 'magicworker'
@@ -14,7 +16,3 @@ import './styles.css'
 
 //console.log(p);
 
-
-let elm = document.createElement('spectrometer-node');
-
-document.body.appendChild(elm);
