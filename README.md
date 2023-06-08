@@ -1,20 +1,28 @@
+
+<p align="center">
+  <img width="350px" height="350px" src="./tinybuild.png" />
+</p>
+
 # tinybuild
-`npm i -g tinybuild` or `npm i tinybuild` in local projects.
-
-This is the bundler and development server combo you always wanted. Goodbye esoteric instructions, goodbye unweildy dependencies, and goodbye time wasted staring at your compiler! Move over Webpack and Vite, there's a new game in town.
-
-- Minimal [esbuild](https://esbuild.github.io/getting-started/#your-first-bundle) bundler wrapper with custom boilerplate and plugins for all of your common javascript application, server, and library packaging needs.
-- Pure [Nodejs](https://developer.mozilla.org/en-US/docs/Learn/Server-side/Node_server_without_framework) hot reloading test environment with hot module swapping. 1 single dependency. 
-- Bonus [Python Quart](https://pgjones.gitlab.io/quart/) concurrent build and test env. 
-
-### Main Features
-
 ![tinybuild-status](https://img.shields.io/npm/v/tinybuild.svg) 
 ![tinybuild-downloads](https://img.shields.io/npm/dt/tinybuild.svg)
 ![tinybuild-l](https://img.shields.io/npm/l/tinybuild)
 
-- Entry level, purist bundler and development server for all of your most common javascript needs.
-- Pure esbuild wrapped with additional boilerplate settings for various needs (see bundleBrowser, bundleTypes, etc)
+`npm i -g tinybuild` or `npm i tinybuild` in local projects.
+
+This is the bundler and development server combo you always wanted. Goodbye esoteric instructions, goodbye unwieldy dependencies, and goodbye time wasted staring at your compiler running! Move over Webpack, Parcel, and Vite, there's a new game in town.
+
+- Minimal [esbuild](https://esbuild.github.io/getting-started/#your-first-bundle) bundler wrapper with custom boilerplate and plugins for all of your common javascript application, server, and library packaging needs.
+- Pure [Nodejs](https://developer.mozilla.org/en-US/docs/Learn/Server-side/Node_server_without_framework) hot reloading test environment with hot module swapping. 1 single dependency. 
+- Bonus [Python Quart](https://pgjones.gitlab.io/quart/) concurrent build and test env (not required). 
+
+
+![tinybuild](tinybuild/docs/globalOutput.png)
+
+### Main Features
+
+- Beginner-friendly purist bundler and development server for all of your most common web development needs. 
+- Pure esbuild wrapped with additional boilerplate settings for various needs (see bundleBrowser, bundleTypes, etc). Includes TS and JSX/TSX support, as well as CSS imports for bundling all of your stylesheets. Use esbuild plugins generically for more support (e.g. SCSS)
 - 3 extra zero-dependency esbuild plugins for bundling workers, auto-install and caching imports from urls, as well as bundling types for you (.d.ts files)! Additional support for declaring globals and initial script injection.
 - Hotreloading NodeJS server that launches instantly (20ms on average), only dependency is chokidar for hot module swapping.
 
@@ -31,8 +39,6 @@ The bundler and server presets include a full CLI, config file, or functional (i
 ### [Node development/production server](tinybuild/docs/server.md)
 ### [Python development/production server](tinybuild/docs/python.md)
 
-
-![tinybuild](tinybuild/docs/globalOutput.png)
 
 ### Globally install Tinybuild:
 `npm i -g tinybuild`
@@ -156,3 +162,5 @@ If you've installed tinybuild on Mac and it isn't working, try running the follo
 brew install dos2unix
 sudo dos2unix node_modules/tinybuild/tinybuild/bin/global.js
 ```
+
+Windows may also throw an error for global package permissions, just copy the error you get into google and use the command line solution you find and you will be good to go.
