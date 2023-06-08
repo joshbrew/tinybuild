@@ -1,4 +1,5 @@
 # tinybuild
+`npm i -g tinybuild` or `npm i tinybuild` in local projects.
 
 This is the bundler and development server combo you always wanted. Goodbye esoteric instructions, goodbye unweildy dependencies, and goodbye time wasted staring at your compiler! Move over Webpack and Vite, there's a new game in town.
 
@@ -33,13 +34,17 @@ The bundler and server presets include a full CLI, config file, or functional (i
 
 ![tinybuild](tinybuild/docs/globalOutput.png)
 
-`npm i -g tinybuild`. If using this source, `npm i -g`
+### Globally install Tinybuild:
+`npm i -g tinybuild`
 
-then from an empty project folder, initialize a default app with:
+### Or for local repository builds:
+`npm i tinybuild`
+
+### From an empty project folder, initialize a default app instantly with:
 
 `tinybuild`
 
-Or first create a tinybuild.config.js like so:
+### Or first create a tinybuild.config.js like so (copy/paste or tinybuild can generate one for you):
 ```js
 //import {defaultBundler, defaultServer, packager} from 'tinybuild'
 
