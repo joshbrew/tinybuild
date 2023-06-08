@@ -1,6 +1,6 @@
 
 <p align="center">
-  <img width="300px" height="300px" src="./tinybuild.png" />
+  <img width="350px" height="350px" src="./tinybuild.png" />
 </p>
 
 # tinybuild
