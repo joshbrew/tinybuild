@@ -1,6 +1,7 @@
 
 import WebSocket from 'ws'
 import {WebSocketServer} from 'ws'
+import path from 'path'
 import chokidar from 'chokidar' //for hot swapping modules in the dist
 
 export class HotReload {
@@ -39,14 +40,17 @@ export class HotReload {
 
       let jschanged = false;
       let csschanged = false;
+      let outfilesplit = cfg.hotreloadoutfile.split(path.sep);
       
       watcher.on('change',(path,stats)=>{
         let found = cfg.hotreloadwatch.find((v) => { if(path.includes(v)) return true; });
-        let isJS = path.endsWith('js');
+        let isMainJS = path.includes(outfilesplit);
+        let isJS = path.endsWith('js') || path.endsWith('ts') || path.endsWith('jsx') || path.endsWith('tsx');
         let isCSS = path.endsWith('css');
 
+        //console.log(path, jschanged, isJS, isCSS, isMainJS);
         //css and js will change in main repo before updating in dist so we can do this check to prevent reduncancies
-        if(found && ((isJS && jschanged) || (isCSS && csschanged))) { //for the dist folder, don't reload the js or css unless it was found to have changed
+        if(found && ((isMainJS && jschanged) || (isCSS && csschanged))) { //for the dist folder, don't reload the js or css unless it was found to have changed
           
           setTimeout(()=>{console.log("Server updated: "+`${cfg.protocol}://${cfg.host}:${cfg.port}/`)},10);
           
@@ -58,17 +62,17 @@ export class HotReload {
           else if(isCSS) csschanged = false;
         
         } else if(!found) {
-          if(isJS)
+          if(isJS) {
             jschanged = true;
-          else if (isCSS) 
+          }
+          else if (isCSS) {
             csschanged = true;
+          } 
           else {
-            
             setTimeout(()=>{console.log("Server updated: "+`${cfg.protocol}://${cfg.host}:${cfg.port}/`)},10);
             for(const key in sockets) {
               sockets[key].send(JSON.stringify({file:path, reloadscripts:cfg.reloadscripts}));
             }
-          
           }  
         }
           
@@ -117,7 +121,7 @@ export const HotReloadClient = (socketUrl, esbuild_cssFileName) => {
 
     function reloadLink(file) {
 
-      let split = file.split('/');
+      let split = file.includes('/') ? file.split('/') : file.split('\\');
       let fname = split[split.length-1];
 
       var links = document.getElementsByTagName("link");
@@ -138,13 +142,13 @@ export const HotReloadClient = (socketUrl, esbuild_cssFileName) => {
     }
 
 
-    function reloadAsset(file, reloadscripts) { //reloads src tag elements
+    function reloadAsset(file, reloadscripts, isJs) { //reloads src tag elements
       let split = file.includes('/') ? file.split('/') : file.split('\\');
       let fname = split[split.length-1];
       let elements = document.querySelectorAll('[src]');
       for(const s of elements) {
-        if(s.src.includes(fname)) {
-          if(s.tagName === 'SCRIPT' && !reloadscripts) {
+        if(s.src.includes(fname)) { //esbuild compiles entire file so just reload app
+          if(s.tagName === 'SCRIPT' && !reloadscripts) {//&& s.tagName === 'SCRIPT'
             window.location.reload();
             return;
           } else {
@@ -165,13 +169,13 @@ export const HotReloadClient = (socketUrl, esbuild_cssFileName) => {
       if(typeof message === 'string' && message.startsWith('{')) {
         message = JSON.parse(message);
       }
+      //console.log(message);
       if(message.file) {
         let f = message.file;
         let rs = message.reloadscripts
         if(f.endsWith('css')) {
           reloadLink(esbuild_cssFileName+'.css'); //reload all css since esbuild typically bundles one file same name as the dist file
-        } else if (f.endsWith('js')) {
-          console.log()
+        } else if (f.endsWith('js') || f.endsWith('ts') || f.endsWith('jsx') || f.endsWith('tsx')) {
           reloadAsset(f, rs);
         } else {
           //could be an href or src

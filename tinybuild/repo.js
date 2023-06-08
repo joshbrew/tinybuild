@@ -183,7 +183,7 @@ export function runOnChange(
 export function runAndWatch(
     script,
     args=process.argv,
-    ignore=['dist','temp','package'], 
+    ignore=[`dist${path.sep}`,'.temp','package.json'], 
     extensions=['js','ts','css','html','jpg','png','txt','csv','xls'],
     restartDelay=50
 ) {    
@@ -263,6 +263,8 @@ export function runAndWatch(
                 }
             })
         }
+
+        //console.log(path, skip);
 
         if(!skip) {
 

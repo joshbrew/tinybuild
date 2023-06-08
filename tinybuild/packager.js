@@ -23,13 +23,15 @@ export async function packager(config=defaultConfig, exitOnBundle=true) {
         // console.log('args: ', process.argv);
         // console.log('parsed args: ', parsed);
         
-        if(parsed.bundler) Object.assign(config.bundler,parsed.bundler);
+        if(parsed.bundler) 
+            Object.assign(config.bundler,parsed.bundler);
         else if ('bundler' in parsed) {
             config.bundler = parsed.bundler;
             if(!parsed.server) delete config.server;
         }
         
-        if(parsed.server) Object.assign(config.server,parsed.server);
+        if(parsed.server) 
+            Object.assign(config.server,parsed.server);
         else if ('server' in parsed) {
             config.server = parsed.server;
             if(!parsed.bundler) delete parsed.bundler;
