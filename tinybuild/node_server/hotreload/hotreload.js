@@ -47,20 +47,28 @@ export class HotReload {
 
         //css and js will change in main repo before updating in dist so we can do this check to prevent reduncancies
         if(found && ((isJS && jschanged) || (isCSS && csschanged))) { //for the dist folder, don't reload the js or css unless it was found to have changed
-          for(const key in sockets) 
+          
+          setTimeout(()=>{console.log("Server updated: "+`${cfg.protocol}://${cfg.host}:${cfg.port}/`)},10);
+          
+          for(const key in sockets) {
             sockets[key].send(JSON.stringify({file:path, reloadscripts:cfg.reloadscripts}));
+          }
           
           if(isJS) jschanged = false;
           else if(isCSS) csschanged = false;
-
+        
         } else if(!found) {
           if(isJS)
             jschanged = true;
           else if (isCSS) 
             csschanged = true;
           else {
-            for(const key in sockets) 
+            
+            setTimeout(()=>{console.log("Server updated: "+`${cfg.protocol}://${cfg.host}:${cfg.port}/`)},10);
+            for(const key in sockets) {
               sockets[key].send(JSON.stringify({file:path, reloadscripts:cfg.reloadscripts}));
+            }
+          
           }  
         }
           
