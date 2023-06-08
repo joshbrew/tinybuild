@@ -6,7 +6,7 @@
 # tinybuild
 `npm i -g tinybuild` or `npm i tinybuild` in local projects.
 
-This is the bundler and development server combo you always wanted. Goodbye esoteric instructions, goodbye unweildy dependencies, and goodbye time wasted staring at your compiler! Move over Webpack and Vite, there's a new game in town.
+This is the bundler and development server combo you always wanted. Goodbye esoteric instructions, goodbye unwieldy dependencies, and goodbye time wasted staring at your compiler! Move over Webpack and Vite, there's a new game in town.
 
 - Minimal [esbuild](https://esbuild.github.io/getting-started/#your-first-bundle) bundler wrapper with custom boilerplate and plugins for all of your common javascript application, server, and library packaging needs.
 - Pure [Nodejs](https://developer.mozilla.org/en-US/docs/Learn/Server-side/Node_server_without_framework) hot reloading test environment with hot module swapping. 1 single dependency. 
