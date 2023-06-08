@@ -20,7 +20,7 @@ This is the bundler and development server combo you always wanted. Goodbye esot
 ![tinybuild-downloads](https://img.shields.io/npm/dt/tinybuild.svg)
 ![tinybuild-l](https://img.shields.io/npm/l/tinybuild)
 
-- Entry level, purist bundler and development server for all of your most common javascript/typescript needs. esbuild includes TS and JSX/TSX support, as well as css imports for bundling all of your css. 
+- Beginner-friendly purist bundler and development server for all of your most common web development needs. esbuild includes TS and JSX/TSX support, as well as css imports for bundling all of your css. 
 - Pure esbuild wrapped with additional boilerplate settings for various needs (see bundleBrowser, bundleTypes, etc)
 - 3 extra zero-dependency esbuild plugins for bundling workers, auto-install and caching imports from urls, as well as bundling types for you (.d.ts files)! Additional support for declaring globals and initial script injection.
 - Hotreloading NodeJS server that launches instantly (20ms on average), only dependency is chokidar for hot module swapping.
