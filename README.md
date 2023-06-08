@@ -163,3 +163,5 @@ If you've installed tinybuild on Mac and it isn't working, try running the follo
 brew install dos2unix
 sudo dos2unix node_modules/tinybuild/tinybuild/bin/global.js
 ```
+
+Windows may also throw an error for global package permissions, just copy the error you get into google and use the command line solution you find and you will be good to go.
