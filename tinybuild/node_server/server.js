@@ -17,6 +17,7 @@ export const defaultServer = {
     startpage: 'index.html',  //home page
     socket_protocol: 'ws', //frontend socket protocol, wss for served, ws for localhost
     hotreload: 5000, //hotreload websocket server port
+    reloadscripts: false,
      //watch: ['../'], //watch additional directories other than the current working directory
     pwa:'dist/service-worker.js', //pwa mode? Injects service worker registry code in (see pwa README.md)
     python: false,//7000,  //quart server port (configured via the python server script file still)
@@ -67,7 +68,7 @@ function onRequest(request, response, cfg) {
 
                         
         //add hot reload if specified
-        if(process.env.HOTRELOAD && requestURL.endsWith('.html') && cfg.hotreload) {
+        if(requestURL.endsWith('.html') && cfg.hotreload) {
             content = addHotReloadClient(content,`${cfg.socket_protocol}://${cfg.host}:${cfg.port}/hotreload`);
         }
 
@@ -103,8 +104,8 @@ function onRequest(request, response, cfg) {
                 if(requestURL.endsWith('.html')) {
 
                     //inject hot reload if specified
-                    if(process.env.HOTRELOAD && cfg.hotreload) {
-                        content = addHotReloadClient(content,`${cfg.socket_protocol}://${cfg.host}:${cfg.port}/hotreload`);
+                    if(cfg.hotreload) {
+                        content = addHotReloadClient(content,`${cfg.socket_protocol}://${cfg.host}:${cfg.port}/hotreload`, cfg.hotreloadoutfile);
                     }
                     
                     //inject pwa code
@@ -298,6 +299,8 @@ function onStarted(cfg) {
 // create the http/https server. For hosted servers, use the IP and open ports. Default html port is 80 or sometimes 443
 export const serve = (cfg=defaultServer) => {
 
+    console.time(`\n🐱   Node server started!`);
+
     function exitHandler(options, exitCode) {
 
         if(typeof SERVERCONFIG.SOCKETS?.py_client != 'undefined') {
@@ -316,8 +319,6 @@ export const serve = (cfg=defaultServer) => {
     
     //catches ctrl+c event
     process.on('SIGINT', exitHandler.bind(null, {exit:true}));
-
-    console.time(`\n🐱   Node server started!`);
 
 
     let obj = Object.assign({}, defaultServer); // Make modules editable

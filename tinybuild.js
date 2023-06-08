@@ -5,7 +5,7 @@ export * from './tinybuild/packager.js'
 import path from 'path'
 
 //uncomment and run `node tinybuild.js`
-import {packager} from './tinybuild/packager.js'
+import {packager, serve} from './tinybuild/packager.js'
 import * as commandUtils from './tinybuild/command.js'
 import { checkBoilerPlate, checkCoreExists, checkNodeModules, runAndWatch, runOnChange, parseArgs } from './tinybuild/repo.js'
 
@@ -97,6 +97,7 @@ export async function runTinybuild(args) {
     //check global module path for node_modules folder
 
 
+    let BUILD_PROCESS;
     let SERVER_PROCESS;
 
     //let fileName = __filename.split('/'); fileName = fileName[fileName.length-1]; //try to account for command line position and if the commands are for the current file
@@ -146,7 +147,33 @@ export async function runTinybuild(args) {
     }
 
     if(cliArgs.mode !== 'help') {
-        process.env.HOTRELOAD = true; //enables the hot reloading port on the tinybuild backend (if port set in settings)
+        if(tinybuildCfg.server?.hotreload) { //hotreloading active
+            let WATCHFOLDERS;
+            let OUTFILE;
+            if(tinybuildCfg.bundler) {
+                if(tinybuildCfg.bundler.outfile) {
+                    OUTFILE = tinybuildCfg.bundler.outfile.split('/').pop();
+                    if(path.extname(OUTFILE)) OUTFILE.replace(path.extname(OUTFILE),'');
+                    let split = tinybuildCfg.bundler.outfile.split('/');
+                    split.pop();
+                    let joined = split.join('/');
+                    WATCHFOLDERS = [joined];
+                } else if (tinybuildCfg.bundler.outdir) {
+                    tinybuildCfg.bundler.outdir.forEach((d,i) => {
+                        if(i === 0) {
+                            OUTFILE = tinybuildCfg.bundler.outfile.split('/').pop();
+                            if(path.extname(OUTFILE)) OUTFILE.replace(path.extname(OUTFILE),'');
+                        }
+                        let split = d.split('/');
+                        split.pop();
+                        split.join('/');
+                        WATCHFOLDERS.push(split); //output directories to watch on the dev server
+                    })
+                }
+            }
+            tinybuildCfg.server.hotreloadwatch = WATCHFOLDERS;
+            tinybuildCfg.server.hotreloadoutfile = OUTFILE; //this is for reloading css
+        }
 
         if(tinybuildCfg.start) { //execute the tinybuild.js in the working directory instead of our straight packager.
 
@@ -180,7 +207,11 @@ export async function runTinybuild(args) {
             if(!cliArgs.path && (!fs.existsSync(path.join(process.cwd(),'package.json')) || !fs.existsSync(path.join(process.cwd(),tinybuildCfg.path))))
                 await checkBoilerPlate(tinybuildCfg)
 
-            SERVER_PROCESS = runAndWatch(tinybuildCfg.path, cmdargs); //runNodemon(tinybuildCfg.path);
+
+            let server = tinybuildCfg.server;
+            tinybuildCfg.server = false;
+            BUILD_PROCESS = runAndWatch(tinybuildCfg.path, cmdargs); //runNodemon(tinybuildCfg.path);
+            SERVER_PROCESS = serve(server);
 
         }
         else if (cliArgs.mode === 'dev') { //run a local dev server copy
@@ -192,7 +223,10 @@ export async function runTinybuild(args) {
                 await checkBoilerPlate(tinybuildCfg);
             }
 
-            SERVER_PROCESS = runAndWatch(tinybuildCfg.path, cmdargs); //runNodemon(tinybuildCfg.path);
+            let server = tinybuildCfg.server;
+            tinybuildCfg.server = false;
+            BUILD_PROCESS = runAndWatch(tinybuildCfg.path, cmdargs); //runNodemon(tinybuildCfg.path);
+            SERVER_PROCESS = serve(server); //separate server
         }
         // else if (tinybuildCfg.build || cmdargs.includes('bundle')) {
         //     delete tinybuildCfg.serve; //don't use either arg to run both
@@ -202,7 +236,11 @@ export async function runTinybuild(args) {
         else if (tinybuildCfg.serve || cmdargs.includes('serve')) {
             delete tinybuildCfg.build; //don't use either arg to run both
             tinybuildCfg.bundler = null;
-            SERVER_PROCESS = runAndWatch(tinybuildCfg.path,  [`--config`, `${(JSON.stringify(tinybuildCfg))}`,...cmdargs]);
+
+            let server = tinybuildCfg.server;
+            tinybuildCfg.server = false;
+            BUILD_PROCESS = runAndWatch(tinybuildCfg.path,  [`--config`, `${(JSON.stringify(tinybuildCfg))}`, ...cmdargs]);
+            SERVER_PROCESS = serve(server); //separate server
         }
         else {
 
@@ -214,7 +252,11 @@ export async function runTinybuild(args) {
                 //console.log('spawning!!', tinybuildCfg)
             
             if((tinybuildCfg.server && !tinybuildCfg.build && !cmdargs.includes('build')) || tinybuildCfg.path.includes('tinybuild.js')) { 
-                SERVER_PROCESS = runAndWatch(tinybuildCfg.path, ['--config', `${(JSON.stringify(tinybuildCfg))}`,...cmdargs]);
+
+                let server = tinybuildCfg.server;
+                tinybuildCfg.server = false;
+                BUILD_PROCESS = runAndWatch(tinybuildCfg.path, ['--config', `${(JSON.stringify(tinybuildCfg))}`,...cmdargs]);
+                SERVER_PROCESS = serve(server); //separate server
             }
             else packager(tinybuildCfg); //else just run the bundler and quit
 
@@ -223,14 +265,14 @@ export async function runTinybuild(args) {
     } 
 
 
-    if(!SERVER_PROCESS) console.timeEnd('\n🚀   Starting tinybuild...');
+    if(!BUILD_PROCESS) console.timeEnd('\n🚀   Starting tinybuild...');
     else {
-        SERVER_PROCESS.process.on('spawn',()=>{
+        BUILD_PROCESS.process.on('spawn',()=>{
             console.timeEnd('\n🚀   Starting tinybuild...');
-        })
+        });
     }
 
-    return SERVER_PROCESS;
+    return {BUILD_PROCESS, SERVER_PROCESS};
 }
 
 

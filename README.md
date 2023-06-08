@@ -1,7 +1,21 @@
 # tinybuild
-- Minimal [esbuild](https://esbuild.github.io/getting-started/#your-first-bundle) presets with custom plugins for all of your common javascript packaging needs, 
-- [Nodejs](https://developer.mozilla.org/en-US/docs/Learn/Server-side/Node_server_without_framework) hot reloading test environment, 
+
+This is the bundler and development server combo you always wanted. Goodbye esoteric instructions, goodbye unweildy dependencies, and goodbye time wasted staring at your compiler! Move over Webpack and Vite, there's a new game in town.
+
+- Minimal [esbuild](https://esbuild.github.io/getting-started/#your-first-bundle) bundler wrapper with custom boilerplate and plugins for all of your common javascript application, server, and library packaging needs.
+- Pure [Nodejs](https://developer.mozilla.org/en-US/docs/Learn/Server-side/Node_server_without_framework) hot reloading test environment with hot module swapping. 1 single dependency. 
 - Bonus [Python Quart](https://pgjones.gitlab.io/quart/) concurrent build and test env. 
+
+### Main Features
+
+![tinybuild-status](https://img.shields.io/npm/v/tinybuild.svg) 
+![tinybuild-downloads](https://img.shields.io/npm/dt/tinybuild.svg)
+![tinybuild-l](https://img.shields.io/npm/l/tinybuild)
+
+- Entry level, purist bundler and development server for all of your most common javascript needs.
+- Pure esbuild wrapped with additional boilerplate settings for various needs (see bundleBrowser, bundleTypes, etc)
+- 3 extra zero-dependency esbuild plugins for bundling workers, auto-install and caching imports from urls, as well as bundling types for you (.d.ts files)! Additional support for declaring globals and initial script injection.
+- Hotreloading NodeJS server that launches instantly (20ms on average), only dependency is chokidar for hot module swapping.
 
 The repo contains examples for hybrid web and native mobile apps with a lightweight test environment with minimal dependencies.
 
@@ -9,10 +23,6 @@ Create PWAs, multithreaded programs with web workers, any js or ts packages, gen
 - It's easier, faster, and leaner than webpack or any other common bundler.
 
 The bundler and server presets include a full CLI, config file, or functional (in-script) wrapper for esbuild and server customization, and for creating multiple distributions from a single config (e.g. for browser, esm, node). Bundles and serves complicated libraries and programs in milliseconds with a hot reloading test environment, and makes it easier to scale to production.
-
-![tinybuild-status](https://img.shields.io/npm/v/tinybuild.svg) 
-![tinybuild-downloads](https://img.shields.io/npm/dt/tinybuild.svg)
-![tinybuild-l](https://img.shields.io/npm/l/tinybuild)
 
 
 ### [Quickstart](tinybuild/docs/tinybuild.md)
@@ -59,6 +69,7 @@ const config = {
         startpage: "index.html", //home page
         socket_protocol: "ws", //frontend socket protocol, wss for served, ws for localhost
         hotreload: 5000,  //hotreload websocket server port
+        reloadscripts: false, //hot swap scripts, can break things if script handles initializations, otherwise css, link, srcs all hot swap without page reloading fairly intelligently
         pwa: "dist/service-worker.js",  //pwa mode? Injects service worker registry code in (see pwa README.md)
         //watch: ['../'], //watch additional directories other than the current working directory
         python: false,//7000,  //quart server port (configured via the python server script file still)

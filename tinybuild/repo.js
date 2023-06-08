@@ -110,7 +110,7 @@ export function runOnChange(
 
     const watcher = chokidar.watch(
         watchPaths,{
-            ignored: /^(?:.*[\\\\\\/])?node_modules(?:[\\\\\\/].*)?$/, // ignore node_modules
+            ignored: /^(?:.*[\\\\\\/])?node_modules(?:[\\\\\\/].*)?|(?:.*[\\\\\\/])?.git(?:[\\\\\\/].*)?|(?:.*[\\\\\\/])?android(?:[\\\\\\/].*)?|(?:.*[\\\\\\/])?ios(?:[\\\\\\/].*)?$/, // ignore node_modules
             persistent: true,
             ignoreInitial:true,
             interval:100,

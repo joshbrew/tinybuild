@@ -1,6 +1,7 @@
 
 import WebSocket from 'ws'
 import {WebSocketServer} from 'ws'
+import chokidar from 'chokidar' //for hot swapping modules in the dist
 
 export class HotReload {
   config = null;
@@ -19,6 +20,53 @@ export class HotReload {
       console.error('hotreload wss error:',err);
     })
 
+    let sockets = {};
+    let ct = 0;
+
+    //console.log(cfg);
+
+    if(cfg.hotreloadwatch) {
+       //putting a watch on files for sending messages to trigger hot module replacement (the cheap version)
+      let watcher = chokidar.watch(
+        '', {
+        ignored: /^(?:.*[\\\\\\/])?node_modules(?:[\\\\\\/].*)?|(?:.*[\\\\\\/])?.git(?:[\\\\\\/].*)?|(?:.*[\\\\\\/])?android(?:[\\\\\\/].*)?|(?:.*[\\\\\\/])?ios(?:[\\\\\\/].*)?$/, // ignore node_modules
+          persistent: true,
+          ignoreInitial:true,
+          interval:20,
+          binaryInterval:200
+      });
+      
+
+      let jschanged = false;
+      let csschanged = false;
+      
+      watcher.on('change',(path,stats)=>{
+        let found = cfg.hotreloadwatch.find((v) => { if(path.includes(v)) return true; });
+        let isJS = path.endsWith('js');
+        let isCSS = path.endsWith('css');
+
+        //css and js will change in main repo before updating in dist so we can do this check to prevent reduncancies
+        if(found && ((isJS && jschanged) || (isCSS && csschanged))) { //for the dist folder, don't reload the js or css unless it was found to have changed
+          for(const key in sockets) 
+            sockets[key].send(JSON.stringify({file:path, reloadscripts:cfg.reloadscripts}));
+          
+          if(isJS) jschanged = false;
+          else if(isCSS) csschanged = false;
+
+        } else if(!found) {
+          if(isJS)
+            jschanged = true;
+          else if (isCSS) 
+            csschanged = true;
+          else {
+            for(const key in sockets) 
+              sockets[key].send(JSON.stringify({file:path, reloadscripts:cfg.reloadscripts}));
+          }  
+        }
+          
+      });
+    }
+   
     this.wss.on('connection', (ws) => {
       //ws.send(something);
     
@@ -30,26 +78,102 @@ export class HotReload {
     
       ws.send(`${this.url}: pong!`);
     
+      sockets[ct] = ws; //for multiple tabs 
+
+      ct++;
+
+      ws.on('close', () => {
+        delete sockets[ct];
+      });
     });
 
   }
 
   add = (content) => {
     if(typeof content !== 'string') content = content.toString();
-    return `${content}\n\n<script> console.log('Hot Reload port available at ${this.url}');  (`+HotReloadClient.toString()+`)('${this.url}')  </script>`;
+    return `${content}\n\n<script> console.log('Hot Reload port available at ${this.url}');  (`+HotReloadClient.toString()+`)('${this.url}','${cfg.hotreloadoutfile}')  </script>`;
   }
 }
 
-export function addHotReloadClient(content,socketUrl) {
+export function addHotReloadClient(content, socketUrl, esbuild_cssFileName) {
   if(typeof content !== 'string') content = content.toString();
-  return `${content}\n\n<script> console.log('Hot Reload port available at ${socketUrl}');  (`+HotReloadClient.toString()+`)('${socketUrl}')  </script>`;
+  return `${content}\n\n<script> console.log('Hot Reload port available at ${socketUrl}');  (`+HotReloadClient.toString()+`)('${socketUrl}', '${esbuild_cssFileName}')  </script>`;
 }
 
-//frontend js function to be stringified, injected, and executed in-browser
-export const HotReloadClient = (socketUrl) => {
+//frontend (browser) js function to be stringified, injected, and executed in-browser
+export const HotReloadClient = (socketUrl, esbuild_cssFileName) => {
     //hot reload code injected from backend
     //const socketUrl = `ws://${cfg.host}:${cfg.hotreload}`;
     let socket = new WebSocket(socketUrl);
+
+
+    function reloadLink(file) {
+
+      let split = file.split('/');
+      let fname = split[split.length-1];
+
+      var links = document.getElementsByTagName("link");
+      for (var cl in links)
+      {
+          var link = links[cl];
+
+          if(!file || link.href?.includes(fname)) {
+            let href = link.getAttribute('href')
+                                            .split('?')[0];
+                      
+            let newHref = href + '?version=' 
+                        + new Date().getMilliseconds();
+
+            link.setAttribute('href', newHref);
+          }
+      }
+    }
+
+
+    function reloadAsset(file, reloadscripts) { //reloads src tag elements
+      let split = file.includes('/') ? file.split('/') : file.split('\\');
+      let fname = split[split.length-1];
+      let elements = document.querySelectorAll('[src]');
+      for(const s of elements) {
+        if(s.src.includes(fname)) {
+          if(s.tagName === 'SCRIPT' && !reloadscripts) {
+            window.location.reload();
+            return;
+          } else {
+            let placeholder = document.createElement('object');
+            s.insertAdjacentElement('afterend', placeholder);
+            s.remove();
+            let elm = s.cloneNode(true);
+            placeholder.insertAdjacentElement('beforebegin',elm);
+            placeholder.remove();
+          }
+        }
+      }
+    }
+
+    socket.addEventListener('message',(ev) => {
+      let message = ev.data;
+
+      if(typeof message === 'string' && message.startsWith('{')) {
+        message = JSON.parse(message);
+      }
+      if(message.file) {
+        let f = message.file;
+        let rs = message.reloadscripts
+        if(f.endsWith('css')) {
+          reloadLink(esbuild_cssFileName+'.css'); //reload all css since esbuild typically bundles one file same name as the dist file
+        } else if (f.endsWith('js')) {
+          console.log()
+          reloadAsset(f, rs);
+        } else {
+          //could be an href or src
+          reloadLink(f);
+          reloadAsset(f);
+        }
+      }
+    });
+
+
     socket.addEventListener('close',()=>{
       // Then the server has been turned off,
       // either due to file-change-triggered reboot,
