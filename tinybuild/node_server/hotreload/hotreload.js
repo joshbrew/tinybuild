@@ -26,7 +26,7 @@ export class HotReload {
 
     //console.log(cfg);
 
-    if(cfg.hotreloadwatch) {
+    if(cfg.hotreloadwatch && BUILD_PROCESS) {
        //putting a watch on files for sending messages to trigger hot module replacement (the cheap version)
       let watcher = chokidar.watch(
         '', {
