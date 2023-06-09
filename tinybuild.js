@@ -6,7 +6,7 @@ import path from 'path'
 
 //uncomment and run `node tinybuild.js`
 import {packager, serve} from './tinybuild/packager.js'
-import * as commandUtils from './tinybuild/command.js'
+import * as commandUtils from './tinybuild/commands/command.js'
 import { checkBoilerPlate, checkCoreExists, checkNodeModules, runAndWatch, runOnChange, parseArgs } from './tinybuild/repo.js'
 
 // let config = {
@@ -107,8 +107,8 @@ export async function runTinybuild(args) {
     // let scriptsrc = path.join(process.cwd(), (cliArgs.path) ? cliArgs.path : 'tinybuild.js')
     // const hasScript= fs.existsSync(scriptsrc)
 
-    const config = path.join(process.cwd(),'tinybuild.config.js')
-    const script = path.join(process.cwd(),'tinybuild.js')
+    const config = cliArgs.cfgPath ? path.join(cliArgs.cfgpath,...path.split(cliArgs)) : path.join(process.cwd(),'tinybuild.config.js');
+    const script = path.join(process.cwd(),'tinybuild.js');
     const global = path.join(tinybuildCfg.GLOBAL,'global_packager.js');
 
 
@@ -239,7 +239,7 @@ export async function runTinybuild(args) {
 
             let server = tinybuildCfg.server;
             tinybuildCfg.server = false;
-            BUILD_PROCESS = runAndWatch(tinybuildCfg.path,  [`--config`, `${(JSON.stringify(tinybuildCfg))}`, ...cmdargs]);
+            BUILD_PROCESS = runAndWatch(tinybuildCfg.path,  [`--cfgpath`, config, '--build',...cmdargs]);
             SERVER_PROCESS = serve(server, BUILD_PROCESS); //separate server
         }
         else {
@@ -255,7 +255,7 @@ export async function runTinybuild(args) {
 
                 let server = tinybuildCfg.server;
                 tinybuildCfg.server = false;
-                BUILD_PROCESS = runAndWatch(tinybuildCfg.path, ['--config', `${(JSON.stringify(tinybuildCfg))}`,...cmdargs]);
+                BUILD_PROCESS = runAndWatch(tinybuildCfg.path, [`--cfgpath`, config, '--build', ...cmdargs]);
                 SERVER_PROCESS = serve(server, BUILD_PROCESS); //separate server
             }
             else packager(tinybuildCfg); //else just run the bundler and quit

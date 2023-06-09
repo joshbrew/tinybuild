@@ -11,6 +11,7 @@ export const basic = {
         accumulator.initScript =  decodeURIComponent(input);  //encoded URI string of a javascript file
         return null
     },
+    'cfgpath': undefined, //path to the config, require instead of stringifying config
     'config': (input, accumulator) => {
         Object.assign(accumulator, JSON.parse(input)); //encoded URI string of a packager config in its entirety.
         return null

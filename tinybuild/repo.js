@@ -4,8 +4,8 @@ import chokidar from 'chokidar';
 import {execSync, spawn} from 'child_process';
 // import { defaultServer } from './node_server/server.js';
 import { defaultConfig } from './packager.js';
-import * as commandUtil from './command.js';
 import * as commands from './commands/index.js';
+import * as commandUtil from './commands/command.js';
 import create from './create.js';
 import { getTemplateSync } from './templates/get.js';
 

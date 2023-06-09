@@ -20,6 +20,11 @@ export async function packager(config=defaultConfig, exitOnBundle=true) {
 
     if(process?.argv) { //add any command line arguments
         let parsed = parseArgs(process.argv);
+
+        if(parsed.cfgpath) {
+            let settingsModule = await import('file:///'+parsed.cfgpath);
+            if(settingsModule.default) parsed = settingsModule.default;
+        }
         // console.log('args: ', process.argv);
         // console.log('parsed args: ', parsed);
         
