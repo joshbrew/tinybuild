@@ -10,8 +10,8 @@ import * as server from './node_server/server.js'
 import { parseArgs } from './repo.js'
 
 export const defaultConfig = {
-    bundler: bundler.defaultBundler,
-    server: server.defaultServer
+    bundler: Object.assign({},bundler.defaultBundler),
+    server: Object.assign({},server.defaultServer)
 }
 
 export async function packager(config=defaultConfig, exitOnBundle=true) {

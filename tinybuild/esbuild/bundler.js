@@ -106,6 +106,7 @@ export async function bundle(configs) {
     }
 
     config = Object.assign(defaultBundlerCopy, config);
+
     if(!config.bundleBrowser && !config.bundleNode && !config.bundleCommonJS && !config.bundleESM && !config.bundleCommonJS && !config.bundleIIFE) 
       config.bundleBrowser = true; //need one thing true
       
@@ -194,7 +195,7 @@ export async function bundleBrowser(config) {
   const tempDir = `.temp`;
   if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir);
 
-  if(!config.defaultConfig) config = Object.assign(JSON.parse(JSON.stringify(defaultBundler)),config); //add defaults 
+  if(!config.defaultConfig) config = Object.assign(Object.assign({},defaultBundler),config); //add defaults 
 
   let entryPoints = config.entryPoints;
   const cwd = process.cwd()
@@ -338,7 +339,7 @@ export async function bundleBrowser(config) {
 export async function bundleESM(config) {
   console.time('\n🌌   Built .esm.js file(s)')
   
-  if(!config.defaultConfig) config = Object.assign(JSON.parse(JSON.stringify(defaultBundler)),config); //add defaults 
+  if(!config.defaultConfig) config = Object.assign(Object.assign({},defaultBundler),config); //add defaults 
 
   const cwd = process.cwd()
   if(!config.entryPoints[0]?.includes(cwd)) config.entryPoints = config.entryPoints.map(v => cwd+'/'+v) // Append file name to current dir to get it in node
@@ -382,7 +383,7 @@ export async function bundleESM(config) {
 export async function bundleNode(config) {
   console.time('\n☀️   Built node .js file(s)');
   
-  if(!config.defaultConfig) config = Object.assign(JSON.parse(JSON.stringify(defaultBundler)),config); //add defaults 
+  if(!config.defaultConfig) config = Object.assign(Object.assign({},defaultBundler),config); //add defaults 
 
   const cwd = process.cwd()
   if(!config.entryPoints[0]?.includes(cwd)) config.entryPoints = config.entryPoints.map(v => cwd+'/'+v) // Append file name to current dir to get it in node
@@ -429,7 +430,7 @@ export async function bundleNode(config) {
 export async function bundleCommonJS(config) {
   console.time('\n🌙   Built .cjs');
   
-  if(!config.defaultConfig) config = Object.assign(JSON.parse(JSON.stringify(defaultBundler)),config); //add defaults 
+  if(!config.defaultConfig) config = Object.assign(Object.assign({},defaultBundler),config); //add defaults 
 
   const cwd = process.cwd()
   if(!config.entryPoints[0]?.includes(cwd)) config.entryPoints = config.entryPoints.map(v => cwd+'/'+v) // Append file name to current dir to get it in node
@@ -475,7 +476,7 @@ export async function bundleTypes(config) {
     console.warn('\n⚠️    Warning: Must have TypeScript >= 4.6.4 installed to generate types');
   }
   
-  if(!config.defaultConfig) config = Object.assign(JSON.parse(JSON.stringify(defaultBundler)),config); //add defaults 
+  if(!config.defaultConfig) config = Object.assign(Object.assign({},defaultBundler),config); //add defaults 
 
   const cwd = process.cwd()
   if(!config.entryPoints[0]?.includes(cwd)) config.entryPoints = config.entryPoints.map(v => cwd+'/'+v) // Append file name to current dir to get it in node
