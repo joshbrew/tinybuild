@@ -23,7 +23,7 @@ export async function packager(config=defaultConfig, exitOnBundle=true) {
 
         if(parsed.cfgpath) {
             let settingsModule = await import('file:///'+parsed.cfgpath);
-            if(settingsModule.default) parsed = settingsModule.default;
+            if(settingsModule.default) Object.assign(parsed, settingsModule.default);
         }
         // console.log('args: ', process.argv);
         // console.log('parsed args: ', parsed);
