@@ -211,7 +211,7 @@ export async function runTinybuild(args) {
             let server = tinybuildCfg.server;
             tinybuildCfg.server = false;
             BUILD_PROCESS = runAndWatch(tinybuildCfg.path, cmdargs); //runNodemon(tinybuildCfg.path);
-            SERVER_PROCESS = serve(server);
+            SERVER_PROCESS = serve(server, BUILD_PROCESS);
 
         }
         else if (cliArgs.mode === 'dev') { //run a local dev server copy
@@ -226,7 +226,7 @@ export async function runTinybuild(args) {
             let server = tinybuildCfg.server;
             tinybuildCfg.server = false;
             BUILD_PROCESS = runAndWatch(tinybuildCfg.path, cmdargs); //runNodemon(tinybuildCfg.path);
-            SERVER_PROCESS = serve(server); //separate server
+            SERVER_PROCESS = serve(server, BUILD_PROCESS); //separate server
         }
         // else if (tinybuildCfg.build || cmdargs.includes('bundle')) {
         //     delete tinybuildCfg.serve; //don't use either arg to run both
@@ -240,7 +240,7 @@ export async function runTinybuild(args) {
             let server = tinybuildCfg.server;
             tinybuildCfg.server = false;
             BUILD_PROCESS = runAndWatch(tinybuildCfg.path,  [`--config`, `${(JSON.stringify(tinybuildCfg))}`, ...cmdargs]);
-            SERVER_PROCESS = serve(server); //separate server
+            SERVER_PROCESS = serve(server, BUILD_PROCESS); //separate server
         }
         else {
 
@@ -256,7 +256,7 @@ export async function runTinybuild(args) {
                 let server = tinybuildCfg.server;
                 tinybuildCfg.server = false;
                 BUILD_PROCESS = runAndWatch(tinybuildCfg.path, ['--config', `${(JSON.stringify(tinybuildCfg))}`,...cmdargs]);
-                SERVER_PROCESS = serve(server); //separate server
+                SERVER_PROCESS = serve(server, BUILD_PROCESS); //separate server
             }
             else packager(tinybuildCfg); //else just run the bundler and quit
 

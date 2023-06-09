@@ -1,7 +1,12 @@
+
+
+//
 if(self instanceof WorkerGlobalScope) {
     console.log("Worker!");
+
+    self.onmessage = (ev) => {
+        console.log(ev);
+    }
 }
 
-self.onmessage = (ev) => {
-    console.log(ev);
-}
+export default self;

@@ -66,11 +66,25 @@ const config = {
         bundleTypes: false, //create .d.ts files, //you need a .tsconfig for this to work
         bundleNode: false, //create node platform plain js build, specify platform:'node' to do the rest of the files 
         bundleHTML: false, //wrap the first entry point file as a plain js script in a boilerplate html file, frontend scripts can be run standalone like a .exe! Server serves this as start page if set to true.
+        //bundleIIFE:false,   //create an iife build, this is compiled temporarily to create the types files and only saved with bundleIIFE:true
+        //bundleCommonJS:false, //cjs format outputted as .cjs
         minify: true,
         sourcemap: false
         //globalThis:null //'mymodule'
         //globals:{'index.js':['Graph']}
         //init:{'index.js':function(bundle) { console.log('prepackaged bundle script!', bundle); }.toString(); }      
+        //  outputs:{ //overwrites main config settings for specific use cases
+        //     node:{ //e.g. for bundleNode
+        //     // external:[] //externals for node environment builds
+        //     },
+        //     //commonjs:{} //bundleCommonJS
+        //     //browser:{}
+        //     //esm:{}
+        //     iife:{
+        //     // external:[] //we only use the iife for types so it doesn't really matter if it bundles node, just note otherwise if you need iife for some obscure reason
+        //     }
+        // },
+        //refer to esbuild docs for more settings
      },
     server: {  //node server settings, set false to skip server step or add serve:true to config object to only serve (alt methods)
         debug: false,

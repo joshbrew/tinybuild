@@ -297,7 +297,7 @@ function onStarted(cfg) {
 }
 
 // create the http/https server. For hosted servers, use the IP and open ports. Default html port is 80 or sometimes 443
-export const serve = (cfg=defaultServer) => {
+export const serve = (cfg=defaultServer, BUILD_PROCESS) => {
 
     console.time(`\n🐱   Node server started at ${cfg.protocol}://${cfg.host}:${cfg.port}/`);
 
@@ -337,7 +337,7 @@ export const serve = (cfg=defaultServer) => {
 
     let sockets = {}; //socket server tools
     
-    if (cfg.hotreload) sockets.hotreload = new HotReload(cfg);
+    if (cfg.hotreload) sockets.hotreload = new HotReload(cfg, BUILD_PROCESS);
     if (cfg.python) {
         sockets.python = new PythonRelay(cfg);
         sockets.py_client = new PythonClient(cfg,sockets.python);

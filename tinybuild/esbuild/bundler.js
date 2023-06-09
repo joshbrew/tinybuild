@@ -16,8 +16,8 @@ export const defaultBundler = {
   bundleESM:false,     //create esm module js files
   bundleTypes:false,   //create .d.ts files, the entry point must be a typescript file! (ts, tsx, etc)
   bundleNode:false,   //create node platform plain js build, specify platform:'node' to do the rest of the files 
-  bundleIIFE:false,   //create an iife build, this is compiled temporarily to create the types files
-  bundleCommonJS:false, //cjs format outputted as .cjs.js
+  bundleIIFE:false,   //create an iife build, this is compiled temporarily to create the types files and only saved with bundleIIFE:true
+  bundleCommonJS:false, //cjs format outputted as .cjs
   bundleHTML:false,   //wrap the first entry point file as a plain js script in a boilerplate html file, frontend scripts can be run standalone like a .exe!
   entryPoints:['index.js'], //entry point file(s). These can include .js, .mjs, .ts, .jsx, .tsx, or other javascript files. Make sure your entry point is a ts file if you want to generate types
   outfile:'dist/index',     //exit point file, will append .js as well as indicators like .esm.js, .node.js for other build flags
@@ -27,17 +27,17 @@ export const defaultBundler = {
   minify: true, //https://esbuild.github.io/api/#minify
   sourcemap: false,
   plugins:[
-    streamingImportsPlugin,
+    streamingImportsPlugin, // stream imports from urls and cache them locally in your node_modules folder
     workerPlugin({
-      blobWorkers:true,
-      bundler:{minifyWhitespace:true}
+      blobWorkers:true, //set to false to instead compile the worker to point to the compiled worker bundle file instead of embedding the dataurl in the final file
+      bundler:{minifyWhitespace:true} //bundler settings, you can change to minify:true to fully minify workers, this can just help with debugging
     }),
-    installerPlugin
+    installerPlugin //auto install missing dependencies
   ], //{importmap:{imports:{[key:string]: string}}, directory: string}
   //plugins:[cache(defaultBundler.cachePluginSettings), dtsPlugin()],
   external: ['node-fetch'], //node-fetch here by default excludes a lot of default libraries if we want to compile the same code for browser and node envs (e.g. checking if process exists)
   allowOverwrite:true, 
-  loader: { //just a bunch of path import resolvers, will supply urls if marked 'file', text if marked 'text', and dataurls (blobs) if marked 'dataurl'
+  loader: { //just a bunch of path import resolvers, will supply urls if marked 'file', text if marked 'text', and dataurls (blobs) if marked 'dataurl'. 'copy' for copying without bundling, 'empty' for skipping a file format
     '.html': 'text', //not always necessary but it doesn't hurt
     '.txt': 'text','.yaml': 'text', '.toml':'text', '.xml' : 'text','.xhtml': 'text', '.md':'text',
     '.gitignore':'file','.wasm':'file',
@@ -58,7 +58,7 @@ export const defaultBundler = {
     '.exe': 'file','.dmg': 'file','.elf': 'file', '.app': 'file', '.ini' : 'file', '.epub': 'file', '.csh':'file', '.rtf':'file', '.jsonld':'file', '.mpkg':'file',
     '.zip': 'file','.7z': 'file', '.rar': 'file','.gz': 'file', '.tar': 'file', '.iso': 'file', '.toast': 'file', '.vcd': 'file',
     '.vcf': 'file', '.cer': 'file', '.pem': 'file', '.pfx': 'file', '.key': 'file',  '.sys': 'file',  '.tmp': 'file',
-    '.edf':'file','.bdf':'file','.eeg':'file','.vhdr':'file','.vmrk':'file','.set':'file','.fdt':'file', //bunch of biodata formats
+    '.edf':'file','.bdf':'file','.eeg':'file','.vhdr':'file','.vmrk':'file','.set':'file','.fdt':'file','.nirs':'file', '.snirf':'file', '.tsv':'file', //bunch of biodata formats
     '.fif':'file','.dir':'file','.sqd':'file','.cnt':'file','.gdf':'file','.egi':'file','.mff':'file','.nxe':'file','.htps':'file','.elc':'file','.sfp':'file',
   },
   outputs:{ //overwrites main config settings for specific use cases
@@ -76,6 +76,7 @@ export const defaultBundler = {
   //globalThis:null //'brainsatplay'
   //globals:{[this.entryPoints[0]]:['Graph']}
   //init:{[this.entryPoints[0]]:function(bundle) { console.log('prepackaged bundle script!', bundle); }.toString()}
+  //refer to esbuild docs for more settings
 }
 
 
@@ -89,7 +90,11 @@ export async function bundle(configs) {
 
   await Promise.all(configs.map(async (config, i) => {
 
-    config = Object.assign(defaultBundler, config);
+    let defaultBundlerCopy = Object.assign({}, defaultBundler);
+    if(config.loader) {
+      Object.assign(config.loader, defaultBundlerCopy.loader);
+    }
+    config = Object.assign(defaultBundlerCopy, config);
     if(!config.bundleBrowser && !config.bundleNode && !config.bundleCommonJS && !config.bundleESM && !config.bundleCommonJS && !config.bundleIIFE) 
       config.bundleBrowser = true; //need one thing true
       

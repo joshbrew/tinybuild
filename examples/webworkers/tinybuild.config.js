@@ -1,4 +1,6 @@
 
+import { streamingImportsPlugin, workerPlugin, installerPlugin } from "../../tinybuild";
+
 const config = {
     bundler: { //esbuild settings, set false to skip build step or add bundle:true to config object to only bundle (alt methods)
         entryPoints: [ //entry point file(s). These can include .js, .mjs, .ts, .jsx, .tsx, or other javascript files. Make sure your entry point is a ts file if you want to generate types
@@ -12,7 +14,15 @@ const config = {
         bundleNode: false, //create node platform plain js build, specify platform:'node' to do the rest of the files 
         bundleHTML: false, //wrap the first entry point file as a plain js script in a boilerplate html file, frontend scripts can be run standalone like a .exe! Server serves this as start page if set to true.
         minify: true,
-        sourcemap: false
+        sourcemap: false,
+        plugins:[
+            streamingImportsPlugin, // stream imports from urls and cache them locally in your node_modules folder
+            workerPlugin({
+              blobWorkers:true, //set to false to instead compile the worker to point to the compiled worker bundle file instead of embedding the dataurl in the final file
+              bundler:{minifyWhitespace:true} //bundler settings, you can change to minify:true to fully minify workers, this can just help with debugging
+            }),
+            installerPlugin //auto install missing dependencies
+          ],
         //globalThis:null //'mymodule'
         //globals:{'index.js':['Graph']}
         //init:{'index.js':function(bundle) { console.log('prepackaged bundle script!', bundle); }}      
