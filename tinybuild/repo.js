@@ -567,9 +567,9 @@ export function parseArgs(args=process.argv) {
     try{
         commandUtil.check(args, (name, value) => {
             if (value === null ) return // ignore if null
-            else if (name in commands.server) tcfg.server[name] = value
-            else if (name in commands.bundler) tcfg.bundler[name] = value
-            else tcfg[name] = value
+            else if (name in commands.server) tcfg.server[name] = value;
+            else if (name in commands.bundler) tcfg.bundler[name] = value;
+            else tcfg[name] = value;
         }, tcfg)
     } catch {}
   

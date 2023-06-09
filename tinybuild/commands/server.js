@@ -5,6 +5,8 @@ export const server = {
     'socket_protocol': undefined, //node server socket protocol (wss for hosted, or ws for localhost, depends)
     'pwa': undefined, //pwa service worker relative path
     'hotreload':  undefined, //pwa service worker relative path
+    'redirect': undefined,
+    'reloadscripts':undefined,
     'keypath': undefined, //https key path
     'certpath': undefined, //https cert path
     'watch': undefined, //pwa service worker relative path
