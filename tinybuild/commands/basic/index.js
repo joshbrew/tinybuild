@@ -12,7 +12,7 @@ export const basic = {
         return null
     },
     'config': (input, accumulator) => {
-        Object.assign(accumulator, JSON.parse(input)); //encoded URI string of a packager config.
+        Object.assign(accumulator, JSON.parse(input)); //encoded URI string of a packager config in its entirety.
         return null
     },
     'GLOBAL':undefined
