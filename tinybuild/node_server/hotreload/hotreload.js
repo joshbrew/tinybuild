@@ -71,7 +71,6 @@ export class HotReload {
                     sockets[key].send(JSON.stringify({file:p, reloadscripts:cfg.reloadscripts}));
                   }
                 
-                  
                   if(isJS) jschanged = false;
                   else if(isCSS) csschanged = false;
                 

@@ -1,6 +1,6 @@
 
 
-//
+//contian this in a scope to prevent execution when importing. 
 if(self instanceof WorkerGlobalScope) {
     console.log("Worker!");
 
