@@ -44,53 +44,60 @@ export class HotReload {
       
       let watchBuffer = [];
 
+      function iterateWatchBuffer() {
+        setTimeout(()=>{
+          watchBuffer.forEach((p) => {
+            let found = cfg.hotreloadwatch.find((v) => { if(p.split(path.sep).join('/').includes(v)) return true; });
+            let isMainJS = p.includes(outfilesplit);
+            let isJS = p.endsWith('js') || p.endsWith('ts') || p.endsWith('jsx') || p.endsWith('tsx');
+            let isCSS = p.endsWith('css') || p.endsWith('sass');
+  
+            //css and js will change in main repo before updating in dist so we can do this check to prevent reduncancies
+            //console.log(p, found, isCSS, csschanged);
+            if(found && ((isMainJS && jschanged) || (isCSS && csschanged))) { //for the dist folder, don't reload the js or css unless it was found to have changed
+  
+              console.log("Server updated: "+`${cfg.protocol}://${cfg.host}:${cfg.port}/`);
+            
+              for(const key in sockets) {
+                sockets[key].send(JSON.stringify({file:p, reloadscripts:cfg.reloadscripts}));
+              }
+            
+              if(isJS) jschanged = false;
+              else if(isCSS) csschanged = false;
+            
+            } else if(!found) {
+              if(isJS) {
+                jschanged = true;
+              }
+              else if (isCSS) {
+                csschanged = true;
+              } 
+              else {
+                console.log("Server updated: "+`${cfg.protocol}://${cfg.host}:${cfg.port}/`);
+              
+                for(const key in sockets) {
+                  sockets[key].send(JSON.stringify({file:p, reloadscripts:cfg.reloadscripts}));
+                }
+              }  
+            }
+          });
+        
+          watchBuffer.length = 0;   
+        }, 20);
+      }
+
       
-      watcher.on('change',(path,stats)=>{
-        watchBuffer.push(path);
+      watcher.on('change',(filepath,stats)=>{
+        let pass = true;
+        pass = !filepath.includes('worker.js');
+        if(pass) watchBuffer.push(filepath);
           
         if(!BUILD_PROCESS.process.listenerSet) { //the build process gets swapped each time it resets
           BUILD_PROCESS.process.listenerSet = true;
           BUILD_PROCESS.process.stdout.addListener('data', (data) => {
             let message = data.toString();
             if(message.includes('Packager finished')) {
-              // console.log(watchBuffer);
-              watchBuffer.forEach((p) => {
-    
-                let found = cfg.hotreloadwatch.find((v) => { if(p.includes(v)) return true; });
-                let isMainJS = path.includes(outfilesplit);
-                let isJS = p.endsWith('js') || p.endsWith('ts') || p.endsWith('jsx') || p.endsWith('tsx');
-                let isCSS = p.endsWith('css') || p.endsWith('sass');
-      
-                //css and js will change in main repo before updating in dist so we can do this check to prevent reduncancies
-                //console.log(p, found, isCSS, csschanged);
-                if(found && ((isMainJS && jschanged) || (isCSS && csschanged))) { //for the dist folder, don't reload the js or css unless it was found to have changed
-      
-                  console.log("Server updated: "+`${cfg.protocol}://${cfg.host}:${cfg.port}/`);
-                
-                  for(const key in sockets) {
-                    sockets[key].send(JSON.stringify({file:p, reloadscripts:cfg.reloadscripts}));
-                  }
-                
-                  if(isJS) jschanged = false;
-                  else if(isCSS) csschanged = false;
-                
-                } else if(!found) {
-                  if(isJS) {
-                    jschanged = true;
-                  }
-                  else if (isCSS) {
-                    csschanged = true;
-                  } 
-                  else {
-                    console.log("Server updated: "+`${cfg.protocol}://${cfg.host}:${cfg.port}/`);
-                  
-                    for(const key in sockets) {
-                      sockets[key].send(JSON.stringify({file:p, reloadscripts:cfg.reloadscripts}));
-                    }
-                  }  
-                }
-              });
-              watchBuffer.length = 0;              
+              iterateWatchBuffer()            
             }
           });
         }
@@ -152,8 +159,7 @@ export const HotReloadClient = (socketUrl, esbuild_cssFileName) => {
             let href = link.getAttribute('href')
                                             .split('?')[0];
                       
-            let newHref = href + '?version=' 
-                        + new Date().getMilliseconds();
+            let newHref = href + "";
 
             link.setAttribute('href', newHref);
           }
@@ -193,6 +199,7 @@ export const HotReloadClient = (socketUrl, esbuild_cssFileName) => {
         let f = message.file;
         let rs = message.reloadscripts
         if(f.endsWith('css')) {
+          if(!esbuild_cssFileName.endsWith('css')) esbuild_cssFileName += '.css';
           reloadLink(esbuild_cssFileName+'.css'); //reload all css since esbuild typically bundles one file same name as the dist file
         } else if (f.endsWith('js') || f.endsWith('ts') || f.endsWith('jsx') || f.endsWith('tsx')) {
           reloadAsset(f, rs);
