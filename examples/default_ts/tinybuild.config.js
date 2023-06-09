@@ -1,8 +1,7 @@
-
 const config = {
     bundler: { //esbuild settings, set false to skip build step or add bundle:true to config object to only bundle (alt methods)
         entryPoints: [ //entry point file(s). These can include .js, .mjs, .ts, .jsx, .tsx, or other javascript files. Make sure your entry point is a ts file if you want to generate types
-        "index.ts"
+        "index.js"
         ],
         outfile: "dist/index", //exit point file, will append .js as well as indicators like .esm.js, .node.js for other build flags
         //outdir:[]               //exit point files, define for multiple bundle files
@@ -15,7 +14,7 @@ const config = {
         sourcemap: false
         //globalThis:null //'mymodule'
         //globals:{'index.js':['Graph']}
-        //init:{'index.js':function(bundle) { console.log('prepackaged bundle script!', bundle); }}      
+        //init:{'index.js':function(bundle) { console.log('prepackaged bundle script!', bundle); }.toString(); } //pass stringified functions in to init bundle scripts in a custom way (e.g. for quick rebundling)     
      },
     server: {  //node server settings, set false to skip server step or add serve:true to config object to only serve (alt methods)
         debug: false,
@@ -25,6 +24,7 @@ const config = {
         startpage: "index.html", //home page
         socket_protocol: "ws", //frontend socket protocol, wss for served, ws for localhost
         hotreload: 5000,  //hotreload websocket server port
+        reloadscripts: false, //hot swap scripts in addition to css/assets? Can break pages
         //watch: ['../'], //watch additional directories other than the current working directory
         pwa: "dist/service-worker.js",  //pwa mode? Injects service worker registry code in (see pwa README.md)
         python: false,//7000,  //quart server port (configured via the python server script file still)
@@ -34,5 +34,4 @@ const config = {
         keypath: "node_modules/tinybuild/tinybuild/node_server/ssl/key.pem" //if using https, this is required. See cert.pfx.md for instructions
     }
 }
-
 export default config; //module.exports = config; //es5
