@@ -8,6 +8,7 @@ export const bundler = {
     bundleHTML: undefined, 
     bundleCommonJS: undefined, 
     bundleIIFE: undefined, 
+    includeDefaultPlugins:undefined,
     entryPoints: (input) => {
         let entryPoints = [input]; //entry point script name to be created
         if(entryPoints.includes('[')) entryPoints = json(entryPoints);

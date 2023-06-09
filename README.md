@@ -69,7 +69,9 @@ const config = {
         //bundleIIFE:false,   //create an iife build, this is compiled temporarily to create the types files and only saved with bundleIIFE:true
         //bundleCommonJS:false, //cjs format outputted as .cjs
         minify: true,
-        sourcemap: false
+        sourcemap: false,
+        //plugins:{} //custom esbuild plugins? e.g. esbuild-sass-plugin for scss support
+        //includeDefaultPlugins:true //true by default, includes the presets for the streaming imports, worker bundling, and auto npm install
         //globalThis:null //'mymodule'
         //globals:{'index.js':['Graph']}
         //init:{'index.js':function(bundle) { console.log('prepackaged bundle script!', bundle); }.toString(); }      

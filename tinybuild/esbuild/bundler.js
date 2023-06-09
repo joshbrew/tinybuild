@@ -34,6 +34,7 @@ export const defaultBundler = {
     }),
     installerPlugin //auto install missing dependencies
   ], //{importmap:{imports:{[key:string]: string}}, directory: string}
+  includeDefaultPlugins:true, //if custom plugins pass do we want to still use the default plugins by default? true by default
   //plugins:[cache(defaultBundler.cachePluginSettings), dtsPlugin()],
   external: ['node-fetch'], //node-fetch here by default excludes a lot of default libraries if we want to compile the same code for browser and node envs (e.g. checking if process exists)
   allowOverwrite:true, 
@@ -94,6 +95,16 @@ export async function bundle(configs) {
     if(config.loader) {
       Object.assign(config.loader, defaultBundlerCopy.loader);
     }
+
+    if(config.plugins) {
+      if(!('includeDefaultPlugins' in config) || config.includeDefaultPlugins) {
+        defaultBundler.plugins.forEach((d) => {
+          if(!config.plugins.find((p) => {if(p.name === d.name) return true; }));
+            config.plugins.push(d);
+        });
+      }
+    }
+
     config = Object.assign(defaultBundlerCopy, config);
     if(!config.bundleBrowser && !config.bundleNode && !config.bundleCommonJS && !config.bundleESM && !config.bundleCommonJS && !config.bundleIIFE) 
       config.bundleBrowser = true; //need one thing true
@@ -101,6 +112,7 @@ export async function bundle(configs) {
     if(config.entryPoints && !Array.isArray(config.entryPoints)) config.entryPoints = [config.entryPoints]; 
     if(config.input)
       config.entryPoints = Array.isArray(config.index) ? config.input : [config.input]
+    
     
     // TODO: Make sure that relative references are fully maintained
 
@@ -535,6 +547,7 @@ function cleanupConfig(cfg={}) { //should just use a defaults list for the esbui
   delete cfg.init;
   delete cfg.bundleHTML;
   delete cfg.defaultConfig;
+  delete cfg.includeDefaultPlugins;
 
   if(cfg.minifyWhitespace || cfg.minifySyntax || cfg.minifyIdentifiers) cfg.minify = false;
 }

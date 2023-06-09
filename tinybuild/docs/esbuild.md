@@ -56,7 +56,9 @@ const bundlerSettings = {
   minify: true,
   sourcemap: false,
   external: ['node-fetch'], // []; //we use node-fetch a lot
-  allowOverwrite:true, 
+  allowOverwrite:true,
+  //plugins:{} //custom esbuild plugins? e.g. esbuild-sass-plugin for scss support
+  //includeDefaultPlugins:true //true by default, includes the presets for the streaming imports, worker bundling, and auto npm install 
   loader: {
     '.html': 'text', //not always necessary but it doesn't hurt
     '.png' : 'file',
@@ -83,6 +85,7 @@ const bundlerSettings = {
   //globalThis:null //'brainsatplay'
   //globals:{['index.ts']:['Graph']}
   //init:{['index.ts']:function(bundle) { console.log('prepackaged bundle script!', bundle); }.toString() }
+  
 }
 //the rest are based on what esbuild offers
 

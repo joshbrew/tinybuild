@@ -55,7 +55,7 @@ function onRequest(request, response, cfg) {
     //console.log(request); //debug
 
     if(cfg.redirect) {
-        response.writeHead({
+        response.writeHead(301, {
             Location: cfg.redirect
         });
         response.end();
