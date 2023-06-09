@@ -33,7 +33,7 @@ export class HotReload {
         ignored: /^(?:.*[\\\\\\/])?node_modules(?:[\\\\\\/].*)?|(?:.*[\\\\\\/])?.git(?:[\\\\\\/].*)?|(?:.*[\\\\\\/])?android(?:[\\\\\\/].*)?|(?:.*[\\\\\\/])?ios(?:[\\\\\\/].*)?$/, // ignore node_modules
           persistent: true,
           ignoreInitial:true,
-          interval:20,
+          interval:15,
           binaryInterval:200
       });
       
