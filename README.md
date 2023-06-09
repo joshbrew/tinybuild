@@ -1,4 +1,9 @@
 
+<p align="center">
+  <img width="350px" height="350px" src="./tinybuild.png" />
+</p>
+
+
 # tinybuild
 ![tinybuild-status](https://img.shields.io/npm/v/tinybuild.svg) 
 ![tinybuild-downloads](https://img.shields.io/npm/dt/tinybuild.svg)
