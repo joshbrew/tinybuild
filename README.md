@@ -1,6 +1,6 @@
 
 <p align="center">
-  <img width="350px" height="350px" src="./tinybuild-ico.png" />
+  <img width="350px" height="350px" src="./catgnome.png" />
 </p>
 
 
