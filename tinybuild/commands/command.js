@@ -18,12 +18,11 @@ commandSets.forEach(commandSet => {
 
 export const get = (args=process.argv) => {
     const argMap = {}
-    const reversedArgv = args
-    reversedArgv.forEach((v,i) => {
+    args.forEach((v,i) => {
 
         if (v.includes('-')) {
             const key = v.replaceAll('-', '').trim()
-            argMap[key] = reversedArgv[i+1] //wat
+            if(!args[i+1].includes('-') && !args[i+1].includes('=')) argMap[key] = args[i+1]; //assumes next non-command arg is a value when using dashes
         } 
         else if (v.includes('=')) {
             let split = v.split('=');

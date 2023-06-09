@@ -73,19 +73,21 @@ export async function runTinybuild(args) {
         tinybuildCfg = args;
         cmdargs = process.argv;
         let dupResults = (str) => {
-            if(Array.isArray(tinybuildCfg.server[str])) tinybuildCfg.server[str] = tinybuildCfg.server[str].join(',');
+            if(tinybuildCfg.server[str]) {
+                if(Array.isArray(tinybuildCfg.server[str])) tinybuildCfg.server[str] = tinybuildCfg.server[str].join(',');
 
-            for(let i = 0; i<cmdargs.length; i++) {
                 let cmdarg, argidx;
-                if(cmdargs[i].includes(str)) {
-                    cmdarg = cmdargs[i].split('=')[1];
-                    if(cmdarg.includes('[')) cmdarg = JSON.parse(cmdarg);
-                    if(Array.isArray(cmdarg)) cmdarg = cmdarg.join(',');
-                    argidx = i;
-                    break;
+                for(let i = 0; i<cmdargs.length; i++) {
+                    if(cmdargs[i].includes(str)) {
+                        cmdarg = cmdargs[i].split('=')[1];
+                        if(cmdarg.includes('[')) cmdarg = JSON.parse(cmdarg);
+                        if(Array.isArray(cmdarg)) cmdarg = cmdarg.join(',');
+                        argidx = i;
+                        break;
+                    }
                 }
                 if(cmdarg) {
-                    cmdargs[i] = str+'='+tinybuildCfg.server[str]+','+cmdarg;
+                    cmdargs[argidx] = str+'='+tinybuildCfg.server[str]+','+cmdarg;
                 }
                 else cmdargs.push(str+'='+tinybuildCfg.server[str]);
             }
@@ -210,7 +212,7 @@ export async function runTinybuild(args) {
 
             let server = tinybuildCfg.server;
             tinybuildCfg.server = false;
-            BUILD_PROCESS = runAndWatch(tinybuildCfg.path, cmdargs); //runNodemon(tinybuildCfg.path);
+            BUILD_PROCESS = runAndWatch(tinybuildCfg.path, cmdargs, tinybuildCfg.server.ignore, tinybuildCfg.server.extensions, tinybuildCfg.server.delay); //runNodemon(tinybuildCfg.path);
             SERVER_PROCESS = serve(server, BUILD_PROCESS);
 
         }
@@ -225,7 +227,7 @@ export async function runTinybuild(args) {
 
             let server = tinybuildCfg.server;
             tinybuildCfg.server = false;
-            BUILD_PROCESS = runAndWatch(tinybuildCfg.path, cmdargs); //runNodemon(tinybuildCfg.path);
+            BUILD_PROCESS = runAndWatch(tinybuildCfg.path, cmdargs, tinybuildCfg.server.ignore, tinybuildCfg.server.extensions, tinybuildCfg.server.delay); //runNodemon(tinybuildCfg.path);
             SERVER_PROCESS = serve(server, BUILD_PROCESS); //separate server
         }
         // else if (tinybuildCfg.build || cmdargs.includes('bundle')) {
@@ -239,7 +241,7 @@ export async function runTinybuild(args) {
 
             let server = tinybuildCfg.server;
             tinybuildCfg.server = false;
-            BUILD_PROCESS = runAndWatch(tinybuildCfg.path,  [`--cfgpath`, config, '--build',...cmdargs]);
+            BUILD_PROCESS = runAndWatch(tinybuildCfg.path,  [`--cfgpath`, config, '--build',...cmdargs], tinybuildCfg.server.ignore, tinybuildCfg.server.extensions, tinybuildCfg.server.delay);
             SERVER_PROCESS = serve(server, BUILD_PROCESS); //separate server
         }
         else {
@@ -255,7 +257,7 @@ export async function runTinybuild(args) {
 
                 let server = tinybuildCfg.server;
                 tinybuildCfg.server = false;
-                BUILD_PROCESS = runAndWatch(tinybuildCfg.path, [`--cfgpath`, config, '--build', ...cmdargs]);
+                BUILD_PROCESS = runAndWatch(tinybuildCfg.path, [`--cfgpath`, config, '--build', ...cmdargs], tinybuildCfg.server.ignore, tinybuildCfg.server.extensions, tinybuildCfg.server.delay);
                 SERVER_PROCESS = serve(server, BUILD_PROCESS); //separate server
             }
             else packager(tinybuildCfg); //else just run the bundler and quit
