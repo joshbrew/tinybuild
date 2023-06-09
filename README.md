@@ -1,6 +1,6 @@
 
 <p align="center">
-  <img width="350px" height="350px" src="./catgnome.png" />
+  <img width="65%" height="65%" src="./catgnome.png" />
 </p>
 
 
