@@ -21,7 +21,7 @@ export const defaultBundler = {
   bundleHTML:false,   //wrap the first entry point file as a plain js script in a boilerplate html file, frontend scripts can be run standalone like a .exe!
   entryPoints:['index.js'], //entry point file(s). These can include .js, .mjs, .ts, .jsx, .tsx, or other javascript files. Make sure your entry point is a ts file if you want to generate types
   outfile:'dist/index',     //exit point file, will append .js as well as indicators like .esm.js, .node.js for other build flags
-  //outdir:[]               //exit point files, define for multiple bundle files
+  //outdir:'dist'               //exit point files, define for multiple bundle files
   bundle:true,
   platform: 'browser', //'node' //bundleNode will use 'node' mode by default
   minify: true, //https://esbuild.github.io/api/#minify
@@ -100,13 +100,19 @@ export async function bundle(configs) {
       if(!('includeDefaultPlugins' in config) || config.includeDefaultPlugins) {
         defaultBundler.plugins.forEach((d) => {
           if(!config.plugins.find((p) => {if(p.name === d.name) return true; }));
-            config.plugins.push(d);
         });
       }
     }
 
     config = Object.assign(defaultBundlerCopy, config);
-
+    
+    //bundle false requires certain loaders to be disabled
+    if(config.loader && config.bundle === false) {
+      for(const key in config.loader) {
+        if(config.loader[key] === 'file') delete config.loader[key];
+      }
+    }
+    
     if(!config.bundleBrowser && !config.bundleNode && !config.bundleCommonJS && !config.bundleESM && !config.bundleCommonJS && !config.bundleIIFE) 
       config.bundleBrowser = true; //need one thing true
       
@@ -157,6 +163,11 @@ export async function bundle(configs) {
 //run after bundling
 export function bundleHTML(fromJSPath, config) {
 
+  if(!fromJSPath) {
+    console.error("A single outfile must be defined for html bundling");
+    return;
+  }
+
   let split = fromJSPath.split('.'); split.pop();
   let p = split.join('.')+'.html';
 
@@ -165,9 +176,7 @@ export function bundleHTML(fromJSPath, config) {
   <head>
 `
 
-let outfile;
-if(config.outdir) outfile = config.outdir[0];
-else outfile = config.outfile;
+let outfile = config.outfile;
 
 if(fs.existsSync(path.join(process.cwd(),outfile+'.css'))) {
   template += `<style>${fs.readFileSync(path.join(process.cwd(),outfile+'.css')).toString()}</style>` 
@@ -180,7 +189,6 @@ template += `</head>
   </script>
 </body>
 `
-
   return fs.writeFileSync(
     p,
     template
@@ -214,14 +222,7 @@ export async function bundleBrowser(config) {
 
   if(cfg.format) delete cfg.format; 
   
-  if (cfg.outdir) {
-    if(cfg.outfile) delete cfg.outfile;
-    cfg.outdir = cfg.outdir.map(v => {
-      if(!v.endsWith('.js')) v += '.js';
-      return v;
-    });
-  }
-  else if(cfg.outfile) {
+  if(cfg.outfile) {
     if(!cfg.outfile.endsWith('.js')) cfg.outfile += '.js';
   }
 
@@ -322,7 +323,6 @@ export async function bundleBrowser(config) {
     if(config.bundleHTML) { //bundle the outfile into a boilerplate html
 
       let outfile = cfg.outfile;
-      if(!outfile) outfile = cfg.outdir[0]
 
       bundleHTML(outfile, config);
 
@@ -363,14 +363,6 @@ export async function bundleESM(config) {
       cfg.outfile += '.js';
     }
   }
-  else if (cfg.outdir) {
-    if(cfg.outfile) delete cfg.outfile;
-    cfg.outdir = cfg.outdir.map(v => {
-      if(!v.includes('.esm')) v += '.esm';
-      if(!v.endsWith('.js')) v += '.js';
-      return v;
-    });
-  }
 
   cleanupConfig(cfg);
 
@@ -408,16 +400,6 @@ export async function bundleNode(config) {
         cfg.outfile += '.js';
     }
   }
-  else if (cfg.outdir) {
-    if(cfg.outfile) delete cfg.outfile;
-    cfg.outdir = cfg.outdir.map(v => {
-      if(!v.endsWith('.js')) {
-        if(!v.includes('.node')) v += '.node';
-        v += '.js';
-      }
-      return v;
-    });
-  }
 
   cleanupConfig(cfg);
 
@@ -450,11 +432,6 @@ export async function bundleCommonJS(config) {
   if(cfg.outfile) {
     if(!cfg.outfile.endsWith('.cjs')) cfg.outfile += '.cjs';
   }
-  else if (cfg.outdir) {
-    if(cfg.outfile) delete cfg.outfile;
-    cfg.outdir = cfg.outdir.map(v => {if(!v.endsWith('.cjs')) v += '.cjs'; return v;});
-  }
-
   cleanupConfig(cfg);
 
   return await esbuild.build(cfg).then(()=>{
@@ -499,16 +476,6 @@ export async function bundleTypes(config) {
       cfg.outfile += '.js';
     }
   }
-  else if (cfg.outdir) {
-    if(cfg.outfile) delete cfg.outfile;
-    cfg.outdir = cfg.outdir.map(v => {
-      if(!v.endsWith('.js')) {
-        if(!v.includes('.iife')) v += '.iife';
-        v += '.js';
-      }
-      return v;
-    });
-  }
   cfg.plugins = [
     streamingImportsPlugin,
   ];
@@ -523,9 +490,6 @@ export async function bundleTypes(config) {
     if(!(config.bundleIIFE)) { 
       if(cfg.outfile) {
         fs.unlink(cfg.outfile, () => {}); //remove the extraneous iife file
-      }
-      else if (cfg.outdir) {
-        cfg.outdir.map(v => fs.unlink(v,()=>{}));
       }
     }
 
@@ -601,7 +565,7 @@ function cleanupConfig(cfg={}) { //should just use a defaults list for the esbui
 //       entryPoints: config.entryPoints.map(v => `${cwd}/${v}`),//:temp_files,
 //       bundle:true,
 //       outfile,
-//       //outdir:outfile, // for multiple entry points
+//       //outdir:'dist', // for multiple entry points
 //       format:'esm',
 //       //platform:'node',
 //       external: config.external,

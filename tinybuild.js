@@ -13,7 +13,7 @@ import { checkBoilerPlate, checkCoreExists, checkNodeModules, runAndWatch, runOn
 //     bundler:{
 //         entryPoints: ['test.js'], //entry file, relative to this file 
 //         outfile: 'dist/built', //exit file
-//         //outdir:[] 
+//         ////outdir:'dist'         //exit point folder, define for multiple entryPoints 
 //         bundleBrowser: true, //plain js format
 //         bundleESM: false, //.esm format
 //         bundleTypes: false, //entry point should be a ts or jsx (or other typescript) file

@@ -35,7 +35,7 @@ export const workerPlugin = (
                         entryPoints: [args.path],//[path.join(process.cwd(),'.temp','workerwrapper.js')],
                         outfile,
                         bundle: true,
-                    },config.bundler ? config.bundler : {}));
+                    }, config.bundler ? config.bundler : {}));
     
                     console.log('👷 Bundled worker!', args)
             

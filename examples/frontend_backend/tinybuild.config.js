@@ -5,7 +5,7 @@ const config = {
             "index.js"
         ],
         outfile: "dist/index", //exit point file, will append .js as well as indicators like .esm.js, .node.js for other build flags
-        //outdir:[]               //exit point files, define for multiple bundle files
+        //outdir:'dist'               //exit point folder, define for multiple entryPoints
         bundleBrowser: true, //create plain js build? Can include globals and init scripts
         bundleESM: false, //create esm module js files
         bundleTypes: false, //create .d.ts files, the entry point must be a typescript file! (ts, tsx, etc)

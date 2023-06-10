@@ -50,7 +50,7 @@ const bundlerSettings = {
   bundleHTML:false,   //wrap the first entry point file as a plain js script in a boilerplate html file, frontend scripts can be run standalone like a .exe!
   entryPoints:['index.ts'], //entry point file(s). These can include .js, .mjs, .ts, .jsx, .tsx, or other javascript files. Make sure your entry point is a ts file if you want to generate types
   outfile:'dist/index',     //exit point file, will append .js as well as indicators like .esm.js, .node.js for other build flags
-  //outdir:[]               //exit point files, define for multiple bundle files
+  //outdir:'dist'               //exit point folder, define for multiple entryPoints
   bundle:true,
   platform: 'browser', //'node' //bundleNode will use 'node' mode by default
   minify: true,
