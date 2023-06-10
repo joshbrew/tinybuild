@@ -1,6 +1,11 @@
 ### Known Bugs
 
-Installing tinybuild locally and globally then running hotreload server config can trigger both library locations for some reason. Our previous measures don't seem to work anymore.
+- Installing tinybuild locally and globally then running hotreload server config can trigger both library locations for some reason. Our previous measures don't seem to work anymore.
+- redirect can cache and break localhost on non-redirect servers (??)
+
+### Enhancements
+
+- optimize hotreload plugin settings somehow for the bundle step, still a lot faster for fat apps than before when we were rebundling entirely
 
 ### QOL
 
