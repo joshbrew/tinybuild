@@ -50,8 +50,6 @@ export async function hotBundle(
         loader[ext] = 'empty';
     });
 
-    console.log(loader);
-
     //get the list from the app
     await esbuild.build({
         entryPoints:bundlerConfig.entryPoints,
@@ -66,7 +64,8 @@ export async function hotBundle(
 
     //after copying the css over we need to bundle the cached file
 
-    let result = 'node_modules/.temp/'+outfile+'.js';
+    let result = 'node_modules/.temp/'+outfile;
+    if(!result.endsWith('.js')) result += '.js';
 
     await esbuild.build({
         entryPoints:['node_modules/.temp/index.js'],
@@ -82,9 +81,12 @@ export async function hotBundle(
     if( //copy new css back over if css as it will bundle in its own file
         fs.existsSync(cssresult)
     ) {
+        let cssfile = outfile;
+        if(outfile.endsWith('js')) cssfile = outfile.replace(new RegExp('js' + '$'), 'css');
+        else cssfile += '.css';
         fs.renameSync(
             cssresult, 
-            path.join(outdir,outfile + '.css')
+            path.join(outdir,cssfile)
         );
         //now the hotreload should trigger for css
     }
