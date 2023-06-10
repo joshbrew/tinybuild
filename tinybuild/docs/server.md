@@ -44,7 +44,7 @@ let config = {
     socket_protocol: 'ws', //frontend socket protocol, wss for served, ws for localhost
     hotreload: 5000, //hotreload websocket server port
     reloadscripts: false, //hot swap scripts, can break things if script handles initializations, otherwise css, link, srcs all hot swap without page reloading fairly intelligently
-    hotreloadExtensions:['css','sass','scss','less'], //set specific extensions to rebundle in isolation for speed, mainly css applies but you can include other files
+    //hotswapExtensions:['css','sass','scss','less'], //can set aside specific extensions for a smaller hotreload bundle step, particularly nice for css. use esbuild-sass-plugin or similar for sass/scss. Defaults to the extensions shown here
     //delay:50, //millisecond delay on the watch command for hot reloading
     //watch: ['../'], //watch additional directories other than the current working directory
     //pwa:'dist/service-worker.js', //pwa mode? Injects service worker registry code in (see pwa README.md)
