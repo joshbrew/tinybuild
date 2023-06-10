@@ -6,6 +6,7 @@
 ### Enhancements
 
 - optimize hotreload plugin settings somehow for the bundle step, still a lot faster for fat apps than before when we were rebundling entirely
+- suggestions? We are not gonna over-engineer more than we have to though as it's antithetical to esbuild.
 
 ### QOL
 
