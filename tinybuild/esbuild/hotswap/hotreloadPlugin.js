@@ -5,7 +5,9 @@ import fs from 'fs';
 
 let dirPath = path.join(process.cwd(),'node_modules','.temp');
 
-//this simply copies desired file formats to a cache which will enable recompiling only specific parts of the program
+//this simply copies desired file formats imported in your project 
+//  to a cached .js file which will enable recompiling only specific parts of the program to speed things up.
+//  especially good for css but could apply to other assets. The hotreload server will update the page via socket for you.
 export function hotreloadPlugin(
     extnames = ['css','sass','less','scss']
 ) {

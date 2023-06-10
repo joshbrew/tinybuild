@@ -1,7 +1,7 @@
 ##  [esbuild](https://esbuild.github.io/)
 
 
-esbuild is an ultra lightweight and fast bundler (based in Rust) used in NodeJS to compile javascript projects. It works using Nodejs and can bundle any javascript and typescript projects generically like other bundlers. It typically takes <100ms to bundle a javascript project, and about 2 seconds if you add the type generation plugin.
+esbuild is an ultra lightweight and fast bundler (based in Rust) used in NodeJS to compile javascript projects. It works using Nodejs and can bundle any javascript and typescript projects generically like other bundlers. It typically takes <100ms to bundle a javascript project, and about 2 seconds if you add the type generation plugin. There is very little if any custom syntax required that you find in other package managers, and we did our best to preserve that theme with minimal, mostly-vanilla plugins that don't introduce unnecessary dependencies. Why should your node_modules folder be 1 gigabyte of mostly useless bloatware?
 
 esbuild supports the full spectrum of javascript bundling needs we've encountered so far and we have documented and abstracted its typical features fairly well with our settings. See their website for more information. 
 
@@ -105,7 +105,10 @@ ESM bundles are for enabling the `import`/`export` syntax either in es6 or later
 
 ### Types Bundling
 
-You need a tsconfig in your project root for this to work, we edited the plugin to work with any js/jsx/ts/tsx entry points. 
+Generate .d.ts files automatically, including from js files. The entry point should be a 
+.ts (e.g. index.ts) file but that's it.
+
+You need a tsconfig in your project root for this to work, so tinybuild will create one for from a detailed template. We edited the plugin to work with any js/jsx/ts/tsx entry points. 
 
 These function sort of like header files in strongly-typed C, which show you all of the functions/classes/variables/etc. and their expected input/output formats (including detailed formatting for objects or array types) in each respective script file. Nice for reference, VSCode otherwise does this on-the-fly even in .js files when working.
 

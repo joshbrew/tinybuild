@@ -15,7 +15,6 @@ export async function hotBundle(
     bundlerConfig=defaultBundler, //imported from tinybuild
     changed=''
 ) {
-    //then if a specified hotreload extension is altered (default for css) run the bundler without writing, use cache plugin
 
     console.time(`🔥 Hotswapped${changed ? ' ' + changed : ''} 🔥`);
 
@@ -60,7 +59,7 @@ export async function hotBundle(
 
     //console.log('css linked to bare js file');
 
-    //after copying the css over we need to bundle the cached file
+    //after copying the css over we need to bundle the cached file e.g. to recompile the css only
 
     let result = 'node_modules/.temp/'+outfile;
     if(!result.endsWith('.js')) result += '.js';

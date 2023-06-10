@@ -168,10 +168,11 @@ export const HotReloadClient = (socketUrl, esbuild_cssFileName) => {
     }
 
 
-    function reloadAsset(file, reloadscripts, isJs) { //reloads src tag elements
+    function reloadAsset(file, reloadscripts) { //reloads src tag elements
       let split = file.includes('/') ? file.split('/') : file.split('\\');
       let fname = split[split.length-1];
       let elements = document.querySelectorAll('[src]');
+      let found = false;
       for(const s of elements) {
         if(s.src.includes(fname)) { //esbuild compiles entire file so just reload app
           if(s.tagName === 'SCRIPT' && !reloadscripts) {//&& s.tagName === 'SCRIPT'
@@ -184,9 +185,12 @@ export const HotReloadClient = (socketUrl, esbuild_cssFileName) => {
             let elm = s.cloneNode(true);
             placeholder.insertAdjacentElement('beforebegin',elm);
             placeholder.remove();
+            found = true;
           }
         }
       }
+
+      //if(!found) window.location.reload(); //just do a page reload if nothing specific was found (?)
     }
 
     socket.addEventListener('message',(ev) => {
@@ -198,10 +202,12 @@ export const HotReloadClient = (socketUrl, esbuild_cssFileName) => {
       if(message.file) {
         let f = message.file;
         let rs = message.reloadscripts;
-        if(f.endsWith('css')) {
+        if(f.endsWith('html') || f.endsWith('xml') || f.endsWith('wasm')) { //could add other formats
+          window.location.reload();
+        } else if(f.endsWith('css')) {
           if(!esbuild_cssFileName.endsWith('css')) esbuild_cssFileName += '.css';
           reloadLink(esbuild_cssFileName); //reload all css since esbuild typically bundles one file same name as the dist file
-        } else if (f.endsWith('js') || f.endsWith('ts') || f.endsWith('jsx') || f.endsWith('tsx')) {
+        } else if (f.endsWith('js') || f.endsWith('ts') || f.endsWith('jsx') || f.endsWith('tsx') || f.endsWith('vue')) { //IDK what other third party formats would be nice to haves
           reloadAsset(f, rs);
         } else {
           //could be an href or src
