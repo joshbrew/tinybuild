@@ -70,7 +70,7 @@ export function hotreloadPlugin(
 
                 //write an index file that imports all of the files for esbuild to resolve this in a separate build
                 if(fs.existsSync(dirPath)) 
-                    fs.writeFileSync(path.join(process.cwd(),'node_modules','.temp','index.js'), indexFile); 
+                    fs.writeFileSync(path.join(process.cwd(),'node_modules','.temp','__cachedSubdependencies.js'), indexFile); 
             });
 
             //build.onDispose(() => {})

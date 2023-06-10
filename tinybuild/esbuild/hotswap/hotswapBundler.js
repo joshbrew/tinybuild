@@ -66,7 +66,7 @@ export async function hotBundle(
     if(!result.endsWith('.js')) result += '.js';
 
     await esbuild.build({
-        entryPoints:['node_modules/.temp/index.js'],
+        entryPoints:['node_modules/.temp/__cachedSubdependencies.js'],
         outfile:result,
         bundle:true,
         allowOverwrite:true,
