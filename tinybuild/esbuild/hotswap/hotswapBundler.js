@@ -92,8 +92,8 @@ export async function hotBundle(
     //todo: any more rules we want?
 
 
-    fs.rmSync(result);
-    try { fs.rmdirSync('node_modules/.temp/'); } catch(er) {console.error(er);}
+    // fs.rmSync(result);
+    // try { fs.rmdirSync('node_modules/.temp/'); } catch(er) {console.error(er);}
 
     console.timeEnd(`🔥 Hotswapped${changed ? ' ' + changed : ''} 🔥`);
     
