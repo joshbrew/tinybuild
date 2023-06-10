@@ -99,6 +99,7 @@ const config = {
         socket_protocol: "ws", //frontend socket protocol, wss for served, ws for localhost
         hotreload: 5000,  //hotreload websocket server port
         reloadscripts: false, //hot swap scripts, can break things if script handles initializations, otherwise css, link, srcs all hot swap without page reloading fairly intelligently
+        //hotswapExtensions:['css','sass','scss','less'], //can set aside specific extensions for a smaller hotreload bundle step, particularly nice for css. use esbuild-sass-plugin or similar for sass/scss.
         //delay: 50, //millisecond delay on the watch command for hot reloading
         //pwa: "dist/service-worker.js",  //pwa mode? Injects service worker registry code in (see pwa README.md)
         //watch: ['../'], //watch additional directories other than the current working directory
