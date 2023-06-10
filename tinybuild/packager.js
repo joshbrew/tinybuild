@@ -2,10 +2,13 @@ export * from './esbuild/bundler.js'
 export * from './esbuild/streamingImportsPlugin.js'
 export * from './esbuild/workerPlugin.js'
 export * from './esbuild/installerPlugin.js'
+export * from './esbuild/hotswap/hotreloadPlugin.js'
+export * from './esbuild/hotswap/hotswapBundler.js'
 export * from './node_server/server.js'
 export * from './repo.js'
 
 import * as bundler from './esbuild/bundler.js'
+import { hotBundle } from './esbuild/hotswap/hotswapBundler.js'
 import * as server from './node_server/server.js'
 import { parseArgs } from './repo.js'
 
@@ -18,8 +21,9 @@ export async function packager(config=defaultConfig, exitOnBundle=true) {
     console.time('\n🎂   Packager finished!');
     // console.log(config);
 
+    let parsed;
     if(process?.argv) { //add any command line arguments
-        let parsed = parseArgs(process.argv);
+        parsed = parseArgs(process.argv);
 
         if(parsed.cfgpath) {
             let settingsModule = await import('file:///'+parsed.cfgpath);
@@ -47,15 +51,23 @@ export async function packager(config=defaultConfig, exitOnBundle=true) {
     }
     
     let packaged = {}
-    
-    if(config.bundler && !config.serve || (!config.bundler && !config.server && !config.serve)) {
+
+    if(config.build && parsed.changed) { //run for us by the hotreload and runAndWatch logic
+        //run the hotbundler
+        await hotBundle(
+            config.bundler, 
+            config.server?.hotreloadExtensions,
+            parsed.changed
+        );
+    }
+    else if(config.bundler && !config.serve || (!config.bundler && !config.server && !config.serve)) {
 
         packaged.bundles = await bundler.bundle(config.bundler);
 
         if(config.bundler?.bundleHTML) { //serve the bundled app page 
             
             let outfile = config.bundler.outfile;
-            if(!outfile && config.bundler.outdir) outfile = config.bundler.outdir[0];
+            if(!outfile && config.bundler.outdir) outfile = config.bundler.outdir + '/' + config.bundler.entryPoints[0];
             if(!outfile) outfile = 'dist/index' //defaults
 
             let path = outfile+'.html';

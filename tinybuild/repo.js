@@ -138,7 +138,7 @@ export function runOnChange(
             console.log('change detected at', path,'\n...Restarting...');
 
             let newprocess = spawn(
-                command, args, {
+                command, [...args, '--changed', path], {
                 cwd: process.cwd(),
                 env: process.env,
                 detached: true
@@ -229,7 +229,7 @@ export function runAndWatch(
         binaryInterval:200
     });
 
-    let SERVER_PROCESS = {process:spawn('node',[script,...args])}
+    let SERVER_PROCESS = {process:spawn('node',[script, ...args])}
     let p = SERVER_PROCESS.process;
 
     if(p.stderr) p.stderr.on('data',(dat) => {
@@ -271,7 +271,7 @@ export function runAndWatch(
             console.log('change detected at', path,'\n...Restarting...');
             const onclose = (code,signal) => {
                 let respawn = () => {
-                    SERVER_PROCESS.process = spawn('node',[script,...args]);
+                    SERVER_PROCESS.process = spawn('node',[script,...args, '--changed', path]);
                     p = SERVER_PROCESS.process;
     
                     if(p.stderr) p.stderr.on('data',(dat) => {
@@ -518,7 +518,7 @@ packager(config);
         config.bundler.bundleHTML = false; //we'll target the index.html file instead of building this one
 
         let outfile = config.bundler.outfile;
-        if(config.bundler.outdir) outfile = outdir[0];
+        if(config.bundler.outdir) outfile = config.bundler.outdir + '/' + config.bundler.entryPoints[0];
 
         //index.html file
         fs.writeFileSync(path.join(dirName,'/index.html'),

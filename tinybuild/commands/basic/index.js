@@ -16,5 +16,6 @@ export const basic = {
         Object.assign(accumulator, JSON.parse(input)); //encoded URI string of a packager config in its entirety.
         return null
     },
-    'GLOBAL':undefined
+    'GLOBAL':undefined,
+    'changed':undefined
 }

@@ -155,22 +155,15 @@ export async function runTinybuild(args) {
             if(tinybuildCfg.bundler) {
                 if(tinybuildCfg.bundler.outfile) {
                     OUTFILE = tinybuildCfg.bundler.outfile.split('/').pop();
-                    if(path.extname(OUTFILE)) OUTFILE.replace(path.extname(OUTFILE),'');
+                    if(path.extname(OUTFILE)) OUTFILE = OUTFILE.replace(path.extname(OUTFILE),'');
                     let split = tinybuildCfg.bundler.outfile.split('/');
                     split.pop();
                     let joined = split.join('/');
                     WATCHFOLDERS = [joined];
                 } else if (tinybuildCfg.bundler.outdir) {
-                    tinybuildCfg.bundler.outdir.forEach((d,i) => {
-                        if(i === 0) {
-                            OUTFILE = tinybuildCfg.bundler.outfile.split('/').pop();
-                            if(path.extname(OUTFILE)) OUTFILE.replace(path.extname(OUTFILE),'');
-                        }
-                        let split = d.split('/');
-                        split.pop();
-                        split.join('/');
-                        WATCHFOLDERS.push(split); //output directories to watch on the dev server
-                    })
+                    OUTFILE = tinybuildCfg.bundler.entryPoints[0];
+                    if(path.extname(OUTFILE)) OUTFILE = OUTFILE.replace(path.extname(OUTFILE),'');
+                    WATCHFOLDERS = [tinybuildCfg.bundler.outdir];
                 }
             }
             tinybuildCfg.server.hotreloadwatch = WATCHFOLDERS;

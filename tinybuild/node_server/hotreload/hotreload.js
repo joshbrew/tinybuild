@@ -162,6 +162,7 @@ export const HotReloadClient = (socketUrl, esbuild_cssFileName) => {
             let newHref = href + "";
 
             link.setAttribute('href', newHref);
+            console.log('Updated', link.rel, link.href);
           }
       }
     }
@@ -194,13 +195,12 @@ export const HotReloadClient = (socketUrl, esbuild_cssFileName) => {
       if(typeof message === 'string' && message.startsWith('{')) {
         message = JSON.parse(message);
       }
-      //console.log(message);
       if(message.file) {
         let f = message.file;
-        let rs = message.reloadscripts
+        let rs = message.reloadscripts;
         if(f.endsWith('css')) {
           if(!esbuild_cssFileName.endsWith('css')) esbuild_cssFileName += '.css';
-          reloadLink(esbuild_cssFileName+'.css'); //reload all css since esbuild typically bundles one file same name as the dist file
+          reloadLink(esbuild_cssFileName); //reload all css since esbuild typically bundles one file same name as the dist file
         } else if (f.endsWith('js') || f.endsWith('ts') || f.endsWith('jsx') || f.endsWith('tsx')) {
           reloadAsset(f, rs);
         } else {

@@ -6,6 +6,7 @@ export const server = {
     'pwa': json, //pwa service worker relative path
     'hotreload':  json, //pwa service worker relative path
     'delay': json,
+    'hotreloadExtensions':json,
     'redirect': json,
     'reloadscripts':json,
     'keypath': json, //https key path

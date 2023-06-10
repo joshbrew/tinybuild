@@ -90,7 +90,7 @@ tinybuild arguments (applies to packager or tinybuild commands):
 esbuild arguments:
 - `entryPoints=index.js` -- set an entry point for your script, can also be a JSONified array of strings.
 - `outfile=dist/index` -- set the output directory and file name (minus the extension name)
-- `outdir=['dist/index']` -- alternatively use outdir when using multiple entry points
+- `outdir=dist` -- alternatively use outdir when using multiple entry points
 - `bundleBrowser=true` -- produce a plain .js bundle that is browser-friendly, true by default. 
 - `bundleESM=false` -- produce an ESM module bundle, false by default, Will be identified by .esm.js
 - `bundleTypes=false` -- produce .d.ts files, false by default, entry point needs to by a typescript file but it will attempt to generate types for js files in the repo otherwise. The files are organized like your repo in the dist folder used. 
