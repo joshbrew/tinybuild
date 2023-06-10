@@ -48,13 +48,13 @@ export const defaultBundler = {
     '.mp3': 'file','.wav': 'file','.wma': 'file','.aac': 'file',
     '.m4a': 'file','.avi': 'file','.flac': 'file','.flv': 'file',
     '.mov': 'file','.mp4': 'file','.mkv': 'file', '.h264':'file','.3gp':'file',
-    '.doc' : 'file', '.docx' : 'file','.pdf' : 'file','.odt':'file', '.ods':'file', '.odp':'file', '.ppt':'file','.pptx': 'file', '.odp': 'file', 
+    '.doc' : 'file', '.docx' : 'file','.pdf' : 'file','.odt':'file', '.ods':'file', '.odp':'file', '.ppt':'file','.pptx': 'file',  
     '.csv' : 'file','.xls' : 'file','.xlsx': 'file','.sql': 'file',
     '.obj': 'file','.collada': 'file','.x3d': 'file','.fbx': 'file',  //3d stuff
     '.3ds': 'file','.flc': 'file','.swf': 'file',
     '.step': 'file','.stl': 'file', 
     '.py': 'file', '.cpy': 'file', '.c': 'file', '.cpp': 'file', '.h': 'file', '.hpp': 'file', '.sh':'file','.cs':'file','.swift':'file','.vb':'file', //code stuff
-    '.bin': 'file','.cmd': 'file', '.cmd': 'file', '.msi': 'file', '.com': 'file','.jar': 'file','.class':'file','.rss': 'file','.jsp': 'file','.cgi': 'file',
+    '.bin': 'file','.cmd': 'file',  '.msi': 'file', '.com': 'file','.jar': 'file','.class':'file','.rss': 'file','.jsp': 'file','.cgi': 'file',
     '.brd': 'file','.sch': 'file','.gbr': 'file','.gb': 'file','.gerb': 'file','.drl': 'file', //pcb stuff
     '.exe': 'file','.dmg': 'file','.elf': 'file', '.app': 'file', '.ini' : 'file', '.epub': 'file', '.csh':'file', '.rtf':'file', '.jsonld':'file', '.mpkg':'file',
     '.zip': 'file','.7z': 'file', '.rar': 'file','.gz': 'file', '.tar': 'file', '.iso': 'file', '.toast': 'file', '.vcd': 'file',

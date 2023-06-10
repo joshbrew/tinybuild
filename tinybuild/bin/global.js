@@ -6,7 +6,14 @@ import path from 'path';
 
 import {fileURLToPath} from 'url';
 
-const thismodule = fileURLToPath(import.meta.url);
+if(typeof import.meta !== 'undefined') {
+    globalThis.__filename = fileURLToPath(import.meta.url);
+    globalThis.__dirname = fileURLToPath(new URL('.', import.meta.url));
+}
+
+const thismodule = fileURLToPath(globalThis.__filename);
+
+
 
 let dirName = thismodule.split(path.sep);
 dirName.pop();
