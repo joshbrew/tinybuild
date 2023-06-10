@@ -13,6 +13,9 @@ import { hotBundle } from './esbuild/hotswap/hotswapBundler.js'
 import * as server from './node_server/server.js'
 import { parseArgs } from './repo.js'
 
+
+import path from 'path'
+
 export const defaultConfig = {
     bundler: Object.assign({},bundler.defaultBundler),
     server: Object.assign({},server.defaultServer)
@@ -53,7 +56,9 @@ export async function packager(config=defaultConfig, exitOnBundle=true) {
     
     let packaged = {}
 
-    if(config.build && parsed.changed) { //run for us by the hotreload and runAndWatch logic
+    if(config.build && parsed.changed && config.server?.hotreloadExtensions.find((e) => {
+        if(e.replace('.','') === path.extname(parsed.changed).replace('.','')) return true; //check extensions for hotreload rules
+    })) { //run for us by the hotreload and runAndWatch logic
         //run the hotbundler
         await hotBundle(
             config.bundler, 
