@@ -22,21 +22,30 @@ export function hotreloadPlugin(
             builder.onResolve({ filter }, async (args) => {
                 if((args.kind.includes('import') || args.kind.includes('require')) && !args.importer.includes('node_modules')){
                     
+                    
+                    let filepath = args.path;
+                    if(filepath.startsWith('./')) {
+                        filepath = filepath.substring(1);
+                        filepath = args.resolveDir.split(path.sep).join('/') + filepath; //relative path
+                    } else 
+                        filepath = cwd + '/' + filepath; 
+
                     if(!fs.existsSync(dirPath)) {
                         fs.mkdirSync(dirPath);
                     }
 
                     //make sure the copied files get unique names e.g. for redundantly named styles.css type stuff in big web component libraries
                     //note: we can't do anything about scoped style tags as esbuild compiles it all into one file
-                    let fname = path.basename(args.path);
+                    let fname = path.basename(filepath);
                     if(files.includes(fname)) {
                         let ctr = 1;
                         while(files.includes(fname)) {
-                            fname = path.basename(args.path) + ctr;
+                            fname = path.basename(filepath) + ctr;
                             ctr++;
                         }
                     }
-                    files.push(cwd+'/'+args.path);
+
+                    files.push(filepath);
 
                     //fs.copyFileSync(args.path, path.join(process.cwd(),'node_modules','.cache',fname));
                     
