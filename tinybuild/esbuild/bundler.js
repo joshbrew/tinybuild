@@ -106,8 +106,8 @@ export async function bundle(configs) {
 
     config = Object.assign(defaultBundlerCopy, config);
     
-    //bundle false requires certain loaders to be disabled
-    if(config.loader && config.bundle === false) {
+    //bundle false requires certain loaders to be disabled if no outfile or outdir specified
+    if(config.loader && config.bundle === false && !config.outfile && !config.outdir) {
       for(const key in config.loader) {
         if(config.loader[key] === 'file') delete config.loader[key];
       }
