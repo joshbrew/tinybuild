@@ -100,6 +100,7 @@ export async function bundle(configs) {
       if(!('includeDefaultPlugins' in config) || config.includeDefaultPlugins) {
         defaultBundler.plugins.forEach((d) => {
           if(!config.plugins.find((p) => {if(p.name === d.name) return true; }));
+            config.plugins.push(d);
         });
       }
     }
