@@ -13,14 +13,12 @@ import { defaultBundler } from '../bundler.js';
 ///copy specific assets for rebundling outside the main context 
 export async function hotBundle(
     bundlerConfig=defaultBundler, //imported from tinybuild
-    hotreloadExtensions=['css','sass','scss','less'], //we'll set these next to server hotreload options
     changed=''
 ) {
     //then if a specified hotreload extension is altered (default for css) run the bundler without writing, use cache plugin
 
     console.time(`🔥 Hotswapped${changed ? ' ' + changed : ''} 🔥`);
 
-    let extensions = hotreloadExtensions;
     let outdir = bundlerConfig.outdir;
     if(!outdir) {
         if(bundlerConfig.outfile) {
@@ -44,21 +42,21 @@ export async function hotBundle(
     let bundlerLookup = bundlerConfig.outfile;
     if(!bundlerConfig.outfile.startsWith('./')) bundlerLookup = './' + bundlerLookup;
 
-    let loader = {};
-    hotreloadExtensions.forEach((ext) => {
-        if(!ext.startsWith('.')) ext = '.' + ext;
-        loader[ext] = 'empty';
-    });
+    //let loader = {};
+    // hotreloadExtensions.forEach((ext) => {
+    //     if(!ext.startsWith('.')) ext = '.' + ext;
+    //     loader[ext] = 'empty';
+    // });
 
-    //get the list from the app
-    await esbuild.build({
-        entryPoints:bundlerConfig.entryPoints,
-        outdir,
-        bundle:true,
-        write:false,
-        plugins:[hotreloadPlugin(extensions)],
-        loader
-    });
+    // //get the list from the app. SLOW, use main bundle process to generate list
+    // await esbuild.build({
+    //     entryPoints:bundlerConfig.entryPoints,
+    //     outdir,
+    //     bundle:true,
+    //     write:false,
+    //     plugins:[hotreloadPlugin(extensions)],
+    //     loader
+    // });
 
     //console.log('css linked to bare js file');
 

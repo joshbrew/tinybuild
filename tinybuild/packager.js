@@ -8,6 +8,7 @@ export * from './node_server/server.js'
 export * from './repo.js'
 
 import * as bundler from './esbuild/bundler.js'
+import { hotreloadPlugin } from './esbuild/hotswap/hotreloadPlugin.js'
 import { hotBundle } from './esbuild/hotswap/hotswapBundler.js'
 import * as server from './node_server/server.js'
 import { parseArgs } from './repo.js'
@@ -56,11 +57,17 @@ export async function packager(config=defaultConfig, exitOnBundle=true) {
         //run the hotbundler
         await hotBundle(
             config.bundler, 
-            config.server?.hotreloadExtensions,
             parsed.changed
         );
     }
     else if(config.bundler && !config.serve || (!config.bundler && !config.server && !config.serve)) {
+
+        if(config.server?.hotreload) { //install the hotreload plugin if hotreload server specified
+            if(!config.bundler.plugins?.find((p) => {if(p.name === 'hotreloadcacher') return true;})); {
+                let plugin = hotreloadPlugin(config.server?.hotreloadExtensions ? config.server?.hotreloadExtensions : defaultConfig.server.hotreloadExtensions);
+                config.bundler.plugins ? config.bundler.plugins.push(plugin) : config.bundler.plugins = [plugin];
+            }
+        }
 
         packaged.bundles = await bundler.bundle(config.bundler);
 
