@@ -1,7 +1,7 @@
 ### Known Bugs
 
 - Installing tinybuild locally and globally then running hotreload server config can trigger both library locations for some reason. Our previous measures don't seem to work anymore.
-- redirect can cache and break localhost on non-redirect servers (??)
+- redirect can cache and break localhost on non-redirect servers because of caching (??)
 
 ### Enhancements
 
