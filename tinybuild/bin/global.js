@@ -11,7 +11,7 @@ if(typeof import.meta !== 'undefined') {
     globalThis.__dirname = fileURLToPath(new URL('.', import.meta.url));
 }
 
-const thismodule = fileURLToPath(globalThis.__filename);
+const thismodule = globalThis.__filename;
 
 
 
