@@ -1,7 +1,7 @@
 {
   "name": "tinybuild",
-  "version": "0.7.20",
-  "description": "Versatile esbuild + node + python quart wrapper for a lightweight and frustration-free development experience.",
+  "version": "0.8.0",
+  "description": "Versatile esbuild configuration with custom plugins + node hotreloading for a lightweight and frustration-free web development experience.",
   "main": "tinybuild.js",
   "type": "module",
   "bin": {

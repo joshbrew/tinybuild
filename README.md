@@ -24,8 +24,9 @@ This is the bundler and development server combo you always wanted. Goodbye esot
 
 - Beginner-friendly purist bundler and development server for all of your most common web development needs. 
 - Pure esbuild wrapped with additional boilerplate settings for various needs (see bundleBrowser, bundleTypes, etc). Includes TS and JSX/TSX support, as well as CSS imports for bundling all of your stylesheets. Use esbuild plugins generically for more support (e.g. SCSS)
-- 3 extra zero-dependency esbuild plugins for bundling workers, auto-install and caching imports from urls, as well as bundling types for you (.d.ts files)! Additional support for declaring globals and initial script injection.
+- 4 extra zero-dependency esbuild plugins for bundling workers, auto-install and caching imports from urls, and bundling types for you (.d.ts files)! Additional support for declaring globals and initial script injection in the config.
 - Hotreloading NodeJS server that launches instantly (20ms on average), only dependency is chokidar for hot module swapping.
+- Full ESM and CLI support for customizing bundles, servers, or overriding configuration files in certain cases (e.g. remotely).
 
 The repo contains examples for hybrid web and native mobile apps with a lightweight test environment with minimal dependencies.
 
