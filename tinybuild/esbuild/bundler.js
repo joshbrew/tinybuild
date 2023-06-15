@@ -96,6 +96,8 @@ export async function bundle(configs) {
       Object.assign(config.loader, defaultBundlerCopy.loader);
     }
 
+    if(config.outdir) delete defaultBundlerCopy.outfile;
+    
     if(config.plugins) {
       if(!('includeDefaultPlugins' in config) || config.includeDefaultPlugins) {
         defaultBundler.plugins.forEach((d) => {
