@@ -23,6 +23,7 @@ export const bundler = {
     minify: json,
     minifyWhitespace: json,
     sourcemap: json,
-    outputs: json
-
-}
+    outputs: json,
+    blobWorkers:undefined,
+    workerBundler:json
+};

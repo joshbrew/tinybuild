@@ -36,7 +36,7 @@ export const defaultBundler = {
   ], //{importmap:{imports:{[key:string]: string}}, directory: string}
   includeDefaultPlugins:true, //if custom plugins pass do we want to still use the default plugins by default? true by default
   //plugins:[cache(defaultBundler.cachePluginSettings), dtsPlugin()],
-  external: ['node-fetch'], //node-fetch here by default excludes a lot of default libraries if we want to compile the same code for browser and node envs (e.g. checking if process exists)
+  external: ['node:fetch'], //node-fetch here by default excludes a lot of default libraries if we want to compile the same code for browser and node envs (e.g. checking if process exists)
   allowOverwrite:true, 
   loader: { //just a bunch of path import resolvers, will supply urls if marked 'file', text if marked 'text', and dataurls (blobs) if marked 'dataurl'. 'copy' for copying without bundling, 'empty' for skipping a file format
     '.html': 'text', //not always necessary but it doesn't hurt
@@ -102,13 +102,16 @@ export async function bundle(configs) {
       if(!('includeDefaultPlugins' in config) || config.includeDefaultPlugins) {
         defaultBundler.plugins.forEach((d) => {
           if(!config.plugins.find((p) => {if(p.name === d.name) return true; }));
-            config.plugins.push(d);
+          if(d.name === 'workerloader' && ('blobWorkers' in config || 'workerBundler' in config)) { config.plugins.push(workerPlugin({blobWorkers:config.blobWorkers, bundler:config.workerBundler ? config.workerBundler : {minifyWhitespace:true}}))}
+          else config.plugins.push(d);
         });
       }
     }
 
     config = Object.assign(defaultBundlerCopy, config);
     
+    if((config.bundleNode || config.platform === 'node') && config.external.includes('node:fetch')) config.external = [];
+
     //bundle false requires certain loaders to be disabled if no outfile or outdir specified
     if(config.loader && config.bundle === false && !config.outfile && !config.outdir) {
       for(const key in config.loader) {
@@ -516,6 +519,8 @@ function cleanupConfig(cfg={}) { //should just use a defaults list for the esbui
   delete cfg.bundleHTML;
   delete cfg.defaultConfig;
   delete cfg.includeDefaultPlugins;
+  delete cfg.blobWorkers;
+  delete cfg.workerBundler;
 
   if(cfg.minifyWhitespace || cfg.minifySyntax || cfg.minifyIdentifiers) cfg.minify = false;
 }

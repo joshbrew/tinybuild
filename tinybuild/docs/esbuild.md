@@ -59,8 +59,11 @@ const bundlerSettings = {
   allowOverwrite:true,
   //plugins:{} //custom esbuild plugins? e.g. esbuild-sass-plugin for scss support
   //includeDefaultPlugins:true //true by default, includes the presets for the streaming imports, worker bundling, and auto npm install 
-  loader: {
+  //blobWorkers:true, //package workers as blobs or files? blobs are faster but inflate the main package size
+  //workerBundler:{minifyWhitespace:true} //bundler settings specific to the worker.
+  loader: { //e.g.
     '.html': 'text', //not always necessary but it doesn't hurt
+    '.json': 'text',
     '.png' : 'file',
     '.jpg' : 'file',
     '.gif' : 'file',
@@ -71,11 +74,10 @@ const bundlerSettings = {
     '.eot': 'file',
     '.mp3': 'file',
     '.mp4': 'file',
-    '.json': 'text',
   },
   outputs:{ //overwrites main config settings for specific use cases, you can also set the bundleBrowser etc.. settings to these objects
     node:{ 
-      external:[] //externals for node environment builds
+      external:[] //externals for node environment builds, default node:fetch marked external in other bundles so this is an automatic override in our package 
     }
     //esm:{}
     //commonjs:{}

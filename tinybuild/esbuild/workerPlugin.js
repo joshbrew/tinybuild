@@ -55,8 +55,6 @@ export const workerPlugin = (
                         bundle: true,
                     };
 
-                    if(config) config.blobWorkers = false;
-
                     if(config?.blobWorkers) {
                         buildSettings.write = false;
                     } 
