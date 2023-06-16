@@ -21,61 +21,95 @@ export const workerPlugin = (
     
             builder.onLoad({ filter: /\b[w|W]orker\.[m|c]?[j|t]s/ },
             async (args) => {
-                let outfile = path.join("dist", path.basename(args.path));
                 try {
                     // bundle worker entry in a sub-process
-                    //console.time('👷 Bundled worker!')
                     //console.log('onLoad',args,builder);
-                    let splitpath = outfile.split('.');
-                    if(splitpath[splitpath.length-1] === 'ts') splitpath[splitpath.length-1] = 'js';
-                    else if (splitpath[splitpath.length-1] !== 'js') splitpath.push('js');
-                    outfile = splitpath.join('.');
-
-                    await build(Object.assign({
-                        entryPoints: [args.path],//[path.join(process.cwd(),'.temp','workerwrapper.js')],
-                        outfile,
-                        bundle: true,
-                    }, config.bundler ? config.bundler : {}));
-    
-                    console.log('👷 Bundled worker!', args)
-            
-                    // return the bundled path
-    
-                    let pkg = fs.readFileSync(
-                        path.join(process.cwd(),'package.json')
+                        
+                    let buildconfig = fs.readFileSync(
+                        path.join(process.cwd(),'tinybuild.config.js')
                     ).toString();
                     
-                    let split = pkg.split('\n');
+                    let split = buildconfig.split('\n');
                     
-                    let name = split.find((ln) => {
-                        if(ln.includes('"name"')) {
+                    let outdir;
+
+                    split.find((ln) => {
+                        if(ln.includes('outfile')) {
+                            let spl = ln.split(':')[1].split('//')[0].replace(',','');
+                            let nm = JSON.parse(spl);
+                            nm = nm.split('/'); nm.pop();
+                            if(nm[0] === '.') nm.shift();
+                            outdir = nm.join('/'); //left with folder name
+                            return true;
+                        } else if (ln.includes('outdir')) {
+                            let spl = ln.split(':')[1].split('//')[0].replace(',','');
+                            console.log(spl)
+                            outdir = JSON.parse(ln.split(':')[1].replace(',',''));
                             return true;
                         }
                     });
-                    if(name) {
-                        name = name.split(':')[1].split('"')[1];
-                        //console.log(name);
-                    }
-   
-                    //console.log(outfile);
-                    if(config?.blobWorkers) {
 
-                        return { //resolve the file as an object url
+                    let buildSettings = {
+                        entryPoints: [args.path],//[path.join(process.cwd(),'.temp','workerwrapper.js')],
+                        outdir,
+                        bundle: true,
+                    };
+
+                    if(config) config.blobWorkers = false;
+
+                    if(config?.blobWorkers) {
+                        buildSettings.write = false;
+                    } 
+
+                    let filename = args.path.split(path.sep);
+                    filename = filename[filename.length-1];
+
+                    let ext = path.extname(filename);
+                    filename = filename.replace(ext,'.js');
+
+                    let outfile = outdir + '/' + filename;
+
+                    let bundle = await build(Object.assign(buildSettings, config.bundler ? config.bundler : {}));
+
+                    console.log('👷 Bundled worker!');//, args)
+                    if(!config?.blobWorkers) {
+                        console.log("Output: ", outfile);
+                    }
+            
+                    // return the bundled path
+
+
+                    //console.log(outfile);
+                    if(config?.blobWorkers && bundle.outputFiles[0]) { //&& bundle.outputFiles[0])
+
+                        return { //resolve the file as an object url for running new Worker(blob)
                             contents:`
-                                const str = String(${JSON.stringify(fs.readFileSync(outfile).toString())})
+                                const str = String(${JSON.stringify(bundle.outputFiles[0].text)})
                                 let url = URL.createObjectURL(new globalThis.Blob([str],{type:"text/javascript"}));
                                 export default url;
-                            `
+                            `//bundle.outputFiles[0].text.toString()
                         }
                     }
-                    return {  //resolve the file as a url
+                    return {  //resolve the file contents as a url for running new Worker(url)
                         contents: `
                         let url;
-                        if(typeof process !== 'undefined') {
-                            //node
-                            url = path.join(process.cwd(),'node_modules','${name}','${outfile}');
+                        if(typeof process !== 'undefined') { //nodejs
+                            try { //this executes in esbuild for some reason so this will prevent bundle error
+                                if(typeof import.meta !== 'undefined') {
+                                    globalThis.__filename = fileURLToPath(import.meta.url);
+                                    globalThis.__dirname = fileURLToPath(new URL('.', import.meta.url));
+                                }
+                                let p = require('path');
+                                url = p.join(process.cwd(),__dirname,'${filename}');
+                            } catch {}
                         }
-                        else url = window.location.origin+'/node_modules/${name}/${outfile.split(path.sep).join('/')}'; 
+                        else {
+                            let href = globalThis.location.href;
+                            let relLoc = href.split('/');
+                            relLoc.pop();
+                            relLoc = relLoc.join('/');
+                            url = relLoc + '/${filename}'; //this is the served url
+                        }
                         export default url;
                     ` };
                 } catch (e) {
