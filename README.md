@@ -125,7 +125,7 @@ For using tinybuild locally (`npm install` vs `npm install -g`) you must import 
 
 ### Example:
 
-tinybuild.js
+Create tinybuild.js at the root of your project directory
 ```js
 import {packager} from 'tinybuild'
 import config from './tinybuild.config.js'
@@ -134,7 +134,7 @@ packager(config);
 
 ```
 
-then `node tinybuild.js`
+then in the console from that project directory run `node tinybuild.js`
 
 ## tinybuild commands:
 
