@@ -71,11 +71,11 @@ Then run `tinybuild`.
 
 
 ## Local node_modules/tinybuild Builds (no global package manager)
-For using tinybuild locally (`npm install` vs `npm install -g`) you must import and run `packager(config)` from the tinybuild library yourself, and run it in a script file e.g. `node tinybuild.js`
+For using tinybuild locally (`npm install` vs `npm install -g`) you must import and run `packager(config)` from the tinybuild library yourself, and run it in a script file.
 
-Example:
+### Example:
 
-tinybuild.js
+Create tinybuild.js at the root of your project directory
 ```js
 import {packager} from 'tinybuild'
 import config from './tinybuild.config.js'
@@ -84,7 +84,7 @@ packager(config);
 
 ```
 
-then `node tinybuild.js`
+then in the console from that project directory run `node tinybuild.js`
 
 ### tinybuild commands:
 
