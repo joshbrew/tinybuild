@@ -36,7 +36,7 @@ The other half of our preset tools in tinybuild include a boilerplate node devel
 
 ## Bundler settings
 
-Any unlisted settings are just typical esbuild settings, which can be configured per build type via the .options tag (e.g. config.options.browser = {...more esbuild settings})
+Any unlisted settings are just typical esbuild settings, which can be configured per build type via the .outputs tag (e.g. config.outputs.browser = {...more esbuild settings})
 ```js
 
 //found in esbuild/bundler.js
