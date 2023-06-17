@@ -15,8 +15,18 @@ This is the bundler and development server combo you always wanted. Goodbye esot
 
 - Minimal [esbuild](https://esbuild.github.io/getting-started/#your-first-bundle) bundler wrapper with custom boilerplate and plugins for all of your common javascript application, server, and library packaging needs.
 - Pure [Nodejs](https://developer.mozilla.org/en-US/docs/Learn/Server-side/Node_server_without_framework) hot reloading test environment with hot module swapping. 1 single dependency. 
-- Bonus [Python Quart](https://pgjones.gitlab.io/quart/) concurrent build and test env (not required). 
+- Bonus [Python Quart](https://pgjones.gitlab.io/quart/) multithreaded concurrent build and test env examples (not required). 
 
+## Quickstart
+
+### Globally install Tinybuild:
+`npm i -g tinybuild`
+
+### From an empty project folder, initialize a default app instantly with:
+
+`tinybuild`
+
+Now modify the tinybuild.config.js and package.json to your needs. You may set `server:false` in the config to disable the development server.
 
 ![tinybuild](tinybuild/docs/globalOutput.png)
 
@@ -41,18 +51,9 @@ The bundler and server presets include a full CLI, config file, or functional (i
 ### [Node development/production server](tinybuild/docs/server.md)
 ### [Python development/production server](tinybuild/docs/python.md)
 
+## Quickstart Part 2 
 
-### Globally install Tinybuild:
-`npm i -g tinybuild`
-
-### Or for local repository builds:
-`npm i tinybuild`
-
-### From an empty project folder, initialize a default app instantly with:
-
-`tinybuild`
-
-### Or first create a tinybuild.config.js like so (copy/paste or tinybuild can generate one for you):
+### In a folder with your package.json (e.g. after `npm init`), first create a tinybuild.config.js like so (copy/paste or tinybuild can generate one for you):
 ```js
 //import {defaultBundler, defaultServer, packager} from 'tinybuild'
 
@@ -117,7 +118,10 @@ const config = {
 export default config;
 ```
 
-Then run `tinybuild`.
+Then run `tinybuild`
+
+## Local node_modules/tinybuild Builds (no global package manager)
+For using tinybuild locally (`npm install` vs `npm install -g`) you must import and run `packager(config)` from the tinybuild library yourself, and run it in a script file e.g. `node tinybuild.js`
 
 ### tinybuild commands:
 
