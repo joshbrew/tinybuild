@@ -53,7 +53,9 @@ The bundler and server presets include a full CLI, config file, or functional (i
 
 ## Quickstart Part 2 
 
-### In a folder with your package.json (e.g. after `npm init`), first create a tinybuild.config.js like so (copy/paste or tinybuild can generate one for you):
+In a folder with your package.json (e.g. after `npm init`), 
+
+Create a `tinybuild.config.js` file like so (copy/paste or tinybuild can generate one for you):
 ```js
 //import {defaultBundler, defaultServer, packager} from 'tinybuild'
 
