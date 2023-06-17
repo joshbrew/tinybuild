@@ -91,6 +91,8 @@ export async function bundle(configs) {
 
   await Promise.all(configs.map(async (config, i) => {
 
+    if(!config) config = {};
+
     let defaultBundlerCopy = Object.assign({}, defaultBundler);
     if(config.loader) {
       Object.assign(config.loader, defaultBundlerCopy.loader);
