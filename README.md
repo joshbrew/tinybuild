@@ -45,11 +45,11 @@ Create PWAs, multithreaded programs with web workers, any js or ts packages, gen
 
 The bundler and server presets include a full CLI, config file, or functional (in-script) wrapper for esbuild and server customization, and for creating multiple distributions from a single config (e.g. for browser, esm, node). Bundles and serves complicated libraries and programs in milliseconds with a hot reloading test environment, and makes it easier to scale to production.
 
-
-### [Quickstart](tinybuild/docs/tinybuild.md)
-### [esbuild app and library bundling](tinybuild/docs/esbuild.md)
-### [Node development/production server](tinybuild/docs/server.md)
-### [Python development/production server](tinybuild/docs/python.md)
+## Docs
+### - [Quickstart](tinybuild/docs/tinybuild.md)
+### - [esbuild app and library bundling](tinybuild/docs/esbuild.md)
+### - [Node development/production server](tinybuild/docs/server.md)
+### - [Python development/production server](tinybuild/docs/python.md)
 
 ## Quickstart Part 2 
 
