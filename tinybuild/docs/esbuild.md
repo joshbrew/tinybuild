@@ -152,6 +152,10 @@ Alternatively, include the worker you want to bundle in the entryPoints of the e
 
 Find our [graphscript](https://github.com/brainsatplay/graphscript/examples) examples for multiple worker implementations for graphics rendering with threejs.
 
+### Extra plugins
+
+We additionally support streaming imports (cached from urls for javascript/asset files on the web) and will also auto-install node modules for you when not detected in the esbuild bundling process. Disable these in the config by setting `includeDefaultPlugins:false` in the bundler settings.
+
 ### External
 
 For modules including node libraries that are meant to interoperate with the browser, make sure you exclude them in via the 'external' setting.
