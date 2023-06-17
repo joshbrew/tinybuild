@@ -13,7 +13,7 @@ esbuild supports the full spectrum of javascript bundling needs and we have docu
 
 The node server is no-frills with websocket based hot reloading and basic examples of python backend communication and relaying. It's small and fast and meets our most common development server needs without giant dependencies.
 
-## global install
+## Global install
 
 `npm i -g tinybuild`
 
@@ -68,6 +68,10 @@ export default config;
 ```
 
 Then run `tinybuild`.
+
+
+## Local node_modules/tinybuild Builds (no global package manager)
+For using tinybuild locally (`npm install` vs `npm install -g`) you must import and run `packager(config)` from the tinybuild library yourself, and run it in a script file e.g. `node tinybuild.js`
 
 ### tinybuild commands:
 
