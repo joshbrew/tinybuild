@@ -21,7 +21,7 @@ then from an empty project folder, initialize a default app with:
 
 `tinybuild`
 
-Or first create a tinybuild.config.js like so:
+Or first create a tinybuild.config.js in your project directory like so:
 ```js
 //import {defaultBundler, defaultServer, packager} from 'tinybuild'
 
@@ -68,7 +68,6 @@ export default config;
 ```
 
 Then run `tinybuild`.
-
 
 ## Local node_modules/tinybuild Builds (no global package manager)
 For using tinybuild locally (`npm install` vs `npm install -g`) you must import and run `packager(config)` from the tinybuild library yourself, and run it in a script file.
