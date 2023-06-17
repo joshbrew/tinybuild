@@ -15,8 +15,18 @@ This is the bundler and development server combo you always wanted. Goodbye esot
 
 - Minimal [esbuild](https://esbuild.github.io/getting-started/#your-first-bundle) bundler wrapper with custom boilerplate and plugins for all of your common javascript application, server, and library packaging needs.
 - Pure [Nodejs](https://developer.mozilla.org/en-US/docs/Learn/Server-side/Node_server_without_framework) hot reloading test environment with hot module swapping. 1 single dependency. 
-- Bonus [Python Quart](https://pgjones.gitlab.io/quart/) concurrent build and test env (not required). 
+- Bonus [Python Quart](https://pgjones.gitlab.io/quart/) multithreaded concurrent build and test env examples (not required). 
 
+## Quickstart
+
+### Globally install Tinybuild:
+`npm i -g tinybuild`
+
+### From an empty project folder, initialize a default app instantly with:
+
+`tinybuild`
+
+Now modify the tinybuild.config.js and package.json to your needs. You may set `server:false` in the config to disable the development server.
 
 ![tinybuild](tinybuild/docs/globalOutput.png)
 
@@ -35,24 +45,17 @@ Create PWAs, multithreaded programs with web workers, any js or ts packages, gen
 
 The bundler and server presets include a full CLI, config file, or functional (in-script) wrapper for esbuild and server customization, and for creating multiple distributions from a single config (e.g. for browser, esm, node). Bundles and serves complicated libraries and programs in milliseconds with a hot reloading test environment, and makes it easier to scale to production.
 
+## Docs
+### - [Quickstart](tinybuild/docs/tinybuild.md)
+### - [esbuild app and library bundling](tinybuild/docs/esbuild.md)
+### - [Node development/production server](tinybuild/docs/server.md)
+### - [Python development/production server](tinybuild/docs/python.md)
 
-### [Quickstart](tinybuild/docs/tinybuild.md)
-### [esbuild app and library bundling](tinybuild/docs/esbuild.md)
-### [Node development/production server](tinybuild/docs/server.md)
-### [Python development/production server](tinybuild/docs/python.md)
+## Quickstart Part 2 
 
+In a folder with your package.json (e.g. after `npm init`), 
 
-### Globally install Tinybuild:
-`npm i -g tinybuild`
-
-### Or for local repository builds:
-`npm i tinybuild`
-
-### From an empty project folder, initialize a default app instantly with:
-
-`tinybuild`
-
-### Or first create a tinybuild.config.js like so (copy/paste or tinybuild can generate one for you):
+Create a `tinybuild.config.js` file like so (copy/paste or tinybuild can generate one for you):
 ```js
 //import {defaultBundler, defaultServer, packager} from 'tinybuild'
 
@@ -117,9 +120,25 @@ const config = {
 export default config;
 ```
 
-Then run `tinybuild`.
+Then run `tinybuild`
 
-### tinybuild commands:
+## Local node_modules/tinybuild Builds (no global package manager)
+For using tinybuild locally (`npm install` vs `npm install -g`) you must import and run `packager(config)` from the tinybuild library yourself, and run it in a script file.
+
+### Example:
+
+Create tinybuild.js at the root of your project directory
+```js
+import {packager} from 'tinybuild'
+import config from './tinybuild.config.js'
+
+packager(config);
+
+```
+
+then in the console from that project directory run `node tinybuild.js`
+
+## tinybuild commands:
 
 `tinybuild help` lists accepted arguments, see the boilerplate created in the new repo for more. The `tinybuild` command will use your edited `tinybuild.config.js` or `tinybuild.js` (which includes the library and executes the packager with the bundler and/or server itself for more control) config file after initialization so you can use it generically, else see the created `package.json` for more local commands.
 
@@ -129,7 +148,7 @@ global command:
 local command:
 - `node path/to/tinybuild.js` -- will use the current working directory as reference to run this packager config
 
-tinybuild arguments (applies to packager or tinybuild commands):
+### tinybuild arguments (applies to packager or tinybuild commands):
 - `start` -- runs the equivalent of `node tinybuild.js` in the current working directory.
 - `build`/`bundle` -- runs the esbuild bundler, can specify config with `config={"bundler":{}}` via a jsonified object
 - `serve` -- runs the node development server, can specify config with `config={"server":{}}` via a jsonified object and object
@@ -137,7 +156,7 @@ tinybuild arguments (applies to packager or tinybuild commands):
 - `mode=dev` for the dev server mode (used by default if you just type `tinybuild` on boilerplate)
 - `path=custom.js` -- target a custom equivalent tinybuild.js entry file (to run the packager or bundler/server)st` - host name for the server, localhost by default
 
-esbuild arguments:
+### esbuild arguments:
 - `entryPoints=index.js` -- set an entry point for your script, can also be a JSONified array of strings.
 - `outfile=dist/index` -- set the output directory and file name (minus the extension name)
 - `outdir=dist` -- alternatively use outdir when using multiple entry points
@@ -151,7 +170,7 @@ esbuild arguments:
 - `globalThis=myCustomBundle` -- You can set any exports on your entry points on the bundleBrowser setting to be accessible as a global variable. Not set by default.
 - `globals={[entryPoint]:['myFunction']}` -- you can specify any additional functions, classes, variables etc. exported from your bundle to be installed as globals on the bundleBrowser setting.
 
-Server arguments:
+### Server arguments:
 - `host=localhost` -- set the hostname for the server, localhost by default. You can set it to your server url or IP address when serving. Generally use port 80 when serving.
 - `port=8080` - port for the server, 8080 by default
 - `protocol=http` - http or https? You need ssl cert and key to run https
@@ -170,7 +189,7 @@ Server arguments:
 - `entry=index.js` --name the entry point file you want to create, defaults to index.js
 - `script=console.log("Hello%20World!")` -- pass a jsonified and URI-encoded (for spaces etc.) javascript string, defaults to a console.log of Hello World!
 
-
+Check the tinybuild.config.js for args we didn't fully document here (todo...)
 
 
 

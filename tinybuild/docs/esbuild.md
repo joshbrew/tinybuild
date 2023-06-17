@@ -36,7 +36,7 @@ The other half of our preset tools in tinybuild include a boilerplate node devel
 
 ## Bundler settings
 
-Any unlisted settings are just typical esbuild settings, which can be configured per build type via the .options tag (e.g. config.options.browser = {...more esbuild settings})
+Any unlisted settings are just typical esbuild settings. 
 ```js
 
 //found in esbuild/bundler.js
@@ -92,6 +92,7 @@ const bundlerSettings = {
 //the rest are based on what esbuild offers
 
 ```
+when compiling multiple bundles from one config file, additional build settings can be configured per build type via the .outputs tag (e.g. config.outputs.browser = {...more esbuild settings}) for overriding. Generally we need to do this if compiling node and browser so we can mark node dependencies as external for browser.
 
 ### Browser Bundling
 
@@ -145,9 +146,15 @@ let w = new Worker(worker);
 
 And esbuild will bundle the worker with your distribution! You'll find the bundled workers in the same output file location. You can bundle workers directly in your app/library using our plugin (applied by default) which bundles and inserts the worker code as an inline object url. 
 
-If you set the blobWorkers setting to false using the workerPlugin manually in your config, it will supply the expected url to the server's node_modules folder when you install the worker library. You can set the bundler settings for the worker in the workerPlugin initialization as well, it defaults to only setting `minifyWhitespace:true` in the bundler settings. 
+If you set the blobWorkers setting to false in your config, tinybuild will, instead of compiling a blob, supply the expected url a bundled worker file. You can set the bundler settings for the worker tinybuild config as well using the workerBundler:{} setting, it defaults to only setting `minifyWhitespace:true` in the bundler settings. 
+
+Alternatively, include the worker you want to bundle in the entryPoints of the esbuild settings, and hard code the url, while this plugin enables a specific kind of esm syntax (where a file is a worker.js/.ts file) 
 
 Find our [graphscript](https://github.com/brainsatplay/graphscript/examples) examples for multiple worker implementations for graphics rendering with threejs.
+
+### Extra plugins
+
+We additionally support streaming imports (cached from urls for javascript/asset files on the web) and will also auto-install node modules for you when not detected in the esbuild bundling process. Disable these in the config by setting `includeDefaultPlugins:false` in the bundler settings.
 
 ### External
 
