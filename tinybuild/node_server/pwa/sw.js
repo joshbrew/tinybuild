@@ -1,4 +1,5 @@
 //https://github.com/ibrahima92/pwa-with-vanilla-js
+let staticDevCoffee = 'pwa-assets';
 const assets = [
   "/",
   "/index.html",
