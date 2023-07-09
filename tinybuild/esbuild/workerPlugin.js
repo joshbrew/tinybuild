@@ -36,15 +36,14 @@ export const workerPlugin = (
                     split.find((ln) => {
                         if(ln.includes('outfile')) {
                             let spl = ln.split(':')[1].split('//')[0].replace(',','');
-                            let nm = JSON.parse(spl);
+                            let nm = spl;
                             nm = nm.split('/'); nm.pop();
                             if(nm[0] === '.') nm.shift();
                             outdir = nm.join('/'); //left with folder name
                             return true;
                         } else if (ln.includes('outdir')) {
                             let spl = ln.split(':')[1].split('//')[0].replace(',','');
-                            console.log(spl)
-                            outdir = JSON.parse(ln.split(':')[1].replace(',',''));
+                            outdir = JSON.parse(spl);
                             return true;
                         }
                     });
