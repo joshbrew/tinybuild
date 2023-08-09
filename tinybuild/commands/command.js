@@ -20,9 +20,10 @@ export const get = (args=process.argv) => {
     const argMap = {}
     args.forEach((v,i) => {
 
-        if (v.includes('-')) {
+        if (v.startsWith('--')) {
             const key = v.replaceAll('-', '').trim()
-            if(!args[i+1].includes('-') && !args[i+1].includes('=')) argMap[key] = args[i+1]; //assumes next non-command arg is a value when using dashes
+            if(!args[i+1].startsWith('--') && !args[i+1].includes('=')) 
+                argMap[key] = args[i+1]; //assumes next non-command arg is a value when using dashes
         } 
         else if (v.includes('=')) {
             let split = v.split('=');
@@ -34,6 +35,7 @@ export const get = (args=process.argv) => {
 
     return argMap;
 }
+
 
 
 export const check = (
