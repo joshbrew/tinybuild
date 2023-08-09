@@ -115,7 +115,7 @@ export async function runTinybuild(args) {
 
 
     //todo: make this stuff smarter
-    if(!tinybuildCfg.path && fs.existsSync(config) && !fs.existsSync(script))  tinybuildCfg.path = config;
+    if(!tinybuildCfg.path && fs.existsSync(config) && !fs.existsSync(script))  tinybuildCfg.path = global;
     if(!tinybuildCfg.path && fs.existsSync(script)) tinybuildCfg.path = script;
     if(!tinybuildCfg.path && tinybuildCfg.GLOBAL) tinybuildCfg.path = global;
     if(!tinybuildCfg.path) tinybuildCfg.path = 'tinybuild.js';
