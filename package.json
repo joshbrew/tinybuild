@@ -1,6 +1,6 @@
 {
   "name": "tinybuild",
-  "version": "0.8.13",
+  "version": "0.8.14",
   "description": "Versatile esbuild configuration with custom plugins + node hotreloading for a lightweight and frustration-free web development experience.",
   "main": "tinybuild.js",
   "type": "module",
@@ -29,7 +29,7 @@
     "ws": "^8.13.0"
   },
   "peerDependencies": {
-    "typescript": "4.9.5"
+    "typescript": "~5.1.6"
   },
   "nodemonConfig": {
     "env": {
