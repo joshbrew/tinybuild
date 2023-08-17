@@ -365,12 +365,22 @@ export async function bundleESM(config) {
   
   cfg.logLevel = 'error';
   cfg.format = 'esm';
-  if(cfg.outfile) {
-    if(!cfg.outfile.endsWith('.js')) {
-      if(!cfg.outfile.includes('.esm')) cfg.outfile += '.esm';
-      cfg.outfile += '.js';
+
+  let withfile = (fname) => {  
+    if(!fname.endsWith('.js')) { fname += '.js';}
+    if(!fname.includes('.esm')) {
+      let f = fname.split('.');
+      f.splice(f.length-1,0,'esm');
+      fname = f.join('.'); 
     }
+    return fname;
+
   }
+
+  if(cfg.outfile) {
+    cfg.outfile = withfile(cfg.outfile);
+  } else if (cfg.outdir) cfg.outdir += '/esm';
+
 
   cleanupConfig(cfg);
 
@@ -405,10 +415,10 @@ export async function bundleNode(config) {
 
   let withfile = (fname) => {  
     if(!fname.endsWith('.js') && !fname.endsWith('.cjs')) { fname += '.js';}
-    if(!cfg.outfile.includes('.node')) {
-      let f = fname.split('.')
+    if(!fname.includes('.node')) {
+      let f = fname.split('.');
       f.splice(f.length-1,0,'node');
-      fname = fname.join('.'); 
+      fname = f.join('.'); 
     }
     return fname;
 
@@ -416,7 +426,7 @@ export async function bundleNode(config) {
 
   if(cfg.outfile) {
     cfg.outfile = withfile(cfg.outfile);
-  } //todo: deal with outdir;
+  } else if (cfg.outdir) cfg.outdir += '/node';
 
 
   cleanupConfig(cfg);
@@ -449,8 +459,9 @@ export async function bundleCommonJS(config) {
   cfg.format = 'cjs';
 
   if(cfg.outfile) {
+    if(cfg.outfile.endsWith('.js')) cfg.outfile = cfg.outfile.substring(0,cfg.outfile.length - 3);
     if(!cfg.outfile.endsWith('.cjs')) cfg.outfile += '.cjs';
-  }
+  } else if (cfg.outdir) cfg.outdir += '/cjs'
 
   cleanupConfig(cfg);
 
@@ -494,9 +505,9 @@ export async function bundleTypes(config) {
   let withfile = (fname) => {  
     if(!fname.endsWith('.js')) { fname += '.js';}
     if(!fname.includes('.iife')) {
-      let f = fname.split('.')
+      let f = fname.split('.');
       f.splice(f.length-1,0,'iife');
-      fname = fname.join('.'); 
+      fname = f.join('.'); 
     }
     return fname;
 
@@ -504,7 +515,7 @@ export async function bundleTypes(config) {
 
   if(cfg.outfile) {
     cfg.outfile = withfile(cfg.outfile);
-  } //todo: deal with outdir;
+  } else if (cfg.outdir) cfg.outdir += '/iife';
 
   cfg.plugins = [
     streamingImportsPlugin,
@@ -520,7 +531,7 @@ export async function bundleTypes(config) {
     if(!(config.bundleIIFE)) { 
       if(cfg.outfile) {
         fs.unlink(cfg.outfile, () => {}); //remove the extraneous iife file
-      }
+      } else if (cfg.outdir) fs.rmdir(cfg.outdir);
     }
 
     if (dtsPlugin) console.timeEnd(`\n🪐   Built .d.ts files`);
