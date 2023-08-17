@@ -402,12 +402,22 @@ export async function bundleNode(config) {
   cfg.platform = 'node';
   cfg.logLevel = 'error';
   if(cfg.format) delete cfg.format;
-  if(cfg.outfile) {
-    if(!cfg.outfile.endsWith('.js') && !cfg.outfile.endsWith('.cjs'))  {
-      if(!cfg.outfile.includes('.node')) cfg.outfile += '.node';
-        cfg.outfile += '.js';
+
+  let withfile = (fname) => {  
+    if(!fname.endsWith('.js') && !fname.endsWith('.cjs')) { fname += '.js';}
+    if(!cfg.outfile.includes('.node')) {
+      let f = fname.split('.')
+      f.splice(f.length-1,0,'node');
+      fname = fname.join('.'); 
     }
+    return fname;
+
   }
+
+  if(cfg.outfile) {
+    cfg.outfile = withfile(cfg.outfile);
+  } //todo: deal with outdir;
+
 
   cleanupConfig(cfg);
 
@@ -437,9 +447,11 @@ export async function bundleCommonJS(config) {
   }
   cfg.logLevel = 'error';
   cfg.format = 'cjs';
+
   if(cfg.outfile) {
     if(!cfg.outfile.endsWith('.cjs')) cfg.outfile += '.cjs';
   }
+
   cleanupConfig(cfg);
 
   return await esbuild.build(cfg).then(()=>{
@@ -478,12 +490,22 @@ export async function bundleTypes(config) {
   }
   cfg.logLevel = 'error';
   cfg.format = 'iife';
-  if(cfg.outfile) {
-    if(!cfg.outfile.endsWith('.js')) {
-      if(!cfg.outfile.includes('.iife')) cfg.outfile += '.iife';
-      cfg.outfile += '.js';
+
+  let withfile = (fname) => {  
+    if(!fname.endsWith('.js')) { fname += '.js';}
+    if(!fname.includes('.iife')) {
+      let f = fname.split('.')
+      f.splice(f.length-1,0,'iife');
+      fname = fname.join('.'); 
     }
+    return fname;
+
   }
+
+  if(cfg.outfile) {
+    cfg.outfile = withfile(cfg.outfile);
+  } //todo: deal with outdir;
+
   cfg.plugins = [
     streamingImportsPlugin,
   ];
