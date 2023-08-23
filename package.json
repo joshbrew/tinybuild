@@ -1,6 +1,6 @@
 {
   "name": "tinybuild",
-  "version": "0.8.16",
+  "version": "0.8.17",
   "description": "Versatile esbuild configuration with custom plugins + node hotreloading for a lightweight and frustration-free web development experience.",
   "main": "tinybuild.js",
   "type": "module",

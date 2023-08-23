@@ -98,7 +98,6 @@ export async function bundle(configs) {
       Object.assign(config.loader, defaultBundlerCopy.loader);
     }
 
-    if(config.outdir) delete defaultBundlerCopy.outfile;
     
     if(config.plugins) {
       if(!('includeDefaultPlugins' in config) || config.includeDefaultPlugins) {
@@ -111,6 +110,7 @@ export async function bundle(configs) {
     }
 
     config = Object.assign(defaultBundlerCopy, config);
+    if(config.outdir) delete config.outfile;
     
     if((config.bundleNode || config.platform === 'node') && config.external.includes('node:fetch')) config.external = [];
 
