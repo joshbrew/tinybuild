@@ -90,7 +90,7 @@ export async function packager(config=defaultConfig, exitOnBundle=true) {
         }
     }
     if(((config.server && !config.build) || (!config.bundler && !config.server))) { //now serve the default server. Global will serve from tinybuild.js script to enable hot swapping with a runAndWatch on this script
-        packaged.server = server.serve(config.server);
+        packaged.server = await server.serve(config.server);
     }
     console.timeEnd('\n🎂   Packager finished!');
 
