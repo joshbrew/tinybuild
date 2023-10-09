@@ -17,6 +17,8 @@ This is the bundler and development server combo you always wanted. Goodbye esot
 - Pure [Nodejs](https://developer.mozilla.org/en-US/docs/Learn/Server-side/Node_server_without_framework) hot reloading test environment with hot module swapping. 1 single dependency. 
 - Bonus [Python Quart](https://pgjones.gitlab.io/quart/) multithreaded concurrent build and test env examples (not required). 
 
+## We'll try this out with Bun.js instead of esbuild when Bun's windows support improves. It preserves nearly identical plugin settings to esbuild so it'll be a convenient switch to a better development environment.
+
 ## Quickstart
 
 ### Globally install Tinybuild:
