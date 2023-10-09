@@ -81,7 +81,7 @@ export const defaultBundler = {
 }
 
 
-export async function bundle(configs) {
+export function bundle(configs) {
 
   console.time('\n✨   esbuild');
   console.log('\n✨   esbuild starting!   ✨');
@@ -89,7 +89,7 @@ export async function bundle(configs) {
   if (!Array.isArray(configs)) configs = [configs];
 
 
-  await Promise.all(configs.map(async (config, i) => {
+  const bundles = Promise.all(configs.map(async (config, i) => {
 
     if(!config) config = {};
 
@@ -166,6 +166,8 @@ export async function bundle(configs) {
   console.log('\n✨   esbuild completed!   ✨')
   console.timeEnd('\n✨   esbuild');
   //process.exit(0); // Manually make process exit
+
+  return bundles;
 }
 
 //run after bundling
@@ -206,7 +208,7 @@ template += `</head>
 
 //bundle browser-exectuable js with optional globals and init functions (e.g. to set window variables)
 export async function bundleBrowser(config) {
-  console.time('\n☄️    Built UMD-like .js file(s) for browser');
+  console.time('\n☄️    Built UMD-like .js file(s)');
 
   const tempDir = `.temp`;
   if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir);
@@ -325,26 +327,21 @@ export async function bundleBrowser(config) {
   });
 
 
-  return await esbuild.build(cfg).then(()=>{
-    console.timeEnd('\n☄️    Built UMD-like .js file(s) for browser');
-
-    if(config.bundleHTML) { //bundle the outfile into a boilerplate html
-
-      let outfile = cfg.outfile;
-
-      bundleHTML(outfile, config);
-
-    }
-  
-    //clean temp files we wrote extra code to
-    if(fs.existsSync(tempDir)) fs.rmSync(tempDir,{ recursive: true })
-
-
-  }).catch((er)=>{console.error('Exited with error:',er); process.exit();});
+  return new Promise((res,rej) => {esbuild.build(cfg).then((bundled)=>{
+      console.timeEnd('\n☄️    Built UMD-like .js file(s)');
+      if(config.bundleHTML) { //bundle the outfile into a boilerplate html
+        let outfile = cfg.outfile;
+        bundleHTML(outfile, config);
+      }
+      //clean temp files we wrote extra code to
+      if(fs.existsSync(tempDir)) fs.rmSync(tempDir,{ recursive: true });
+      res(bundled);
+    }).catch((er)=>{console.error('build exited with error:', er); process.exit();});
+  });
 }
 
 //bundle .esm.js
-export async function bundleESM(config) {
+export function bundleESM(config) {
   console.time('\n🌌   Built .esm.js file(s)')
   
   if(!config.defaultConfig) config = Object.assign(Object.assign({},defaultBundler),config); //add defaults 
@@ -384,13 +381,15 @@ export async function bundleESM(config) {
 
   cleanupConfig(cfg);
 
-  return await esbuild.build(cfg).then(()=>{
-    console.timeEnd('\n🌌   Built .esm.js file(s)');
-  }).catch((er)=>{console.error('Exited with error:', er); process.exit();});
+  return new Promise((res,rej) => { esbuild.build(cfg).then((bundled)=>{
+      console.timeEnd('\n🌌   Built .esm.js file(s)');
+      res(bundled);
+    }).catch((er)=>{console.error('esm build exited with error:', er); process.exit();});
+  });
 }
 
 //bundle node defaults
-export async function bundleNode(config) {
+export function bundleNode(config) {
   console.time('\n☀️   Built node .js file(s)');
   
   if(!config.defaultConfig) config = Object.assign(Object.assign({},defaultBundler),config); //add defaults 
@@ -431,13 +430,16 @@ export async function bundleNode(config) {
 
   cleanupConfig(cfg);
 
-  return await esbuild.build(cfg).then(()=>{
-    console.timeEnd('\n☀️   Built node .js file(s)');
-  }).catch((er)=>{console.error('Exited with error:', er); process.exit();});
+  return new Promise((res,rej) => {
+      esbuild.build(cfg).then((bundled)=>{
+      console.timeEnd('\n☀️   Built node .js file(s)');
+      res(bundled);
+    }).catch((er)=>{console.error('node.js build exited with error:', er); process.exit();});
+  })
 }
 
 //bundle commonjs
-export async function bundleCommonJS(config) {
+export function bundleCommonJS(config) {
   console.time('\n🌙   Built .cjs');
   
   if(!config.defaultConfig) config = Object.assign(Object.assign({},defaultBundler),config); //add defaults 
@@ -465,9 +467,12 @@ export async function bundleCommonJS(config) {
 
   cleanupConfig(cfg);
 
-  return await esbuild.build(cfg).then(()=>{
-    console.timeEnd('\n🌙   Built .cjs');
-  }).catch((er)=>{console.error('Exited with error:', er); process.exit();});
+  return new Promise((res,rej) => {
+    esbuild.build(cfg).then((bundled)=>{
+      console.timeEnd('\n🌙   Built .cjs');
+      res(bundled);
+    }).catch((er)=>{console.error('.cjs build failed with error:', er); process.exit();});
+  })
 }
 
 ///bundle .d.ts and .iife.js files
@@ -523,19 +528,21 @@ export async function bundleTypes(config) {
 
   if (dtsPlugin) cfg.plugins.push(dtsPlugin())
 
-
   cleanupConfig(cfg);
 
   //generates types correctly
-  return await esbuild.build(cfg).then(()=>{
-    if(!(config.bundleIIFE)) { 
-      if(cfg.outfile) {
-        fs.unlink(cfg.outfile, () => {}); //remove the extraneous iife file
-      } else if (cfg.outdir) fs.rmdir(cfg.outdir);
-    }
+  return await new Promise((res,rej) => {
+    esbuild.build(cfg).then((bundled)=>{
+      if(!(config.bundleIIFE)) { 
+        if(cfg.outfile) {
+          fs.unlink(cfg.outfile, () => {}); //remove the extraneous iife file
+        } else if (cfg.outdir) fs.rmdir(cfg.outdir);
+      }
 
-    if (dtsPlugin) console.timeEnd(`\n🪐   Built .d.ts files`);
-  }).catch((er)=>{console.error('Exited with error:', er); process.exit();});
+      if (dtsPlugin) console.timeEnd(`\n🪐   Built .d.ts files`);
+      res(bundled);
+    }).catch((er)=>{console.error('iife build exited with error:', er); process.exit();});
+  });
 }
 
 

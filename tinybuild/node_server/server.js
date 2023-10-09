@@ -306,7 +306,15 @@ function onStarted(cfg) {
 }
 
 // create the http/https server. For hosted servers, use the IP and open ports. Default html port is 80 or sometimes 443
-export const serve = (cfg=defaultServer, BUILD_PROCESS) => {
+export const serve = async (cfg=defaultServer, BUILD_PROCESS) => {
+
+    if(BUILD_PROCESS) {
+        await new Promise((res,rej) => {
+            BUILD_PROCESS.process.stdout.on('data', (chunk) => {
+                if(chunk.toString().includes('Packager finished!')) res(true);
+            })
+        })
+    }
 
     console.time(`\n🐱   Node server started at ${cfg.protocol}://${cfg.host}:${cfg.port}/`);
 
@@ -371,7 +379,7 @@ export const serve = (cfg=defaultServer, BUILD_PROCESS) => {
         server.listen( //SITE AVAILABLE ON PORT:
             cfg.port,
             cfg.host,
-            () => onStarted(cfg)
+            () => {onStarted(cfg)}
         );
 
         cfg.SERVER = server;
@@ -402,7 +410,7 @@ export const serve = (cfg=defaultServer, BUILD_PROCESS) => {
         server.listen(
             cfg.port,
             cfg.host,
-            () => onStarted(cfg)
+            () => {onStarted(cfg)}
         );
 
         cfg.SERVER = server;
