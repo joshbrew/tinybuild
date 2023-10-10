@@ -11,7 +11,7 @@ import * as bundler from './esbuild/bundler.js'
 import { hotreloadPlugin } from './esbuild/hotswap/hotreloadPlugin.js'
 import { hotBundle } from './esbuild/hotswap/hotswapBundler.js'
 import * as server from './node_server/server.js'
-import { parseArgs } from './repo.js'
+import { parseArgs } from './commands/command.js'
 
 
 import path from 'path'
@@ -53,7 +53,6 @@ export async function packager(config=defaultConfig, exitOnBundle=true) {
         if(parsed.serve) config.serve = true;
         if(parsed.build) config.build = true;
     }
-    
     let packaged = {}
 
     if(config.build && parsed.changed && config.server?.hotreloadExtensions.find((e) => {

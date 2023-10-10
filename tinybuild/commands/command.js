@@ -39,38 +39,23 @@ export const get = (args=process.argv) => {
 
 
 export const check = (
-    args=process.argv, 
-    callback=(k, v) => {
-        accumulator[k] = v;
-    }, 
-    accumulator={}
+    args=process.argv
 ) => {
     const argMap = get(args);
 
     let notFound = Object.assign({}, argMap);
-
+    
+    const argResults = {};
     // Check Prefixed Commands
-    commandMap.forEach(o => {
-        if (o.name in argMap) {
-            const res = o.transformation(argMap[o.name], accumulator)
-            callback(o.name, res);
-            delete notFound[o.name];
-        } 
-    })
-
-    // Check Bare Commands
-    for (let name in commands.bare){
-        const o = commands.bare[name]
-        if (name in argMap) {
-            if (o?.not) {
-                const hasNot = o.not.find(str => str in argMap)
-                if (!hasNot) {
-                    callback(name, true);
-                    delete notFound[o.name];
-                }
-            } else {
-                callback(name, true);
-                delete notFound[o.name];
+    for(const key in argMap) {
+        for(const commands of commandSets) {
+            if(key in commands) {
+                if(typeof commands[key] === 'function') {
+                    argResults[key] = commands[key](argMap[key], argResults);
+                } 
+                else if(typeof argMap[key] !== undefined) argResults[key] = argMap[key];
+                else argResults[key] = true;
+                delete notFound[key];
             }
         }
     }
@@ -78,10 +63,30 @@ export const check = (
     //non hard-coded commands
     for(const name in notFound) {
         let res = notFound[name];
-        if(typeof res === 'string') res = JSON.parse(res);
-        callback(name, notFound[name]);
+        argResults[name] = res;
     }
 
+    return argResults;
+}
 
-    return accumulator
+
+
+export function parseArgs(args=process.argv) {
+    
+    let tcfg = {
+        server:{},
+        bundler:{}
+    }
+
+    let argMap = check(args);
+    for(const key in argMap) {
+        if (key in commands.server) tcfg.server[key] = argMap[key];
+        else if (key in commands.bundler) tcfg.bundler[key] = argMap[key];
+        else tcfg[key] = argMap[key];
+    }
+
+    if(tcfg.server) if(Object.keys(tcfg.server).length === 0) delete tcfg.server;
+    if(tcfg.bundler) if(Object.keys(tcfg.bundler).length === 0) delete tcfg.bundler; 
+
+    return tcfg;
 }

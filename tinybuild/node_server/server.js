@@ -7,7 +7,7 @@ import * as path from 'path'
 import {HotReload, addHotReloadClient} from './hotreload/hotreload.js'
 
 import { PythonRelay, PythonClient } from './relay/python_relay.js';
-import { parseArgs } from '../repo.js'
+import { parseArgs } from '../commands/command.js'
 
 export const defaultServer = {
     debug:false, //print debug messages?

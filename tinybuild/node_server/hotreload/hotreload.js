@@ -10,7 +10,7 @@ export class HotReload {
   url = null;
 
   constructor (cfg, BUILD_PROCESS){
-    this.config = cfg
+    this.config = cfg;
     this.wss = new WebSocketServer({ // new WebSocket.Server({
       port: cfg.hotreload
     });
@@ -25,12 +25,20 @@ export class HotReload {
     let ct = 0;
 
     //console.log(cfg);
+    let watchPaths = [process.cwd()]; 
+    if(cfg.watch) {
+      if(Array.isArray(cfg.watch))
+        watchPaths.push(...cfg.watch);
+      else 
+        watchPaths.push(cfg.watch);
+    }
 
     if(cfg.hotreloadwatch && BUILD_PROCESS) {
        //putting a watch on files for sending messages to trigger hot module replacement (the cheap version)
+      
       let watcher = chokidar.watch(
-        '', {
-        ignored: /^(?:.*[\\\\\\/])?node_modules(?:[\\\\\\/].*)?|(?:.*[\\\\\\/])?.git(?:[\\\\\\/].*)?|(?:.*[\\\\\\/])?android(?:[\\\\\\/].*)?|(?:.*[\\\\\\/])?ios(?:[\\\\\\/].*)?$/, // ignore node_modules
+        watchPaths, {
+          ignored: /^(?:.*[\\\\\\/])?node_modules(?:[\\\\\\/].*)?|(?:.*[\\\\\\/])?.git(?:[\\\\\\/].*)?|(?:.*[\\\\\\/])?android(?:[\\\\\\/].*)?|(?:.*[\\\\\\/])?ios(?:[\\\\\\/].*)?$/, // ignore node_modules
           persistent: true,
           ignoreInitial:true,
           interval:15,
@@ -85,7 +93,6 @@ export class HotReload {
           watchBuffer.length = 0;   
         }, 20);
       }
-
       
       watcher.on('change',(filepath,stats)=>{
         let pass = true;

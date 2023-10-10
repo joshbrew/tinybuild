@@ -4,8 +4,8 @@ import chokidar from 'chokidar';
 import {execSync, spawn} from 'child_process';
 // import { defaultServer } from './node_server/server.js';
 import { defaultConfig } from './packager.js';
-import * as commands from './commands/index.js';
 import * as commandUtil from './commands/command.js';
+import { parseArgs } from './commands/command.js';
 import create from './create.js';
 import { getTemplateSync } from './templates/get.js';
 
@@ -191,7 +191,7 @@ export function runAndWatch(
     let watchPaths = process.cwd();
 
     let argMap; 
-    try {argMap = commandUtil.check(args) } catch {}
+    argMap = parseArgs(process.argv);
 
     if(argMap && argMap.server?.watch) { //watch='../../otherlibraryfolder'
         watchPaths = argMap.server.watch
@@ -201,6 +201,7 @@ export function runAndWatch(
             watchPaths = [process.cwd(),...watchPaths];
         }
     }
+
 
     if(argMap && argMap.server?.extensions) { //watchext='../../otherlibraryfolder'
         let extPaths = argMap.server.extensions
@@ -555,27 +556,4 @@ packager(config);
     if(config.bundleTypes && !fs.existsSync(path.join(process.cwd(),'tsconfig.json'))) 
         create.tsconfig(path.join(process.cwd(),'tsconfig.json')); 
 
-}
-
-export function parseArgs(args=process.argv) {
-    
-    let tcfg = {
-        server:{},
-        bundler:{}
-    }
-
-    try{
-        commandUtil.check(args, (name, value) => {
-            if (value === null ) return // ignore if null
-            else if (name in commands.server) tcfg.server[name] = value;
-            else if (name in commands.bundler) tcfg.bundler[name] = value;
-            else tcfg[name] = value;
-        }, tcfg)
-    } catch {}
-  
-
-    if(tcfg.server) if(Object.keys(tcfg.server).length === 0) delete tcfg.server;
-    if(tcfg.bundler) if(Object.keys(tcfg.bundler).length === 0) delete tcfg.bundler; 
-
-    return tcfg;
 }
