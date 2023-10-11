@@ -30,7 +30,7 @@ This is the bundler and development server combo you always wanted. Goodbye esot
 
 Now modify the tinybuild.config.js and package.json to your needs. You may set `server:false` in the config to disable the development server.
 
-![tinybuild](tinybuild/docs/globalOutput.png)
+![tinybuild](tinybuild/docs/globalOutp.PNG)
 
 ### Main Features
 
