@@ -226,7 +226,7 @@ Create a package.json if you don't have one. You an use these scripts to run the
         "esbuild"
     ],
     "author": "Joshua Brewster",
-    "license": "AGPL-3.0-or-later",
+    "license": "LGPL-3.0-or-later",
     "dependencies": {
     },
     "devDependencies":{

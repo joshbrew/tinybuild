@@ -88,7 +88,7 @@ We recommend these as your package.json settings with tinybuild and to use the c
         "esbuild"
     ],
     "author": "Joshua Brewster",
-    "license": "AGPL-3.0-or-later",
+    "license": "LGPL-3.0-or-later",
     "dependencies": {
     },
     "devDependencies":{
