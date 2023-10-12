@@ -260,13 +260,7 @@ export async function runTinybuild(args) {
 
     } 
 
-
-    if(!BUILD_PROCESS) console.timeEnd('\n🚀   Starting tinybuild...');
-    else {
-        BUILD_PROCESS.process.on('spawn',()=>{
-            console.timeEnd('\n🚀   Starting tinybuild...');
-        });
-    }
+    console.timeEnd('\n🚀   Starting tinybuild...');
 
     return {BUILD_PROCESS, SERVER_PROCESS};
 }
