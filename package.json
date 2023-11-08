@@ -1,6 +1,6 @@
 {
   "name": "tinybuild",
-  "version": "0.9.3",
+  "version": "0.9.4",
   "description": "Versatile esbuild configuration with custom plugins + node hotreloading for a lightweight and frustration-free web development experience.",
   "main": "tinybuild.js",
   "type": "module",
@@ -25,7 +25,7 @@
   "license": "LGPL-3.0-or-later",
   "dependencies": {
     "chokidar": "~3.5.3",
-    "esbuild": "~0.19.2",
+    "esbuild": "~0.19.4",
     "ws": "~8.13.0"
   },
   "peerDependencies": {

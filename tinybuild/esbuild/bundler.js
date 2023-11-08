@@ -232,8 +232,8 @@ export async function bundleBrowser(config) {
 
   if(cfg.format) delete cfg.format; 
   
-  if(cfg.outfile) {
-    if(!cfg.outfile.endsWith('.js')) cfg.outfile += '.js';
+  if(cfg.outfile && cfg.modifyExtensions !== false) {
+    if(!cfg.outfile.endsWith('.js') && !fname.endsWith('.mjs')) cfg.outfile += '.js';
   }
 
   cleanupConfig(cfg);
@@ -364,11 +364,13 @@ export function bundleESM(config) {
   cfg.format = 'esm';
 
   let withfile = (fname) => {  
-    if(!fname.endsWith('.js')) { fname += '.js';}
-    if(!fname.includes('.esm')) {
-      let f = fname.split('.');
-      f.splice(f.length-1,0,'esm');
-      fname = f.join('.'); 
+    if(cfg.modifyExtensions !== false) {
+      if(!fname.endsWith('.js') && !fname.endsWith('.mjs')) { fname += '.js';}
+      if(!fname.includes('.esm')) {
+        let f = fname.split('.');
+        f.splice(f.length-1,0,'esm');
+        fname = f.join('.'); 
+      }
     }
     return fname;
 
@@ -413,11 +415,13 @@ export function bundleNode(config) {
   if(cfg.format) delete cfg.format;
 
   let withfile = (fname) => {  
-    if(!fname.endsWith('.js') && !fname.endsWith('.cjs')) { fname += '.js';}
-    if(!fname.includes('.node')) {
-      let f = fname.split('.');
-      f.splice(f.length-1,0,'node');
-      fname = f.join('.'); 
+    if(cfg.modifyExtensions !== false) {
+      if(!fname.endsWith('.js') && !fname.endsWith('.cjs') && !fname.endsWith('.mjs')) { fname += '.js';}
+      if(!fname.includes('.node')) {
+        let f = fname.split('.');
+        f.splice(f.length-1,0,'node');
+        fname = f.join('.'); 
+      }
     }
     return fname;
 
@@ -460,10 +464,12 @@ export function bundleCommonJS(config) {
   cfg.logLevel = 'error';
   cfg.format = 'cjs';
 
-  if(cfg.outfile) {
-    if(cfg.outfile.endsWith('.js')) cfg.outfile = cfg.outfile.substring(0,cfg.outfile.length - 3);
-    if(!cfg.outfile.endsWith('.cjs')) cfg.outfile += '.cjs';
-  } else if (cfg.outdir) cfg.outdir += '/cjs'
+  if(cfg.modifyExtensions !== false) {
+    if(cfg.outfile) {
+      if(cfg.outfile.endsWith('.js')) cfg.outfile = cfg.outfile.substring(0,cfg.outfile.length - 3);
+      if(!cfg.outfile.endsWith('.cjs')) cfg.outfile += '.cjs';
+    } else if (cfg.outdir) cfg.outdir += '/cjs'
+  }
 
   cleanupConfig(cfg);
 
@@ -508,11 +514,13 @@ export async function bundleTypes(config) {
   cfg.format = 'iife';
 
   let withfile = (fname) => {  
-    if(!fname.endsWith('.js')) { fname += '.js';}
-    if(!fname.includes('.iife')) {
-      let f = fname.split('.');
-      f.splice(f.length-1,0,'iife');
-      fname = f.join('.'); 
+    if(cfg.modifyExtensions !== false) {
+      if(!fname.endsWith('.js') && !fname.endsWith('.mjs')) { fname += '.js';}
+      if(!fname.includes('.iife')) {
+        let f = fname.split('.');
+        f.splice(f.length-1,0,'iife');
+        fname = f.join('.'); 
+      }
     }
     return fname;
 
@@ -563,6 +571,7 @@ function cleanupConfig(cfg={}) { //should just use a defaults list for the esbui
   delete cfg.includeDefaultPlugins;
   delete cfg.blobWorkers;
   delete cfg.workerBundler;
+  delete cfg.modifyExtensions
 
   if(cfg.minifyWhitespace || cfg.minifySyntax || cfg.minifyIdentifiers) cfg.minify = false;
 }

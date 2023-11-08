@@ -74,7 +74,7 @@ export async function runTinybuild(args) {
         tinybuildCfg = args;
         cmdargs = process.argv;
         let dupResults = (str) => {
-            if(tinybuildCfg.server[str]) {
+            if(tinybuildCfg.server?.[str]) {
                 if(Array.isArray(tinybuildCfg.server[str])) tinybuildCfg.server[str] = tinybuildCfg.server[str].join(',');
 
                 let cmdarg, argidx;
