@@ -233,7 +233,7 @@ export async function bundleBrowser(config) {
   if(cfg.format) delete cfg.format; 
   
   if(cfg.outfile && cfg.modifyExtensions !== false) {
-    if(!cfg.outfile.endsWith('.js') && !fname.endsWith('.mjs')) cfg.outfile += '.js';
+    if(!cfg.outfile.endsWith('.js') && !cfg.outfile.endsWith('.mjs')) cfg.outfile += '.js';
   }
 
   cleanupConfig(cfg);
