@@ -24,7 +24,7 @@ export const defaultBundler = {
   //outdir:'dist'               //exit point files, define for multiple bundle files
   bundle:true,
   platform: 'browser', //'node' //bundleNode will use 'node' mode by default
-  minify: true, //https://esbuild.github.io/api/#minify
+  minify: false, //https://esbuild.github.io/api/#minify
   sourcemap: false,
   plugins:[
     streamingImportsPlugin, // stream imports from urls and cache them locally in your node_modules folder
@@ -36,7 +36,7 @@ export const defaultBundler = {
   ], //{importmap:{imports:{[key:string]: string}}, directory: string}
   includeDefaultPlugins:true, //if custom plugins pass do we want to still use the default plugins by default? true by default
   //plugins:[cache(defaultBundler.cachePluginSettings), dtsPlugin()],
-  external: ['node:fetch'], //node-fetch here by default excludes a lot of default libraries if we want to compile the same code for browser and node envs (e.g. checking if process exists)
+  //external: ['node:fetch'], //node-fetch here by default excludes a lot of default libraries if we want to compile the same code for browser and node envs (e.g. checking if process exists)
   allowOverwrite:true, 
   loader: { //just a bunch of path import resolvers, will supply urls if marked 'file', text if marked 'text', and dataurls (blobs) if marked 'dataurl'. 'copy' for copying without bundling, 'empty' for skipping a file format
     '.html': 'text', //not always necessary but it doesn't hurt
