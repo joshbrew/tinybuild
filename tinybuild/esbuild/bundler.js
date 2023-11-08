@@ -112,7 +112,7 @@ export function bundle(configs) {
     config = Object.assign(defaultBundlerCopy, config);
     if(config.outdir) delete config.outfile;
     
-    if((config.bundleNode || config.platform === 'node') && config.external.includes('node:fetch')) config.external = [];
+    if((config.bundleNode || config.platform === 'node') && config.external?.includes('node:fetch')) config.external = [];
 
     //bundle false requires certain loaders to be disabled if no outfile or outdir specified
     if(config.loader && config.bundle === false && !config.outfile && !config.outdir) {
@@ -154,7 +154,7 @@ export function bundle(configs) {
     }
 
     // Create Types Once
-    if(config.bundleTypes == true) {
+    if(config.bundleTypes == true || config.bundleIIFE === true) {
       bundles.ts = await bundleTypes(config);
     }
 
@@ -487,12 +487,14 @@ export async function bundleTypes(config) {
   console.time(`\n🪐   Built .d.ts files`);
 
   let dtsPlugin;
-  try {
-    const plugin = await import('./.d.ts_plugin/index.cjs'); // Dynamic import to avoid typescript requirement
-    dtsPlugin = plugin.dtsPlugin
-  } catch (er) {
-    console.error(er);
-    console.warn('\n⚠️    Warning: Must have TypeScript >= 4.6.4 installed to generate types');
+  if(config.bundleTypes) {
+    try {
+      const plugin = await import('./.d.ts_plugin/index.cjs'); // Dynamic import to avoid typescript requirement
+      dtsPlugin = plugin.dtsPlugin
+    } catch (er) {
+      console.error(er);
+      console.warn('\n⚠️    Warning: Must have TypeScript >= 4.6.4 installed to generate types');
+    }
   }
   
   if(!config.defaultConfig) config = Object.assign(Object.assign({},defaultBundler),config); //add defaults 
