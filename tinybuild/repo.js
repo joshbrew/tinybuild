@@ -456,6 +456,11 @@ export async function checkBoilerPlate(tinybuildCfg=defaultConfig,onlyConfig=tru
         create.gitignore(process.cwd());
     }
 
+    if(!fs.existsSync(path.join(process.cwd(),'README.md'))) {
+        console.log('Creating README');
+        create.readme(process.cwd());
+    }
+
     if(tinybuildCfg.bundler?.bundleTypes && !fs.existsSync(path.join(process.cwd(),'tsconfig.json'))) {
         console.log('Creating tsconfig');
         create.tsconfig(path.join(process.cwd(),'tsconfig.json'), undefined, entryFile); 

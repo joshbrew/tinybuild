@@ -66,6 +66,10 @@ const gitignore = (location) => {
     fs.writeFileSync(path.join(location,'.gitignore'), gitignoreTemplate())
 }
 
+const readme = (location) => {
+    fs.writeFileSync(path.join(location,'README.md'), gitignoreTemplate())
+}
+
 export default {
     gitignore,
     entry,
@@ -73,6 +77,7 @@ export default {
     tinybuild,
     exportPackage,
     tsconfig,
+    readme,
     package: exportPackage,
     templates
 }
