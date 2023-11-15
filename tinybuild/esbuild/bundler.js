@@ -101,6 +101,7 @@ export function bundle(configs) {
     
     if(config.plugins) {
       if(!('includeDefaultPlugins' in config) || config.includeDefaultPlugins) {
+        config.plugins = [];
         defaultBundler.plugins.forEach((d) => {
           if(!config.plugins.find((p) => {if(p.name === d.name) return true; }));
           if(d.name === 'workerloader' && ('blobWorkers' in config || 'workerBundler' in config)) { config.plugins.push(workerPlugin({blobWorkers:config.blobWorkers, bundler:config.workerBundler ? config.workerBundler : {minifyWhitespace:true}}))}
