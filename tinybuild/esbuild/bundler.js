@@ -98,19 +98,34 @@ export function bundle(configs) {
       Object.assign(config.loader, defaultBundlerCopy.loader);
     }
 
-    
+   
+
+    config = Object.assign(defaultBundlerCopy, config);
+
+        
     if(config.plugins) {
+      
       if(!('includeDefaultPlugins' in config) || config.includeDefaultPlugins) {
-        config.plugins = [];
+        const plugins = [];
         defaultBundler.plugins.forEach((d) => {
-          if(!config.plugins.find((p) => {if(p.name === d.name) return true; }));
-          if(d.name === 'workerloader' && ('blobWorkers' in config || 'workerBundler' in config)) { config.plugins.push(workerPlugin({blobWorkers:config.blobWorkers, bundler:config.workerBundler ? config.workerBundler : {minifyWhitespace:true}}))}
-          else config.plugins.push(d);
+          if(d.name === 'workerloader' && ('blobWorkers' in config || 'workerBundler' in config)) { 
+            plugins.push(
+              workerPlugin(
+                {
+                  blobWorkers:config.blobWorkers, 
+                  bundler:config.workerBundler ? 
+                    config.workerBundler : {minifyWhitespace:true}
+                }
+              )
+            );
+          }
+          else if(!config.plugins.find((p) => {if(p.name === d.name) plugins.push(p); }));
+          else plugins.push(d);
         });
+        config.plugins = plugins;
       }
     }
 
-    config = Object.assign(defaultBundlerCopy, config);
     if(config.outdir) delete config.outfile;
     
     if((config.bundleNode || config.platform === 'node') && config.external?.includes('node:fetch')) config.external = [];

@@ -35,15 +35,15 @@ export const workerPlugin = (
 
                     split.find((ln) => {
                         if(ln.includes('outfile')) {
-                            let spl = ln.split(':')[1].split('//')[0].replace(',','');
+                            let spl = ln.split(':')[1].split('"')[1].trim().split('//')[0].replace(',','');
                             let nm = spl;
                             nm = nm.split('/'); nm.pop();
                             if(nm[0] === '.') nm.shift();
                             outdir = nm.join('/'); //left with folder name
                             return true;
                         } else if (ln.includes('outdir')) {
-                            let spl = ln.split(':')[1].split('//')[0].replace(',','');
-                            outdir = JSON.parse(spl);
+                            let spl = ln.split(':')[1].split('"')[1].trim().split('//')[0].replace(',','');
+                            outdir = JSON.parse(spl)
                             return true;
                         }
                     });
@@ -53,6 +53,7 @@ export const workerPlugin = (
                         outdir,
                         bundle: true,
                     };
+                    
 
                     if(config?.blobWorkers) {
                         buildSettings.write = false;
@@ -65,10 +66,11 @@ export const workerPlugin = (
                     filename = filename.replace(ext,'.js');
 
                     let outfile = outdir + '/' + filename;
+                    console.log('\n🔨 Bundling Worker...');
+                    console.time ('\n👷 Bundled worker!');
+                    let bundle = await build(buildSettings, config);
 
-                    let bundle = await build(Object.assign(buildSettings, config.bundler ? config.bundler : {}));
-
-                    console.log('👷 Bundled worker!');//, args)
+                    console.timeEnd('\n👷 Bundled worker!');//, args)
                     if(!config?.blobWorkers) {
                         console.log("Output: ", outfile);
                     }
