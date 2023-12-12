@@ -11,6 +11,7 @@ const defaultInitScript =       ()=>{return textDecoder.decode(getTemplateSync('
 const packageTemplate =         ()=>{return JSON.parse(getTemplateSync('package.json'));}
 const tsconfigTemplate =        ()=>{return getTemplateSync('tsconfig.json');}
 const gitignoreTemplate =       ()=>{return getTemplateSync('gitignore.md');}
+const READMETemplate =          ()=>{return getTemplateSync('README.md');}
 
 const templates = {
     'index.js': entryFileTemplate,
@@ -19,7 +20,8 @@ const templates = {
     'initScript.js': defaultInitScript,
     'package.json': packageTemplate,
     'tsconfig.json': tsconfigTemplate,
-    '.gitignore': gitignoreTemplate
+    '.gitignore': gitignoreTemplate,
+    'README.md': READMETemplate
 }
 
 const exportPackage = (name, content=packageTemplate) => {
@@ -67,7 +69,7 @@ const gitignore = (location) => {
 }
 
 const readme = (location) => {
-    fs.writeFileSync(path.join(location,'README.md'), gitignoreTemplate())
+    fs.writeFileSync(path.join(location,'README.md'), READMETemplate())
 }
 
 export default {
