@@ -53,5 +53,17 @@ const config = {
         errpage: 'node_modules/tinybuild/tinybuild/node_server/other/404.html', //default error page, etc.
         certpath:'node_modules/tinybuild/tinybuild/node_server/ssl/cert.pem',//if using https, this is required. See cert.pfx.md for instructions
         keypath:'node_modules/tinybuild/tinybuild/node_server/ssl/key.pem'//if using https, this is required. See cert.pfx.md for instructions
+    },
+    /*
+    mobile:{ //this will copy the dist and index.html to capacitor builds that can create small interoperable javascript webview + native functionality (e.g. bluetooth) mobile apps (~2Mb at minimum). 
+        android:true, //Requires Android Studio, it will be launched
+        ios:false //Requires XCode 
+    },
+    electron:{ //desktop apps as a full chromium bundle, not small and needs some customization for things like bluetooth menus. Better for full featured applications. Can trigger backend runtimes on local machines.
+        
+    },
+    tauri:{ //alternative tauri build options for very minimal native engine desktop apps that generally lack the latest web APIs. Good for simple apps, you can bundle it with backend runtimes on local machines.
+
     }
+    */
 }

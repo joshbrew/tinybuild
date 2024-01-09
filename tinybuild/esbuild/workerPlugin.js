@@ -43,7 +43,7 @@ export const workerPlugin = (
                             return true;
                         } else if (ln.includes('outdir')) {
                             let spl = ln.split(':')[1].split('"')[1].trim().split('//')[0].replace(',','');
-                            outdir = JSON.parse(spl)
+                            outdir = spl;
                             return true;
                         }
                     });
