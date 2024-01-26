@@ -67,10 +67,10 @@ export const workerPlugin = (
 
                     let outfile = outdir + '/' + filename;
                     console.log('\n🔨 Bundling Worker...');
-                    console.time ('\n👷 Bundled worker!');
+                    console.time ('\n👷 Bundled worker: ' + filename);
                     let bundle = await build(Object.assign(buildSettings, config.bundler));
 
-                    console.timeEnd('\n👷 Bundled worker!');//, args)
+                    console.timeEnd('\n👷 Bundled worker: ' + filename);//, args)
                     if(!config?.blobWorkers) {
                         console.log("Output: ", outfile);
                     }

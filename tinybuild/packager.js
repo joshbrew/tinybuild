@@ -156,10 +156,14 @@ export async function packager(config=defaultConfig, exitOnBundle=true) {
                 execSync('npx cap sync'); //will sync the dist to the mobile apps
 
                 if(config.mobile.android) {
-                    execSync('npx cap android'); //will open Android Studio
+                    if(config.mobile.android === 'open') 
+                        execSync('npx cap open android'); //will open Android Studio
+                    else execSync('npx cap run android'); //will open Android Studio
                 }
                 if(config.mobile.ios) {
-                    execSync('npx cap ios'); //will open XCode
+                    if(config.mobile.ios === 'open') 
+                        execSync('npx cap open ios'); //will open Android Studio
+                    else execSync('npx cap run ios'); //will open XCode
                 }
             } catch(err) {
                 if(retry) {

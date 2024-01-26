@@ -56,8 +56,8 @@ const config = {
     },
     /*
     mobile:{ //this will copy the dist and index.html to capacitor builds that can create small interoperable javascript webview + native functionality (e.g. bluetooth) mobile apps (~2Mb at minimum). 
-        android:true, //Requires Android Studio, it will be launched
-        ios:false //Requires XCode 
+        android:'open', //'open'//true //Requires Android Studio, it will be launched
+        ios:false //'open'//true //Requires XCode 
     },
     electron:{ //desktop apps as a full chromium bundle, not small and needs some customization for things like bluetooth menus. Better for full featured applications. Can trigger backend runtimes on local machines.
         
