@@ -1,120 +1,81 @@
-// This optional code is used to register a service worker.
-// register() is not called by default.
 
-// This lets the app load faster on subsequent visits in production, and gives
-// it offline capabilities. However, it also means that developers (and users)
-// will only see deployed updates on subsequent visits to a page, after all the
-// existing tabs open on the page have been closed, since previously cached
-// resources are updated in the background.
+//https://github.com/ibrahima92/pwa-with-vanilla-js
+const version = '1.0'; // Increment this version to update all caches
+const cacheNamePrefix = 'pwa-assets-';
+const cacheName = `${cacheNamePrefix}${version}`;
+const assets = [
+  "/",
+  "/index.html",
+  "/dist/index.css", //alt default paths
+  "/dist/index.js",
+  '/favicon.ico'
+];
 
-const isLocalhost = Boolean(
-    window.location.hostname === 'localhost' ||
-      // [::1] is the IPv6 localhost address.
-      window.location.hostname === '[::1]' ||
-      // 127.0.0.1/8 is considered localhost for IPv4.
-      window.location.hostname.match(
-        /^127(?:\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$/
-      )
-);
+let cacheExpiration = 1000 * 60 * //seconds 
+  60 * //minutes
+  24 * //hours
+  (4/24);    //days (4 hours in this case)
 
-export function register(config) {
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        const swUrl = "dist/service-worker.js";
-  
-        if (isLocalhost) {
-          // This is running on localhost. Let's check if a service worker still exists or not.
-          checkValidServiceWorker(swUrl, config);
-  
-          // Add some additional logging to localhost, pointing developers to the
-          // service worker/PWA documentation.
-          navigator.serviceWorker.ready.then(() => {
-            console.log('This web app is being served cache-first by a service worker.');
-          });
+// Function to check if a cache name represents an expired cache
+let isValidCacheName = function(cacheName) {
+  const cacheTimestamp = parseInt(cacheName.split('-').pop());
+  const currentTime = new Date().getTime();
+  return currentTime < cacheTimestamp + cacheExpiration;
+};
+
+self.addEventListener('fetch', event => {
+  event.respondWith(
+    caches.match(event.request).then(cachedResponse => {
+
+      // Check if online; if not, return cached response immediately
+      if (!navigator.onLine) {
+        return cachedResponse;
+      }
+
+      // Serve from cache if valid, otherwise fetch from network
+      return caches.keys().then(cacheNames => {
+        const relevantCacheName = cacheNames.find(name => name.startsWith(cacheNamePrefix));
+        if (relevantCacheName && isValidCacheName(relevantCacheName)) {
+          return cachedResponse || fetchAndUpdateCache(event.request, relevantCacheName);
         } else {
-          // Is not localhost. Just register service worker
-          registerValidSW(swUrl, config);
+          return fetchAndUpdateCache(event.request, cacheName);
         }
       });
-    }
-}
+    })
+  );
+});
 
-function registerValidSW(swUrl, config) {
-    navigator.serviceWorker
-      .register(swUrl)
-      .then(registration => {
-        registration.onupdatefound = () => {
-          const installingWorker = registration.installing;
-          if (installingWorker == null) {
-            return;
-          }
-          installingWorker.onstatechange = () => {
-            if (installingWorker.state === 'installed') {
-              if (navigator.serviceWorker.controller) {
-                // At this point, the updated pre-cached content has been fetched,
-                // but the previous service worker will still serve the older
-                // content until all client tabs are closed.
-                console.log(
-                  'New content is available and will be used when all ' +
-                    'tabs for this page are closed. See https://bit.ly/CRA-PWA.'
-                );
-  
-                // Execute callback
-                if (config && config.onUpdate) {
-                  config.onUpdate(registration);
-                }
-              } else {
-                // At this point, everything has been pre-cached.
-                // It's the perfect time to display a
-                // "Content is cached for offline use." message.
-                console.log('Content is cached for offline use.');
-  
-                // Execute callback
-                if (config && config.onSuccess) {
-                  config.onSuccess(registration);
-                }
-              }
-            }
-          };
-        };
-      })
-      .catch(error => {
-        console.error('Error during service worker registration:', error);
-      });
-}
-
-function checkValidServiceWorker(swUrl, config) {
-    // Check if the service worker can be found. If it can't reload the page.
-    fetch(swUrl)
-      .then(response => {
-        // Ensure service worker exists, and that we really are getting a JS file.
-        const contentType = response.headers.get('content-type');
-        if (
-          response.status === 404 ||
-          (contentType != null && contentType.indexOf('javascript') === -1)
-        ) {
-          // No service worker found. Probably a different app. Reload the page.
-          navigator.serviceWorker.ready.then(registration => {
-            registration.unregister().then(() => {
-              window.location.reload();
-            });
-          });
-        } else {
-          // Service worker found. Proceed as normal.
-          registerValidSW(swUrl, config);
-        }
-      })
-      .catch(() => {
-        console.log(
-          'No internet connection found. App is running in offline mode.'
-        );
-      });
-}
-  
-export function unregister() {
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.ready.then(registration => {
-        registration.unregister();
+function fetchAndUpdateCache(request, cacheName) {
+  return fetch(request).then(response => {
+    // Only cache GET requests to whitelisted assets
+    if (request.method === 'GET' && assets.includes(new URL(request.url).pathname)) {
+      const responseToCache = response.clone();
+      caches.open(cacheName).then(cache => {
+        cache.put(request, responseToCache);
       });
     }
+    return response;
+  }).catch(() => {
+    // Attempt to serve from cache if the network request fails
+    return caches.match(request);
+  });
 }
+
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.filter(name => name.startsWith(cacheNamePrefix) && !isValidCacheName(name))
+          .map(invalidCacheName => caches.delete(invalidCacheName))
+      );
+    }).then(() => self.clients.claim())
+  );
+});
+
+self.addEventListener('install', event => {
+  event.waitUntil(
+    caches.open(cacheName)
+      .then(cache => cache.addAll(assets))
+      .then(() => self.skipWaiting())
+  );
+});
