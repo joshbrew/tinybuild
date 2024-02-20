@@ -29,6 +29,8 @@ This is the bundler and development server combo you always wanted. Goodbye esot
 
 `tinybuild`
 
+or `npx tinybuild` if using it as a local dev dependency
+
 Now modify the tinybuild.config.js and package.json to your needs. You may set `server:false` in the config to disable the development server.
 
 ![tinybuild](tinybuild/docs/globalOutp.PNG)
