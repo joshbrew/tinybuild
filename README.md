@@ -67,6 +67,8 @@ Create a `tinybuild.config.js` file like so (copy/paste or tinybuild can generat
 //import {defaultBundler, defaultServer, packager} from 'tinybuild'
 
 const config = {
+    //build:true, //enable this to skip serve step (same as cli)
+    //serve:true //or enable this to skip build step (same as cli)
     bundler: { //esbuild settings, set false to skip build step or add bundle:true to config object to only bundle (alt methods)
         entryPoints: [ //entry point file(s). These can include .js, .mjs, .ts, .jsx, .tsx, or other javascript files. Make sure your entry point is a ts file if you want to generate types
         "index.js"

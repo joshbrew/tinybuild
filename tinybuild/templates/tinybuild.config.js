@@ -1,4 +1,6 @@
 const config = {
+    //build:true, //enable this to skip serve step (same as cli)
+    //serve:true //or enable this to skip build step (same as cli)
     bundler: { //esbuild settings, set false to skip build step or add bundle:true to config object to only bundle (alt methods)
         entryPoints: [ //entry point file(s). These can include .js, .mjs, .ts, .jsx, .tsx, or other javascript files. Make sure your entry point is a ts file if you want to generate types
         "index.js"
@@ -34,7 +36,7 @@ const config = {
         // },
         
         //refer to esbuild docs for more settings
-     },
+    },
     server: {  //node server settings, set false to skip server step or add serve:true to config object to only serve (alt methods)
         debug: false,
         protocol: "http",  //'http' or 'https'. HTTPS required for Nodejs <---> Python sockets. If using http, set production to False in python/server.py as well

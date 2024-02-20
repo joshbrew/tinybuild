@@ -28,6 +28,8 @@ Or first create a tinybuild.config.js in your project directory like so:
 let entryPoints = ['index.js']
 
 const config = {
+    //build:true, //enable this to skip serve step (same as cli)
+    //serve:true //or enable this to skip build step (same as cli)
     bundler: { //esbuild settings, set false to skip build step or add bundle:true to config object to only bundle (alt methods)
         entryPoints: [ //entry point file(s). These can include .js, .mjs, .ts, .jsx, .tsx, or other javascript files. Make sure your entry point is a ts file if you want to generate types
         "index.js"
@@ -246,47 +248,44 @@ Create a package.json if you don't have one. You an use these scripts to run the
 ```json
 
 {
-    "name": "tinybuild",
+    "name": "tinybuildapp",
     "version": "0.0.0",
     "description": "Barebones esbuild and test node server implementation. For building",
-    "main": "index.js",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
     "type":"module",
     "scripts": {
-        "start": "npm run startdev",
-        "build": "node tinybuild.js",
+        "start": "tinybuild",
+        "build": "tinybuild build",
+        "serve": "tinybuild serve",
         "init": "node tinybuild/init.js",
-        "concurrent": "concurrently \"npm run python\" \"npm run startdev\"",
+        "concurrent": "concurrently \"npm run python\" \"npm start\"",
         "dev": "npm run pip && npm i --save-dev concurrently && npm i --save-dev nodemon && npm run concurrent",
         "startdev": "nodemon --exec \"node tinybuild.js\" -e ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv",
-        "python": "python tinybuild/python/server.py",
+        "python": "python python/server.py",
         "pip": "pip install quart && pip install websockets",
-        "pwa": "npm i workbox-cli && workbox generateSW tinybuild/node_server/pwa/workbox-config.js && npm run build && npm start"
+        "pwa": "npm i workbox-cli && workbox generateSW node_server/pwa/workbox-config.js && npm run build && npm start",
+        "electron": "electron ./electron",
+        "android": "npx cap open android",
+        "ios":"npx cap open ios",
+        "tauri": "tauri"
     },
     "keywords": [
         "esbuild"
     ],
-    "author": "Joshua Brewster",
-    "license": "LGPL-3.0-or-later",
+    "author": "",
+    "license": "",
     "dependencies": {
     },
-    "devDependencies":{
-        "nodemon": "^2.0.15",
-        "concurrently": "^7.1.0"
-    },
-//-------------OR (delete above if using source)----------------//
     "devDependencies": {
-        "concurrently": "^7.1.0",
-        "esbuild": "^0.14.38",
-        "esbuild-plugin-d.ts":"^1.1.0",
-        "nodemon": "^2.0.15",
-        "ws": "^8.5.0"
     },
     "nodemonConfig": {
         "env": {
             "NODEMON": true
         },
         "ignore": [
-            "dist/"
+            "dist/",
+            ".temp/"
         ]
     }
 }
