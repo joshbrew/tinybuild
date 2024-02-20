@@ -15,7 +15,7 @@ This is the bundler and development server combo you always wanted. Goodbye esot
 
 - Minimal [esbuild](https://esbuild.github.io/getting-started/#your-first-bundle) bundler wrapper with custom boilerplate and plugins for all of your common javascript application, server, and library packaging needs.
 - Pure [Nodejs](https://developer.mozilla.org/en-US/docs/Learn/Server-side/Node_server_without_framework) hot reloading test environment with hot module swapping. 1 single dependency. 
-- Lightweight boilerplate for native Mobile and Desktop Apps via Capacitor, Electron, or Tauri
+- Lightweight boilerplate for native Mobile and Desktop Apps via [Capacitor](https://capacitorjs.com/), [Electron](https://www.electronjs.org/), or [Tauri](https://tauri.app/)
 - Bonus [Python Quart](https://pgjones.gitlab.io/quart/) multithreaded concurrent build and test env examples (not required). 
 
 ## We'll try this out with Bun.js instead of esbuild when Bun's windows support improves. It preserves nearly identical plugin settings to esbuild so it'll be a convenient switch to a better development environment.
