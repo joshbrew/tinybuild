@@ -14,11 +14,11 @@
 This is the bundler and development server combo you always wanted. Goodbye esoteric instructions, goodbye unwieldy dependencies, and goodbye time wasted staring at your compiler running! Move over Webpack, Parcel, and Vite, there's a new game in town.
 
 - Minimal [esbuild](https://esbuild.github.io/getting-started/#your-first-bundle) bundler wrapper with custom boilerplate and plugins for all of your common javascript application, server, and library packaging needs.
-- Pure [Nodejs](https://developer.mozilla.org/en-US/docs/Learn/Server-side/Node_server_without_framework) hot reloading test environment with hot module swapping. 1 single dependency. 
-- Lightweight boilerplate for native Mobile and Desktop Apps via Capacitor, Electron, or Tauri
+- Custom esbuild plugins for web workers, streaming imports, types bundling (for library development), and hotswapping css.
+- Pure [Nodejs](https://developer.mozilla.org/en-US/docs/Learn/Server-side/Node_server_without_framework) hot reloading test environment with hot module swapping. Only 1 small third party dependency. 
+- Lightweight automated packaging of native Mobile and Desktop Apps via [Capacitor](https://capacitorjs.com/), [Electron](https://www.electronjs.org/), or [Tauri](https://tauri.app/). 
 - Bonus [Python Quart](https://pgjones.gitlab.io/quart/) multithreaded concurrent build and test env examples (not required). 
 
-## We'll try this out with Bun.js instead of esbuild when Bun's windows support improves. It preserves nearly identical plugin settings to esbuild so it'll be a convenient switch to a better development environment.
 
 ## Quickstart
 
@@ -29,22 +29,11 @@ This is the bundler and development server combo you always wanted. Goodbye esot
 
 `tinybuild`
 
+or `npx tinybuild` if using it as a local dev dependency
+
 Now modify the tinybuild.config.js and package.json to your needs. You may set `server:false` in the config to disable the development server.
 
 ![tinybuild](tinybuild/docs/globalOutp.PNG)
-
-### Main Features
-
-- Beginner-friendly purist bundler and development server for all of your most common web development needs. 
-- Pure esbuild wrapped with additional boilerplate settings for various needs (see bundleBrowser, bundleTypes, etc). Includes TS and JSX/TSX support, as well as CSS imports for bundling all of your stylesheets. Use esbuild plugins generically for more support (e.g. SCSS)
-- 4 extra zero-dependency esbuild plugins for bundling workers, auto-install and caching imports from urls, and bundling types for you (.d.ts files)! Additional support for declaring globals and initial script injection in the config.
-- Hotreloading NodeJS server that launches instantly (20ms on average), only dependency is chokidar for hot module swapping.
-- Full ESM and CLI support for customizing bundles, servers, or overriding configuration files in certain cases (e.g. remotely).
-- One stop Mobile and Desktop packaging via Capacitor, Electron, or Tauri. Installs dependencies and boilerplate for you.
-The repo contains examples for hybrid web and native mobile apps with a lightweight test environment with minimal dependencies.
-
-Create Desktop and Mobile apps, hosted website applications, PWAs, multithreaded programs with web workers, any js or ts packages, generate types, minify, set global variables, etc. 
-- It's easier, faster, and leaner than webpack or any other common bundler.
 
 The bundler and server presets include a full CLI, config file, or functional (in-script) wrapper for esbuild and server customization, and for creating multiple distributions from a single config (e.g. for browser, esm, node). Bundles and serves complicated libraries and programs in milliseconds with a hot reloading test environment, and makes it easier to scale to production.
 
