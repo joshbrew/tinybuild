@@ -44,9 +44,11 @@ This is the bundler and development server combo you always wanted. Goodbye esot
 
 `tinybuild`
 
-or `npx tinybuild` if using it as a local dev dependency
+You are ready to develop your applications or libraries!
 
-Now modify the tinybuild.config.js and package.json to your needs. You may set `server:false` in the config to disable the development server.
+Modify the tinybuild.config.js and package.json to your needs. You may add `build:true` or set `server:false` in the config to disable the development server.
+
+Tinybuild also works as a local dependency e.g. `npx tinybuild` or executing the packager script via node.js in a custom script. See docs for more details and check out the source code.
 
 ![tinybuild](tinybuild/docs/globalOutp.PNG)
 
@@ -58,9 +60,9 @@ The bundler and server presets include a full CLI, config file, or functional (i
 ### - [Node development/production server](tinybuild/docs/server.md)
 ### - [Python development/production server](tinybuild/docs/python.md)
 
-## Quickstart Part 2 
+## Quickstart Extended
 
-In a folder with your package.json (e.g. after `npm init`), 
+In a project folder with a package.json (e.g. after running `npm init` for the first time), 
 
 Create a `tinybuild.config.js` file like so (copy/paste or tinybuild can generate one for you):
 ```js
