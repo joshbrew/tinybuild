@@ -37,6 +37,8 @@ This is the bundler and development server combo you always wanted. Goodbye esot
 
 ## Quickstart
 
+Prerequisits: [Latest NodeJS LTS](https://nodejs.org/en/download/current)
+
 ### Globally install Tinybuild:
 `npm i -g tinybuild`
 
