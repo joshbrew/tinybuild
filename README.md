@@ -54,11 +54,6 @@ Tinybuild also works as a local dependency e.g. `npx tinybuild` or executing the
 
 The bundler and server presets include a full CLI, config file, or functional (in-script) wrapper for esbuild and server customization, and for creating multiple distributions from a single config (e.g. for browser, esm, node). Bundles and serves complicated libraries and programs in milliseconds with a hot reloading test environment, and makes it easier to scale to production.
 
-## Docs
-### - [Quickstart](tinybuild/docs/tinybuild.md)
-### - [esbuild app and library bundling](tinybuild/docs/esbuild.md)
-### - [Node development/production server](tinybuild/docs/server.md)
-### - [Python development/production server](tinybuild/docs/python.md)
 
 ## For Existing Projects
 
@@ -144,6 +139,12 @@ export default config;
 ```
 
 Then run `tinybuild` to supply this to the packager to build and run your project. Customize it to your needs, e.g. for different entry points and use cases. Typescript is automatically recognized, including JSX and TSX. CSS is automatically compiled if you import them in your scripts somewhere. See examples for more.
+
+## Docs
+### - [Quickstart](tinybuild/docs/tinybuild.md)
+### - [esbuild app and library bundling](tinybuild/docs/esbuild.md)
+### - [Node development/production server](tinybuild/docs/server.md)
+### - [Python development/production server](tinybuild/docs/python.md)
 
 ## Local node_modules/tinybuild Builds (no global package manager)
 For using tinybuild locally (`npm install` vs `npm install -g`) you must import and run `packager(config)` from the tinybuild library yourself, and run it in a script file.
