@@ -217,33 +217,7 @@ defaultRepo = {
 }
 ```
 
-### Command line settings
 
-You can customize default repo settings above via command line if you don't want to create your own init file to run `initRepo(dirName='example',entryPoints='index.js',initScript='some stringified script',config={...bundlerConfig},includeCore=boolean)`
-
-Like so `node tinybuild/init.js dir=myApp core=true` to make a directory called myApp that includes the source code and a default package.json, app or library entry point .js file, and tinybuild.js bundle+serve file for you to customize following our documentation.
-
-```js
-// e.g. via command line: 'node tinybuild/init.js dir=myApp core=true'
-    if(command.includes('dir')) {
-        defaultRepo.dirName = command.split('=').pop()
-    }
-    if(command.includes('entry')) {
-        defaultRepo.entryPoints = command.split('=').pop()
-    }
-    if(command.includes('core')) {
-        defaultRepo.includeCore = command.split('=').pop()
-    }
-    if(command.includes('script')) {
-        defaultRepo.initScript = decodeURIComponent(command.split('=').pop())
-    }
-    if(command.includes('config')) {
-        defaultRepo.config = decodeURIComponent(command.split('=').pop())
-    }
-```
-
-
-## tinybuild quick start:
 Create a package.json if you don't have one. You an use these scripts to run the server.
 ```json
 
@@ -339,4 +313,31 @@ The function
 packager(config)
 ``` 
 simply combines the [bundle()] and [serve()] functions and settings objects to run sequentially using a combined object labeled as above. We provide `defaultBundler` and `defaultServer` for quick setup (or `defaultConfig` for combined). 
+
+
+
+### Command line init settings (advanced)
+
+You can customize default repo settings above via command line if you don't want to create your own init file to run `initRepo(dirName='example',entryPoints='index.js',initScript='some stringified script',config={...bundlerConfig},includeCore=boolean)`
+
+Like so run `node tinybuild/init.js dir=myApp core=true` to make a directory called myApp that includes the source code and a default package.json, app or library entry point .js file, and tinybuild.js bundle+serve file for you to customize following our documentation.
+
+```js
+// e.g. via command line: 'node tinybuild/init.js dir=myApp core=true'
+    if(command.includes('dir')) {
+        defaultRepo.dirName = command.split('=').pop()
+    }
+    if(command.includes('entry')) {
+        defaultRepo.entryPoints = command.split('=').pop()
+    }
+    if(command.includes('core')) {
+        defaultRepo.includeCore = command.split('=').pop()
+    }
+    if(command.includes('script')) {
+        defaultRepo.initScript = decodeURIComponent(command.split('=').pop())
+    }
+    if(command.includes('config')) {
+        defaultRepo.config = decodeURIComponent(command.split('=').pop())
+    }
+```
 
