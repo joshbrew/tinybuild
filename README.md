@@ -114,7 +114,7 @@ const config = {
         /*
         routes:{ //set additional page routes (for sites instead of single page applications)
             '/page2': 'mypage.html',
-                '/custom':{ //e.g. custom page template
+            '/custom':{ //e.g. custom page template
                 headers: { 'Content-Security-Policy': '*' }, //page specific headers 
                 template:'<html><head></head><body><div>Hello World!</div></body></html>'
                 //path: 'mypage.html' //or a file path (e.g. plus specific headers)
