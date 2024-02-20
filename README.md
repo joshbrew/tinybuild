@@ -11,6 +11,21 @@
 
 `npm i -g tinybuild` or `npm i tinybuild` in local projects.
 
+## One stop HTML5/Javascript web, desktop, and mobile application development
+
+<table style="margin-left: auto; margin-right: auto;">
+    <tbody>
+        <tr>
+            <td><img width="100px" src="./img/esbuild.svg"/></td>
+            <td><img width="100px" src="./img/nodejs.png"/></td>
+            <td><img width="100px" src="./img/http.png"/></td>
+            <td><img width="100px" src="./img/desktop.png"/></td>
+            <td><img width="100px" src="./img/smartphone.png"/></td>
+        </tr>
+    </tbody>
+</table>
+
+
 This is the bundler and development server combo you always wanted. Goodbye esoteric instructions, goodbye unwieldy dependencies, and goodbye time wasted staring at your compiler running! Move over Webpack, Parcel, and Vite, there's a new game in town.
 
 - Minimal [esbuild](https://esbuild.github.io/getting-started/#your-first-bundle) bundler wrapper with custom boilerplate and plugins for all of your common javascript application, server, and library packaging needs.
@@ -214,3 +229,8 @@ sudo dos2unix node_modules/tinybuild/tinybuild/bin/global.js
 ```
 
 Windows may also throw an error for global package permissions, just copy the error you get into google and use the command line solution you find and you will be good to go.
+
+
+## Contributing
+
+Feel free to suggest or make changes and report bugs via Issues or direct contact to Joshua Brewster, the entire development system is modular and is a simple automation on top of several simplified development tools. We use this in our daily development workflow so it is battle-tested but on a small sample size.
