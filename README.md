@@ -11,7 +11,7 @@
 
 `npm i -g tinybuild` or `npm i tinybuild` in local projects.
 
-## One stop HTML5/Javascript web, desktop, and mobile application development
+## One stop HTML5/Javascript web, server, desktop, and mobile application development
 
 <table style="margin-left: auto; margin-right: auto;">
     <tbody>
@@ -28,7 +28,7 @@
 
 This is the bundler and development server combo you always wanted. Goodbye esoteric instructions, goodbye unwieldy dependencies, and goodbye time wasted staring at your compiler running! Move over Webpack, Parcel, and Vite, there's a new game in town.
 
-- Minimal [esbuild](https://esbuild.github.io/getting-started/#your-first-bundle) bundler wrapper with custom boilerplate and plugins for all of your common javascript or typescript application, server, and library packaging needs.
+- Minimal [esbuild](https://esbuild.github.io/getting-started/#your-first-bundle) bundler wrapper with custom boilerplate and plugins for all of your common javascript or typescript application, server, and library packaging needs. Has inbuilt support for typescript, jsx, and much more.
 - Custom esbuild plugins for web workers, streaming imports, types bundling (e.g. for library development), and hotswapping css.
 - Pure [Nodejs](https://developer.mozilla.org/en-US/docs/Learn/Server-side/Node_server_without_framework) hot reloading test environment with hot module swapping. Only 1 small third party dependency. 
 - Lightweight automated packaging of native Mobile and Desktop Apps via [Capacitor](https://capacitorjs.com/), [Electron](https://www.electronjs.org/), or [Tauri](https://tauri.app/). 
@@ -36,6 +36,8 @@ This is the bundler and development server combo you always wanted. Goodbye esot
 
 
 ## Quickstart
+
+Prerequisits: [Latest NodeJS LTS](https://nodejs.org/en/download/current)
 
 ### Globally install Tinybuild:
 `npm i -g tinybuild`
@@ -54,17 +56,12 @@ Tinybuild also works as a local dependency e.g. `npx tinybuild` or executing the
 
 The bundler and server presets include a full CLI, config file, or functional (in-script) wrapper for esbuild and server customization, and for creating multiple distributions from a single config (e.g. for browser, esm, node). Bundles and serves complicated libraries and programs in milliseconds with a hot reloading test environment, and makes it easier to scale to production.
 
-## Docs
-### - [Quickstart](tinybuild/docs/tinybuild.md)
-### - [esbuild app and library bundling](tinybuild/docs/esbuild.md)
-### - [Node development/production server](tinybuild/docs/server.md)
-### - [Python development/production server](tinybuild/docs/python.md)
 
-## Quickstart Extended
+## For Existing Projects
 
 In a project folder with a package.json (e.g. after running `npm init` for the first time), 
 
-Create a `tinybuild.config.js` file like so (copy/paste or tinybuild can generate one for you):
+Create a `tinybuild.config.js` file like so (copy/paste or tinybuild can generate one for you by simply running):
 ```js
 //import {defaultBundler, defaultServer, packager} from 'tinybuild'
 
@@ -157,7 +154,13 @@ const config = {
 export default config;
 ```
 
-Then run `tinybuild`
+Then run `tinybuild` to supply this to the packager to build and run your project. Customize it to your needs, e.g. for different entry points and use cases. Typescript is automatically recognized, including JSX and TSX. CSS is automatically compiled if you import them in your scripts somewhere. See examples for more.
+
+## Docs
+### - [Quickstart](tinybuild/docs/tinybuild.md)
+### - [esbuild app and library bundling](tinybuild/docs/esbuild.md)
+### - [Node development/production server](tinybuild/docs/server.md)
+### - [Python development/production server](tinybuild/docs/python.md)
 
 ## Local node_modules/tinybuild Builds (no global package manager)
 For using tinybuild locally (`npm install` vs `npm install -g`) you must import and run `packager(config)` from the tinybuild library yourself, and run it in a script file.
