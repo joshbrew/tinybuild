@@ -11,7 +11,7 @@
 
 `npm i -g tinybuild` or `npm i tinybuild` in local projects.
 
-## One stop HTML5/Javascript web, desktop, and mobile application development
+## One stop HTML5/Javascript web, server, desktop, and mobile application development
 
 <table style="margin-left: auto; margin-right: auto;">
     <tbody>
@@ -60,11 +60,11 @@ The bundler and server presets include a full CLI, config file, or functional (i
 ### - [Node development/production server](tinybuild/docs/server.md)
 ### - [Python development/production server](tinybuild/docs/python.md)
 
-## Quickstart Extended
+## For Existing Projects
 
 In a project folder with a package.json (e.g. after running `npm init` for the first time), 
 
-Create a `tinybuild.config.js` file like so (copy/paste or tinybuild can generate one for you):
+Create a `tinybuild.config.js` file like so (copy/paste or tinybuild can generate one for you by simply running):
 ```js
 //import {defaultBundler, defaultServer, packager} from 'tinybuild'
 
@@ -143,7 +143,7 @@ const config = {
 export default config;
 ```
 
-Then run `tinybuild`
+Then run `tinybuild` to supply this to the packager to build and run your project. Customize it to your needs, e.g. for different entry points and use cases. Typescript is automatically recognized, including JSX and TSX. CSS is automatically compiled if you import them in your scripts somewhere. See examples for more.
 
 ## Local node_modules/tinybuild Builds (no global package manager)
 For using tinybuild locally (`npm install` vs `npm install -g`) you must import and run `packager(config)` from the tinybuild library yourself, and run it in a script file.
