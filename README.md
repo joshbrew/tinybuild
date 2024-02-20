@@ -112,18 +112,20 @@ const config = {
         //headers: { 'Content-Security-Policy': '*'  }, //global header overrides
         startpage: 'index.html',  //default home page/app entry point 
         /*
-            routes:{ //set additional page routes (for sites instead of single page applications)
-                '/page2': 'mypage.html',
+        routes:{ //set additional page routes (for sites instead of single page applications)
+            '/page2': 'mypage.html',
                 '/custom':{ //e.g. custom page template
-                    template:'<html><head></head><body><div>Hello World!</div></body></html>'
-                },
-                '/redirect':{ //e.g. custom redirect
-                    redirect:'https://google.com'
-                },
-                '/other':(request,response) => {}, //custom request/response handling
-                '/': 'index.html', //alt start page declaration
-                '/404':'packager/node_server/other/404.html', //e.g. custom error page
+                headers: { 'Content-Security-Policy': '*' }, //page specific headers 
+                template:'<html><head></head><body><div>Hello World!</div></body></html>'
+                //path: 'mypage.html' //or a file path (e.g. plus specific headers)
             },
+            '/redirect':{ //e.g. custom redirect
+                redirect:'https://google.com'
+            },
+            '/other':(request,response) => {}, //custom request/response handling
+            '/': 'index.html', //alt start page declaration
+            '/404':'packager/node_server/other/404.html', //e.g. custom error page
+        },
         */
         socket_protocol: "ws", //frontend socket protocol, wss for served, ws for localhost
         hotreload: 5000,  //hotreload websocket server port

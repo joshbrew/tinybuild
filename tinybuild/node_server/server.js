@@ -21,7 +21,9 @@ export const defaultServer = {
         routes:{ //set additional page routes (for sites instead of single page applications)
             '/page2': 'mypage.html',
             '/custom':{ //e.g. custom page template
+                headers: { 'Content-Security-Policy': '*' }, //page specific headers 
                 template:'<html><head></head><body><div>Hello World!</div></body></html>'
+                //path: 'mypage.html' //or a file path (e.g. plus specific headers)
             },
             '/redirect':{ //e.g. custom redirect
                 redirect:'https://google.com'
@@ -96,6 +98,9 @@ function onRequest(request, response, cfg) {
             response.end();
             return;
         } else if (typeof cfg.routes[request.url] === 'object') {
+            if(cfg.routes[request.url].headers) {
+                Object.assign(headers, cfg.routes[request.url].headers); //specify headers for a page
+            }
             if(cfg.routes[request.url].template) { //raw template string
                 var contentType = 'text/html';
                 Object.assign(headers, { 'Content-Type': contentType })
