@@ -314,6 +314,7 @@ export async function packager(config=defaultConfig, exitOnBundle=true) {
             } catch(err) {
                 if(retry) {
                     console.error(err);
+                    console.warn("You need Android Studio for Android builds or XCode for IOS builds!")
                     return;
                 }   
 
