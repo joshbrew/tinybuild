@@ -71,16 +71,31 @@ const config = {
         protocol: "http",  //'http' or 'https'. HTTPS required for Nodejs <---> Python sockets. If using http, set production to False in python/server.py as well
         host: "localhost", //'localhost' or '127.0.0.1' etc.
         port: 8080, //e.g. port 80, 443, 8000
-        //redirect: 'http://localhost:8082' //instead of serving the default content, redirect ot another url e.g. another server
-        startpage: "index.html", //home page
+        //redirect: 'http://localhost:8082' //instead of serving the default content, redirect ot another url
+        //headers: { 'Content-Security-Policy': '*'  }, //global header overrides
+        startpage: 'index.html',  //default home page/app entry point 
+        /*
+            routes:{ //set additional page routes (for sites instead of single page applications)
+                '/page2': 'mypage.html',
+                '/custom':{ //e.g. custom page template
+                    template:'<html><head></head><body><div>Hello World!</div></body></html>'
+                },
+                '/redirect':{ //e.g. custom redirect
+                    redirect:'https://google.com'
+                },
+                '/other':(request,response) => {}, //custom request/response handling
+                '/': 'index.html', //alt start page declaration
+                '/404':'packager/node_server/other/404.html', //alt error page declaration
+            },
+        */
         socket_protocol: "ws", //frontend socket protocol, wss for served, ws for localhost
         hotreload: 5000,  //hotreload websocket server port
-        reloadscripts: false, //hot swap scripts, can break things if script handles initializations, otherwise css, link, srcs all hot swap without page reloading fairly intelligently
+        //reloadscripts: false, //hot swap scripts, can break things if script handles initializations, otherwise css, link, srcs all hot swap without page reloading fairly intelligently
         //delay: 50, //millisecond delay on the watch command for hot reloading
         //pwa: "dist/service-worker.js",  //pwa mode? Injects service worker registry code in (see pwa README.md)
         //watch: ['../'], //watch additional directories other than the current working directory
-        python: false,//7000,  //quart server port (configured via the python server script file still)
-        python_node:7001, //websocket relay port (relays messages to client from nodejs that were sent to it by python)
+        //python: false,//7000,  //quart server port (configured via the python server script file still)
+        //python_node:7001, //websocket relay port (relays messages to client from nodejs that were sent to it by python)
         errpage: 'node_modules/tinybuild/tinybuild/node_server/other/404.html', //default error page, etc.
         certpath:'node_modules/tinybuild/tinybuild/node_server/ssl/cert.pem',//if using https, this is required. See cert.pfx.md for instructions
         keypath:'node_modules/tinybuild/tinybuild/node_server/ssl/key.pem'//if using https, this is required. See cert.pfx.md for instructions

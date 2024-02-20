@@ -15,16 +15,31 @@ export const defaultServer = {
     host: 'localhost', //'localhost' or '127.0.0.1' etc.
     port: 8080, //e.g. port 80, 443, 8000
     //redirect: 'http://localhost:8082' //instead of serving the default content, redirect ot another url
-    startpage: 'index.html',  //home page
+    //headers: { 'Content-Security-Policy': '*'  }, //global header overrides
+    startpage: 'index.html',  //default home page/app entry point 
+    /*
+        routes:{ //set additional page routes (for sites instead of single page applications)
+            '/page2': 'mypage.html',
+            '/custom':{ //e.g. custom page template
+                template:'<html><head></head><body><div>Hello World!</div></body></html>'
+            },
+            '/redirect':{ //e.g. custom redirect
+                redirect:'https://google.com'
+            },
+            '/other':(request,response) => {},
+            '/': 'index.html', //alt start page declaration
+            '/404':'packager/node_server/other/404.html', //alt error page declaration
+        },
+    */
     socket_protocol: 'ws', //frontend socket protocol, wss for served, ws for localhost
     hotreload: 5000, //hotreload websocket server port
-    reloadscripts: false,
     hotreloadExtensions:['css','sass','scss','less'], //will tell tinybuild's watch command to rebundle these files in a separate context for speed
-     //watch: ['../'], //watch additional directories other than the current working directory
-     //pwa:'dist/service-worker.js', //pwa mode? Injects service worker registry code in (see pwa README.md)
+    //reloadscripts: true, //hot swap scripts in-page
+    //watch: ['../'], //watch additional directories other than the current working directory
+    //pwa:'dist/service-worker.js', //pwa mode? Injects service worker registry code in (see pwa README.md)
     python: false,//7000,  //quart server port (configured via the python server script file still)
     python_node:7001, //websocket relay port (relays messages to client from nodejs that were sent to it by python)
-    errpage: 'packager/node_server/other/404.html', //default error page, etc.
+    errpage: 'packager/node_server/other/404.html', //default error page
     certpath:'packager/node_server/ssl/cert.pem',//if using https, this is required. See cert.pfx.md for instructions
     keypath:'packager/node_server/ssl/key.pem'//if using https, this is required. See cert.pfx.md for instructions
     //SERVER
@@ -64,10 +79,44 @@ function onRequest(request, response, cfg) {
     }   
 
     //process the request, in this case simply reading a file based on the request url    
-    const testURL = 'http://localhost'
+    const testURL = 'http://localhost';
     var requestURL = '.' + new URL( testURL +  request.url).pathname
 
-    if (requestURL == './') { //root should point to start page
+    let headers = {}; //200 response
+
+    if(cfg.headers) {
+        Object.assign(headers,cfg.headers);
+    }
+
+    if(cfg.routes[request.url]) {
+        if(typeof cfg.routes[request.url] === 'string') {
+            requestURL = cfg.routes[request.url]; //relative path
+        } else if (typeof cfg.routes[request.url] === 'function') {
+            cfg.routes[request.url](request, response);
+            response.end();
+            return;
+        } else if (typeof cfg.routes[request.url] === 'object') {
+            if(cfg.routes[request.url].template) { //raw template string
+                var contentType = 'text/html';
+                Object.assign(headers, { 'Content-Type': contentType })
+                response.writeHead(200, headers); //set response headers
+                response.end(cfg.routes[request.url].template, 'utf-8'); //set response content
+                return;
+            } else if (cfg.routes[request.url].redirect) { //redirect url
+                response.writeHead(301, {
+                    'Location': cfg.routes[request.url].redirect
+                });
+                response.end();
+                return;
+            } else if (cfg.routes[request.url].path) { //local file path (easier to just use the string
+                requestURL = cfg.routes[request.url].path; 
+            } else if (cfg.routes[request.url].onrequest) {
+                cfg.routes[request.url].onrequest(request, response);
+                response.end();
+                return;
+            }
+        }
+    } else if (requestURL == './') { //root should point to start page
         requestURL = cfg.startpage; //point to the start page
     }
 
@@ -75,7 +124,6 @@ function onRequest(request, response, cfg) {
 
         response.writeHead(404, { 'Content-Type': 'text/html' }); //set response headers
 
-                        
         //add hot reload if specified
         if(requestURL.endsWith('.html') && cfg.hotreload) {
             content = addHotReloadClient(content,`${cfg.socket_protocol}://${cfg.host}:${cfg.port}/hotreload`);
@@ -86,14 +134,45 @@ function onRequest(request, response, cfg) {
         //console.log(content); //debug
     }
 
+    const throwerror = () => {
+        let errPage = cfg.errpage;
+        if(cfg.routes?.['/404']) {
+            if(typeof cfg.routes['/404'] === 'string') {
+                errPage = cfg.routes['/404'];
+            } else if (typeof cfg.routes['/404'] === 'object') {
+                if(cfg.routes[request.url].template) { //raw template string
+                    var contentType = 'text/html';
+                    Object.assign(headers, { 'Content-Type': contentType });
+                    response.writeHead(200, headers); //set response headers
+                    response.end(cfg.routes['/404'].template, 'utf-8'); //set response content
+                    return;
+                } else if (cfg.routes['/404'].redirect) { //redirect url
+                    response.writeHead(301, {
+                        'Location': cfg.routes['/404'].redirect
+                    });
+                    response.end();
+                    return;
+                } else if (cfg.routes['/404'].path) { //local file path (easier to just use the string
+                    errPage = cfg.routes['/404'].path; 
+                } else if (cfg.routes['/404'].onrequest) {
+                    cfg.routes['/404'].onrequest(request, response);
+                    response.end();
+                    return;
+                }
+            }
+        }
+        fs.readFile(errPage, (er, content) => {
+            missing(content);
+        });
+    }
+
+    
     //read the file on the server
     if(fs.existsSync(requestURL)){
         fs.readFile(requestURL, (error, content) => {
             if (error) {
                 if(error.code == 'ENOENT') { //page not found: 404
-                    fs.readFile(cfg.errpage, (er, content) => {
-                        missing(content)
-                    });
+                    throwerror();
                 }
                 else { //other error
                     response.writeHead(500); //set response headers
@@ -107,7 +186,8 @@ function onRequest(request, response, cfg) {
 
                 var contentType = mimeTypes[extname] || 'application/octet-stream';
 
-                response.writeHead(200, { 'Content-Type': contentType }); //set response headers
+                Object.assign(headers, { 'Content-Type': contentType });
+                response.writeHead(200, headers); //set response headers
 
                 //html injection
                 if(requestURL.endsWith('.html')) {
@@ -268,7 +348,7 @@ function onRequest(request, response, cfg) {
         });
     } else {
         if(cfg.debug) console.log(`File ${requestURL} does not exist on path!`);
-        missing()
+        throwerror();
     }
 
     //console.log(response); //debug
