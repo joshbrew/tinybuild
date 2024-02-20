@@ -16,7 +16,9 @@
         "python": "python python/server.py",
         "pip": "pip install quart && pip install websockets",
         "pwa": "npm i workbox-cli && workbox generateSW node_server/pwa/workbox-config.js && npm run build && npm start",
-        "electron": "electron",
+        "electron": "electron ./electron",
+        "android": "npx cap open android",
+        "ios":"npx cap open ios",
         "tauri": "tauri"
     },
     "keywords": [

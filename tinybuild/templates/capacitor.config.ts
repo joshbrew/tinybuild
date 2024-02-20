@@ -3,7 +3,7 @@ import { CapacitorConfig } from '@capacitor/cli';
 const config: CapacitorConfig = {
   appId: 'com.tinybuild.myapp',
   appName: 'MyApp',
-  webDir: 'dist',
+  webDir: 'mobile_dist',
   bundledWebRuntime: false, //esbuild will do it for us
   // plugins:{
   //   "BluetoothLe":{

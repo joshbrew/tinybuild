@@ -1,8 +1,7 @@
 import fs from 'fs';
 import path from 'path';
-import {getTemplateSync} from "./templates/get.js";
+import {getTemplateSync, copyFolderSync} from "./templates/get.js";
 
-//FIX: Don't read the files just to import strings when unused.
 const textDecoder = new TextDecoder();
 const entryFileTemplate =       ()=>{return textDecoder.decode(getTemplateSync('index.js'))}
 const tinybuildConfigTemplate = ()=>{return textDecoder.decode(getTemplateSync('tinybuild.config.js'))}
@@ -12,6 +11,11 @@ const packageTemplate =         ()=>{return JSON.parse(getTemplateSync('package.
 const tsconfigTemplate =        ()=>{return getTemplateSync('tsconfig.json');}
 const gitignoreTemplate =       ()=>{return getTemplateSync('gitignore.md');}
 const READMETemplate =          ()=>{return getTemplateSync('README.md');}
+const capacitorTemplate = ()=>{return getTemplateSync('capacitor.config.ts');}
+const electron_appTemplate = ()=>{return getTemplateSync('electron_app.js');}
+const electron_indexTemplate =  ()=>{return getTemplateSync('electron_index.html');}
+const electron_preloadTemplate =()=>{return getTemplateSync('electron_preload.js');}
+const electron_packageTemplate =()=>{return getTemplateSync('electron_package.json');}
 
 const templates = {
     'index.js': entryFileTemplate,
@@ -21,7 +25,12 @@ const templates = {
     'package.json': packageTemplate,
     'tsconfig.json': tsconfigTemplate,
     '.gitignore': gitignoreTemplate,
-    'README.md': READMETemplate
+    'README.md': READMETemplate,
+    'electron_app.js':electron_appTemplate,
+    'electron_index.html':electron_indexTemplate,
+    'electron_preload.js':electron_preloadTemplate,
+    'electron_package.json':electron_packageTemplate,
+    'capacitor.config.ts':capacitorTemplate
 }
 
 const exportPackage = (name, content=packageTemplate) => {
@@ -61,16 +70,31 @@ const config = (name, content=tinybuildConfigTemplate) => {
 
 const tinybuild = (name, content=tinybuildTemplate) => {
     if(typeof content === 'function') content = content();
-    fs.writeFileSync(name, content)
+    fs.writeFileSync(name, content);
 }
 
-const gitignore = (location) => {
-    fs.writeFileSync(path.join(location,'.gitignore'), gitignoreTemplate())
+const gitignore = (location=process.cwd()) => {
+    fs.writeFileSync(path.join(location,'.gitignore'), gitignoreTemplate());
 }
 
-const readme = (location) => {
-    fs.writeFileSync(path.join(location,'README.md'), READMETemplate())
+const readme = (location=process.cwd()) => {
+    fs.writeFileSync(path.join(location,'README.md'), READMETemplate());
 }
+
+const capacitor = (location=process.cwd()) => {
+    fs.writeFileSync(path.join(location,'capacitor.config.ts'), capacitorTemplate());;
+}
+const electronapp = (location=process.cwd()) => {
+    fs.writeFileSync(path.join(location,'electron_preload.js'), electron_preloadTemplate());
+    fs.writeFileSync(path.join(location,'index.html'), electron_indexTemplate());
+    fs.writeFileSync(path.join(location,'electron_app.js'), electron_appTemplate());
+    fs.writeFileSync(path.join(location,'package.json'), electron_packageTemplate());
+}
+
+const tauriapp = (location=process.cwd()) => {
+    copyFolderSync('src-tauri',path.join(location,'src-tauri'));
+}
+
 
 export default {
     gitignore,
@@ -80,6 +104,9 @@ export default {
     exportPackage,
     tsconfig,
     readme,
+    capacitor,
+    electronapp,
+    tauriapp,
     package: exportPackage,
     templates
 }

@@ -49,6 +49,13 @@ Server arguments:
 - 'core=true' -- include the tinybuild source in the new repository with an appropriate package.json
 - 'entry=index.js' --name the entry point file you want to create, defaults to index.js
 - 'script=console.log("Hello%20World!")' -- pass a jsonified and URI-encoded (for spaces etc.) javascript string, defaults to a console.log of Hello World!
+
+Native Desktop and Mobile Apps:
+- 'electron' -- Start an electron app with boilerplate, copying your dist and specified assets. See Electron Docs
+- 'mobile={android:'open',ios:false}' -- Use Capacitor to create a bundled mobile app, use 'open' to run android studio or xcode, or set to true to use the CLI, assuming you have dependencies installed. See Capacitor Docs.
+- 'tauri' -- Alternative minimal desktop runtime via Tauri. See Tauri Docs.
+- 'assets=['./assets','favicon.ico']' -- Specify additional assets to copy to the native distributions
+
 `
                     )
     process.exit();

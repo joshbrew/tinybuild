@@ -110,7 +110,7 @@ export function runOnChange(
 
     const watcher = chokidar.watch(
         watchPaths,{
-            ignored: /^(?:.*[\\\\\\/])?node_modules(?:[\\\\\\/].*)?|(?:.*[\\\\\\/])?.git(?:[\\\\\\/].*)?|(?:.*[\\\\\\/])?android(?:[\\\\\\/].*)?|(?:.*[\\\\\\/])?ios(?:[\\\\\\/].*)?$/, // ignore node_modules
+            ignored: /^(?:.*[\\\\\\/])?(package|\.git|node_modules|android|mobile_dist|src-tauri|android|ios|electron)(?:[\\\\\\/].*)?$/, // ignore node_modules
             persistent: true,
             ignoreInitial:true,
             interval:100,
@@ -223,7 +223,7 @@ export function runAndWatch(
 
     const watcher = chokidar.watch(
         watchPaths,{
-        ignored: /^(?:.*[\\\\\\/])?node_modules(?:[\\\\\\/].*)?|(?:.*[\\\\\\/])?.git(?:[\\\\\\/].*)?|(?:.*[\\\\\\/])?android(?:[\\\\\\/].*)?|(?:.*[\\\\\\/])?ios(?:[\\\\\\/].*)?$/, // ignore node_modules
+        ignored: /^(?:.*[\\\\\\/])?(package|\.git|node_modules|android|mobile_dist|src-tauri|android|ios|electron)(?:[\\\\\\/].*)?$/,
         persistent: true,
         ignoreInitial:true,
         interval:100,

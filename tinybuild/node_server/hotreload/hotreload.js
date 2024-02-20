@@ -38,7 +38,7 @@ export class HotReload {
       
       let watcher = chokidar.watch(
         watchPaths, {
-          ignored: /^(?:.*[\\\\\\/])?node_modules(?:[\\\\\\/].*)?|(?:.*[\\\\\\/])?.git(?:[\\\\\\/].*)?|(?:.*[\\\\\\/])?android(?:[\\\\\\/].*)?|(?:.*[\\\\\\/])?ios(?:[\\\\\\/].*)?$/, // ignore node_modules
+          ignored: /^(?:.*[\\\\\\/])?(package|\.git|node_modules|android|mobile_dist|src-tauri|android|ios|electron)(?:[\\\\\\/].*)?$/, // ignore node_modules
           persistent: true,
           ignoreInitial:true,
           interval:15,

@@ -1,4 +1,4 @@
-import { readFile, readFileSync } from 'fs';
+import { readFile, readFileSync, cpSync } from 'fs';
 import path from 'path';
 
 import { fileURLToPath } from 'url';
@@ -18,4 +18,8 @@ export const getTemplateSync =  (filename) => {
     return readFileSync(
         path.join(globalThis.__dirname, filename)
     )
+}
+
+export const copyFolderSync =  (folderName, dest) => {
+    return cpSync(path.join(globalThis.__dirname,folderName), dest, {recursive:true});
 }

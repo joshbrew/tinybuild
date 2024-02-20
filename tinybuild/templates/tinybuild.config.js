@@ -59,11 +59,11 @@ const config = {
         android:'open', //'open'//true //Requires Android Studio, it will be launched
         ios:false //'open'//true //Requires XCode 
     },
-    electron:{ //desktop apps as a full chromium bundle, not small and needs some customization for things like bluetooth menus. Better for full featured applications. Can trigger backend runtimes on local machines.
-        
-    },
-    tauri:{ //alternative tauri build options for very minimal native engine desktop apps that generally lack the latest web APIs. Good for simple apps, you can bundle it with backend runtimes on local machines.
-
-    }
+    electron:true, //desktop apps as a full chromium bundle, not small and needs some customization for things like bluetooth menus. Better for full featured applications. Can trigger backend runtimes on local machines.
+    tauri:true, //alternative tauri build options for very minimal native engine desktop apps that generally lack the latest web APIs. Good for simple apps, you can bundle it with backend runtimes on local machines.
+    assets:[ //for the mobile/desktop bundlers to copy into their respective folders
+        './assets',
+        './favicon.ico'
+    ]
     */
 }

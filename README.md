@@ -15,6 +15,7 @@ This is the bundler and development server combo you always wanted. Goodbye esot
 
 - Minimal [esbuild](https://esbuild.github.io/getting-started/#your-first-bundle) bundler wrapper with custom boilerplate and plugins for all of your common javascript application, server, and library packaging needs.
 - Pure [Nodejs](https://developer.mozilla.org/en-US/docs/Learn/Server-side/Node_server_without_framework) hot reloading test environment with hot module swapping. 1 single dependency. 
+- Lightweight boilerplate for native Mobile and Desktop Apps via Capacitor, Electron, or Tauri
 - Bonus [Python Quart](https://pgjones.gitlab.io/quart/) multithreaded concurrent build and test env examples (not required). 
 
 ## We'll try this out with Bun.js instead of esbuild when Bun's windows support improves. It preserves nearly identical plugin settings to esbuild so it'll be a convenient switch to a better development environment.
@@ -39,10 +40,10 @@ Now modify the tinybuild.config.js and package.json to your needs. You may set `
 - 4 extra zero-dependency esbuild plugins for bundling workers, auto-install and caching imports from urls, and bundling types for you (.d.ts files)! Additional support for declaring globals and initial script injection in the config.
 - Hotreloading NodeJS server that launches instantly (20ms on average), only dependency is chokidar for hot module swapping.
 - Full ESM and CLI support for customizing bundles, servers, or overriding configuration files in certain cases (e.g. remotely).
-
+- One stop Mobile and Desktop packaging via Capacitor, Electron, or Tauri. Installs dependencies and boilerplate for you.
 The repo contains examples for hybrid web and native mobile apps with a lightweight test environment with minimal dependencies.
 
-Create PWAs, multithreaded programs with web workers, any js or ts packages, generate types, minify, set global variables, etc. 
+Create Desktop and Mobile apps, hosted website applications, PWAs, multithreaded programs with web workers, any js or ts packages, generate types, minify, set global variables, etc. 
 - It's easier, faster, and leaner than webpack or any other common bundler.
 
 The bundler and server presets include a full CLI, config file, or functional (in-script) wrapper for esbuild and server customization, and for creating multiple distributions from a single config (e.g. for browser, esm, node). Bundles and serves complicated libraries and programs in milliseconds with a hot reloading test environment, and makes it easier to scale to production.
@@ -116,7 +117,19 @@ const config = {
         errpage: 'node_modules/tinybuild/tinybuild/node_server/other/404.html', //default error page, etc.
         certpath:'node_modules/tinybuild/tinybuild/node_server/ssl/cert.pem',//if using https, this is required. See cert.pfx.md for instructions
         keypath:'node_modules/tinybuild/tinybuild/node_server/ssl/key.pem'//if using https, this is required. See cert.pfx.md for instructions
-    }
+    },
+    // electron:true //desktop apps as a full chromium bundle, not small and needs some customization for things like bluetooth menus. Better for full featured applications. Can trigger backend runtimes on local machines.
+    /*mobile:{ //this will copy the dist and index.html to capacitor builds that can create small interoperable javascript webview + native functionality (e.g. bluetooth) mobile apps (~2Mb at minimum). 
+        //android:'open', //'open'//true //Requires Android Studio, it will be launched
+        //ios:false //'open'//true //Requires XCode 
+    }, */
+    //tauri:true, //alternative tauri build options for very minimal native engine desktop apps that generally lack the latest web APIs. Good for simple apps, you can bundle it with backend runtimes on local machines.
+    /*
+    assets:[ //for the mobile/desktop bundlers to copy into their respective folders
+        './assets',
+        './favicon.ico'
+    ]
+    */
 }
 
 export default config;
@@ -191,7 +204,11 @@ local command:
 - `entry=index.js` --name the entry point file you want to create, defaults to index.js
 - `script=console.log("Hello%20World!")` -- pass a jsonified and URI-encoded (for spaces etc.) javascript string, defaults to a console.log of Hello World!
 
-Check the tinybuild.config.js for args we didn't fully document here (todo...)
+### Native Desktop and Mobile Apps
+- `electron` -- Start an electron app with boilerplate, copying your dist and specified assets. See Electron Docs
+- `mobile={android:'open',ios:false}` -- Use Capacitor to create a bundled mobile app, use 'open' to run android studio or xcode, or set to true to use the CLI, assuming you have dependencies installed. See Capacitor Docs.
+- `tauri` -- Alternative minimal desktop runtime via Tauri. See Tauri Docs.
+- `assets=['./assets','favicon.ico']` -- Specify additional assets to copy to the native distributions
 
 
 

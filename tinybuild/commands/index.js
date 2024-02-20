@@ -25,7 +25,11 @@ export const basic = {
         return null
     },
     'GLOBAL':undefined,
-    'changed':undefined
+    'changed':undefined,
+    'mobile':json,
+    'electron':undefined,
+    'tauri':undefined,
+    'assets':json
 }
 
 export const bundler = {
