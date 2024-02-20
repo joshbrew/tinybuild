@@ -179,45 +179,6 @@ local command:
 - `assets=['./assets','favicon.ico']` -- Specify additional assets to copy to the native distributions
 
 
-
-## init
-
-A more detailed way to create an app is to use `initRepo` in `node tinybuild/init.js`, you can apply all of these settings through the main `tinybuild` command by passing the arguments in the help command. 
-
-```js
-defaultRepo = {
-    dirName:`example',    
-    entryPoints:'index.js', //your head js file
-    initScript:`
-        /* 
-            esbuild + nodejs (with asyncio python) development/production server. 
-            Begin your javascript application here. This file serves as a simplified entry point to your app, 
-            all other scripts you want to build can stem from here if you don't want to define more entryPoints 
-            and an outdir in the bundler settings.
-        */
-        document.body.style.backgroundColor = '#101010'; //page color
-        document.body.style.color = 'white'; //text color
-        let div = document.createElement('div');
-        div.innerHTML = 'Hello World!';
-        document.body.appendChild(div);
-        alert('tinybuild successful!');
-    `,
-    config:{
-        bundler:{
-            entryPoints: [this.entryPoints],
-            outfile: 'dist/'+this.entryPoints.slice(0,this.entryPoints.lastIndexOf('.')),
-            bundleBrowser: true, //plain js format
-            bundleESM: false, //.esm format
-            bundleTypes: false, //entry point should be a ts or jsx (or other typescript) file
-            bundleHTML: true
-        },
-        server:server.defaultServer
-    }, //can set the config here
-    includeCore:true, //include the core bundler and node server files, not necessary if you are building libraries or quickly testing an app.js
-}
-```
-
-
 Create a package.json if you don't have one. You an use these scripts to run the server.
 ```json
 
@@ -266,7 +227,42 @@ Create a package.json if you don't have one. You an use these scripts to run the
 
 ```
 
+## Repo Init (advanced)
 
+A more detailed way to create an app is to use `initRepo` in `node tinybuild/init.js`, you can apply all of these settings through the main `tinybuild` command by passing the arguments in the help command. 
+
+```js
+defaultRepo = {
+    dirName:`example',    
+    entryPoints:'index.js', //your head js file
+    initScript:`
+        /* 
+            esbuild + nodejs (with asyncio python) development/production server. 
+            Begin your javascript application here. This file serves as a simplified entry point to your app, 
+            all other scripts you want to build can stem from here if you don't want to define more entryPoints 
+            and an outdir in the bundler settings.
+        */
+        document.body.style.backgroundColor = '#101010'; //page color
+        document.body.style.color = 'white'; //text color
+        let div = document.createElement('div');
+        div.innerHTML = 'Hello World!';
+        document.body.appendChild(div);
+        alert('tinybuild successful!');
+    `,
+    config:{
+        bundler:{
+            entryPoints: [this.entryPoints],
+            outfile: 'dist/'+this.entryPoints.slice(0,this.entryPoints.lastIndexOf('.')),
+            bundleBrowser: true, //plain js format
+            bundleESM: false, //.esm format
+            bundleTypes: false, //entry point should be a ts or jsx (or other typescript) file
+            bundleHTML: true
+        },
+        server:server.defaultServer
+    }, //can set the config here
+    includeCore:true, //include the core bundler and node server files, not necessary if you are building libraries or quickly testing an app.js
+}
+```
 Then `npm i` or copy source folder into your project. We recommend the above settings to run the development server for hot reloading and concurrent python support.
 
 Create a javascript app entry point
