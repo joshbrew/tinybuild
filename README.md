@@ -157,7 +157,9 @@ packager(config);
 
 then in the console from that project directory run `node tinybuild.js`
 
-## tinybuild commands:
+## tinybuild CLI commands:
+
+e.g. `tinybuild build` or `tinybuild serve` to run isolated commands 
 
 `tinybuild help` lists accepted arguments, see the boilerplate created in the new repo for more. The `tinybuild` command will use your edited `tinybuild.config.js` or `tinybuild.js` (which includes the library and executes the packager with the bundler and/or server itself for more control) config file after initialization so you can use it generically, else see the created `package.json` for more local commands.
 
