@@ -90,7 +90,7 @@ function onRequest(request, response, cfg) {
         Object.assign(headers,cfg.headers);
     }
 
-    if(cfg.routes[request.url]) {
+    if(cfg.routes?.[request.url]) {
         if(typeof cfg.routes[request.url] === 'string') {
             requestURL = cfg.routes[request.url]; //relative path
         } else if (typeof cfg.routes[request.url] === 'function') {
