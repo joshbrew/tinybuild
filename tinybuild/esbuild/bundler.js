@@ -176,11 +176,11 @@ export function bundle(configs) {
 
     return bundles;
 
-  }))
+  })).then((bundles) => {
+    console.log('\n✨   esbuild completed!   ✨')
+    console.timeEnd('\n✨   esbuild');
+  });
 
-
-  console.log('\n✨   esbuild completed!   ✨')
-  console.timeEnd('\n✨   esbuild');
   //process.exit(0); // Manually make process exit
 
   return bundles;
