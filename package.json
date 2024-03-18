@@ -1,0 +1,44 @@
+{
+  "name": "tinybuild",
+  "version": "0.10.10",
+  "description": "Versatile esbuild configuration with custom plugins + node hotreloading for a lightweight and frustration-free web development experience.",
+  "main": "tinybuild.js",
+  "type": "module",
+  "bin": {
+    "tinybuild": "tinybuild/bin/global.js"
+  },
+  "preferGlobal": true,
+  "scripts": {
+    "start": "node tinybuild.js",
+    "build": "cd example && node tinybuild.js",
+    "init": "node tinybuild/init.js",
+    "concurrent": "concurrently \"npm run python\" \"npm run startdev\"",
+    "dev": "npm run pip && npm i --save-dev concurrently && npm i --save-dev nodemon && npm run concurrent",
+    "startdev": "nodemon --exec \"cd example && node tinybuild.js\" -e ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv",
+    "python": "python tinybuild/python/server.py",
+    "pip": "pip install quart && pip install websockets"
+  },
+  "keywords": [
+    "esbuild"
+  ],
+  "author": "Joshua Brewster",
+  "license": "LGPL-3.0-or-later",
+  "dependencies": {
+    "chokidar": "~3.6.0",
+    "esbuild": "~0.20.1",
+    "ws": "~8.16.0"
+  },
+  "peerDependencies": {
+    "typescript": "*"
+  },
+  "nodemonConfig": {
+    "env": {
+      "NODEMON": true,
+      "HOTRELOAD": true
+    },
+    "ignore": [
+      "dist/",
+      ".temp/"
+    ]
+  }
+}

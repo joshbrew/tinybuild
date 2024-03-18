@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP e.g. for allowing local fetch requests in the electron node polyfill -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'">
+    <link rel="stylesheet" href="./dist/index.css">
+    <title>My Electron App!</title>
+  </head>
+  <body>
+    <script src="dist/index.js"></script>
+  </body>
+</html>
