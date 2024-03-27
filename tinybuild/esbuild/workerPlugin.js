@@ -99,7 +99,7 @@ export const workerPlugin = (
                                     globalThis.__dirname = fileURLToPath(new URL('.', import.meta.url));
                                 }
                                 let p = require('path');
-                                url = p.join(process.cwd(),__dirname,'${filename}');
+                                url = p.join(process.cwd(),__dirname,'${outdir}','${filename}');
                             } catch {}
                         }
                         else {
@@ -107,7 +107,7 @@ export const workerPlugin = (
                             let relLoc = href.split('/');
                             relLoc.pop();
                             relLoc = relLoc.join('/');
-                            url = relLoc + '/${filename}'; //this is the served url
+                            url = relLoc + '/${outdir}/${filename}'; //this is the served url
                         }
                         export default url;
                     ` };
