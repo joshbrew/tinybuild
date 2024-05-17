@@ -94,12 +94,21 @@ function onRequest(request, response, cfg) {
         if(typeof cfg.routes[request.url] === 'string') {
             requestURL = cfg.routes[request.url]; //relative path
         } else if (typeof cfg.routes[request.url] === 'function') {
-            cfg.routes[request.url](request, response);
-            response.end();
-            return;
+            let result = cfg.routes[request.url](request, response);
+            if(result) {//return true to call response.end and end the request
+                response.end();
+                return; 
+            }
         } else if (typeof cfg.routes[request.url] === 'object') {
             if(cfg.routes[request.url].headers) {
                 Object.assign(headers, cfg.routes[request.url].headers); //specify headers for a page
+            }
+            if (cfg.routes[request.url].onrequest) { //can run request/response, be sure to call response.end() if dealing entirely within the function called
+                let result = cfg.routes[request.url].onrequest(request, response);
+                if(result) {//return true to call response.end and end the request
+                    response.end();
+                    return; 
+                }
             }
             if(cfg.routes[request.url].template) { //raw template string
                 var contentType = 'text/html';
@@ -115,10 +124,6 @@ function onRequest(request, response, cfg) {
                 return;
             } else if (cfg.routes[request.url].path) { //local file path (easier to just use the string
                 requestURL = cfg.routes[request.url].path; 
-            } else if (cfg.routes[request.url].onrequest) {
-                cfg.routes[request.url].onrequest(request, response);
-                response.end();
-                return;
             }
         }
     } else if (requestURL == './') { //root should point to start page
