@@ -52,7 +52,8 @@ export const defaultBundler = {
     '.csv' : 'file','.xls' : 'file','.xlsx': 'file','.sql': 'file',
     '.obj': 'file','.collada': 'file','.x3d': 'file','.fbx': 'file',  //3d stuff
     '.3ds': 'file','.flc': 'file','.swf': 'file',
-    '.step': 'file','.stl': 'file', 
+    '.step': 'file','.stl': 'file',
+    '.glsl': 'text','.hlsl': 'text','.wgsl': 'text', 'spirv': 'text',
     '.py': 'file', '.cpy': 'file', '.c': 'file', '.cpp': 'file', '.h': 'file', '.hpp': 'file', '.sh':'file','.cs':'file','.swift':'file','.vb':'file', //code stuff
     '.bin': 'file','.cmd': 'file',  '.msi': 'file', '.com': 'file','.jar': 'file','.class':'file','.rss': 'file','.jsp': 'file','.cgi': 'file',
     '.brd': 'file','.sch': 'file','.gbr': 'file','.gb': 'file','.gerb': 'file','.drl': 'file', //pcb stuff

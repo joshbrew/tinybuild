@@ -52,12 +52,12 @@ const config = {
                 headers: { 'Content-Security-Policy': '*' }, //page specific headers 
                 template:'<html><head></head><body><div>Hello World!</div></body></html>'
                 //path: 'mypage.html' //or a file path (e.g. plus specific headers)
-                //onrequest: (request,response) => {}, //custom request/response handling, return true to end the default response callback, or continue e.g. to return a web page.
+                //onrequest: (request,response) => {}, //custom request/response handling, return true to prevent any default response handling afterward
             },
             '/redirect':{ //e.g. custom redirect
                 redirect:'https://google.com'
             },
-            '/other':(request,response) => {}, //custom request/response handling, return true to end the request automatically.
+            '/other':(request,response) => {}, //custom request/response handling, return true to prevent any default response handling afterward
             '/': 'index.html', //alt start page declaration
             '/404':'packager/node_server/other/404.html', //e.g. custom error page
         },

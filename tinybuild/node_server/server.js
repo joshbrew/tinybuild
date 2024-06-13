@@ -96,7 +96,6 @@ function onRequest(request, response, cfg) {
         } else if (typeof cfg.routes[request.url] === 'function') {
             let result = cfg.routes[request.url](request, response);
             if(result) {//return true to call response.end and end the request
-                response.end();
                 return; 
             }
         } else if (typeof cfg.routes[request.url] === 'object') {
@@ -105,8 +104,7 @@ function onRequest(request, response, cfg) {
             }
             if (cfg.routes[request.url].onrequest) { //can run request/response, be sure to call response.end() if dealing entirely within the function called
                 let result = cfg.routes[request.url].onrequest(request, response);
-                if(result) {//return true to call response.end and end the request
-                    response.end();
+                if(result) {//return true to call response.end and end the request;
                     return; 
                 }
             }
