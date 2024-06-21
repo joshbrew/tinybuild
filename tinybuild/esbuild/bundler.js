@@ -105,7 +105,7 @@ export function bundle(configs) {
 
         
     if(config.plugins) {
-      
+      let customPlugins = config.plugins;
       if(!('includeDefaultPlugins' in config) || config.includeDefaultPlugins) {
         const plugins = [];
         defaultBundler.plugins.forEach((d) => {
@@ -120,11 +120,13 @@ export function bundle(configs) {
               )
             );
           }
-          else if(!config.plugins.find((p) => {if(p.name === d.name) plugins.push(p); }));
+          else if(!config.plugins?.find((p) => {if(p.name === d.name) return true; })) plugins.push(d); //overrides
           else plugins.push(d);
         });
-        config.plugins = plugins;
+        customPlugins.forEach((p) => {  if(!plugins.find((d) => {if(p.name === d.name) return true; })) plugins.push(p); })
+        config.plugins = plugins; //now contains both default plugins and custom plugins
       }
+      
     }
 
     if(config.outdir) delete config.outfile;
