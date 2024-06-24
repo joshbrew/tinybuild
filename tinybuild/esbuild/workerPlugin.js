@@ -8,7 +8,7 @@ const { build } = pkg;
 export const workerPlugin = (
     config={
         blobWorkers:true,  //if false you get a url to a relative file path, if true you get a compiled dataurl that can be loaded with new Worker(url) in either situation. The blob workers are nice for easier distribution
-        bundler:{minifyWhitespace:true} //apply any desired esbuild settings
+        bundler:{ minifyWhitespace:true } //apply any desired esbuild settings
     }) => {
     return { //modified from https://github.com/evanw/esbuild/issues/312#issuecomment-698649833
         name:'workerloader',
@@ -81,15 +81,118 @@ export const workerPlugin = (
                     //console.log(outfile);
                     if(config?.blobWorkers && bundle.outputFiles[0]) { //&& bundle.outputFiles[0])
 
+                        let workerJs = bundle.outputFiles[0].text;
+
+
+                        if(buildSettings.format !== 'esm') {
+                            function insertTextIntoString(inputString, textToInsert, sequenceToFind) {
+                                // Find the last occurrence of the sequence to find
+                                const endIndex = inputString.lastIndexOf(sequenceToFind);
+                            
+                                if (endIndex === -1) {
+                                    console.error('The target sequence was not found in the string.');
+                                    return inputString;
+                                }
+                            
+                                // Insert the text before the target sequence
+                                const modifiedString = inputString.slice(0, endIndex) + textToInsert + inputString.slice(endIndex);
+                            
+                                return modifiedString;
+                            }
+
+                            workerJs = insertTextIntoString(bundle.outputFiles[0].text, `;if(typeof import_meta !== 'undefined')import_meta.url=location.origin+"/${outdir}/";`, `})()`);
+                        }
+
                         return { //resolve the file as an object url for running new Worker(blob)
                             contents:`
-                                const str = String(${JSON.stringify(bundle.outputFiles[0].text)})
+                                const str = String(${JSON.stringify(workerJs)})
                                 let url = URL.createObjectURL(new globalThis.Blob([str],{type:"text/javascript"}));
                                 export default url;
                             `//bundle.outputFiles[0].text.toString()
                         }
                     }
-                    return {  //resolve the file contents as a url for running new Worker(url)
+
+                    //hack to fix the import_meta.url being blank (helps with third party wasm imports when using import.meta.url in the source since non esm bundles will put in a placeholder)
+                    if(buildSettings.format !== 'esm') {
+                            
+                        function insertTextIntoFile(filePath, textToInsert, callback) {
+                            const sequenceToFind = '})();\n';
+
+                            fs.open(filePath, 'r+', (err, fd) => {
+                                if (err) {
+                                    console.error('Error opening file:', err);
+                                    return;
+                                }
+
+                                fs.fstat(fd, (err, stats) => {
+                                    if (err) {
+                                        console.error('Error getting file stats:', err);
+                                        fs.close(fd, () => {});
+                                        return;
+                                    }
+
+                                    const fileSize = stats.size;
+                                    const bufferSize = sequenceToFind.length;
+                                    const buffer = Buffer.alloc(bufferSize);
+
+                                    // Read the last part of the file to find the sequence
+                                    fs.read(fd, buffer, 0, bufferSize, fileSize - bufferSize, (err, bytesRead, buffer) => {
+                                        if (err) {
+                                            console.error('Error reading file:', err);
+                                            fs.close(fd, () => {});
+                                            return;
+                                        }
+
+                                        const bufferString = buffer.toString('utf8');
+                                        if (bufferString !== sequenceToFind) {
+                                            console.error('The target sequence was not found at the end of the file.');
+                                            fs.close(fd, () => {});
+                                            return;
+                                        }
+
+                                        // Calculate the position to insert the text
+                                        const insertionPosition = fileSize - bufferSize;
+
+                                        // Read the part of the file that will be shifted
+                                        const remainingBuffer = Buffer.alloc(bufferSize);
+                                        fs.read(fd, remainingBuffer, 0, bufferSize, insertionPosition, (err, bytesRead, remainingBuffer) => {
+                                            if (err) {
+                                                console.error('Error reading remaining part of the file:', err);
+                                                fs.close(fd, () => {});
+                                                return;
+                                            }
+
+                                            // Move the file pointer back to the insertion position
+                                            fs.write(fd, Buffer.from(textToInsert), 0, textToInsert.length, insertionPosition, (err) => {
+                                                if (err) {
+                                                    console.error('Error writing to file:', err);
+                                                    fs.close(fd, () => {});
+                                                    return;
+                                                }
+
+                                                // Write the remaining part back to the file
+                                                fs.write(fd, remainingBuffer, 0, bufferSize, insertionPosition + textToInsert.length, (err) => {
+                                                    if (err) {
+                                                        console.error('Error writing the remaining part back to file:', err);
+                                                    } else {
+                                                        console.log('Text inserted successfully.');
+                                                    }
+                                                    fs.close(fd, callback);
+                                                });
+                                            });
+                                        });
+                                    });
+                                });
+                            });
+                        }
+
+                        insertTextIntoFile(outfile, `;if(typeof import_meta !== 'undefined')import_meta.url=location.origin+"/${outdir}/";`);
+                    }
+
+                    
+                     return {  //resolve the file contents as a url for running new Worker(url)
+
+
                         contents: `
                         let url;
                         if(typeof process !== 'undefined') { //nodejs
