@@ -175,7 +175,7 @@ export const workerPlugin = (
                                                     if (err) {
                                                         console.error('Error writing the remaining part back to file:', err);
                                                     } else {
-                                                        console.log('Text inserted successfully.');
+                                                        //console.log('Text inserted successfully.');
                                                     }
                                                     fs.close(fd, callback);
                                                 });

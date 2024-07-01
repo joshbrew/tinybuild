@@ -42,9 +42,11 @@ const config = {
         protocol: "http",  //'http' or 'https'. HTTPS required for Nodejs <---> Python sockets. If using http, set production to False in python/server.py as well
         host: "localhost", //'localhost' or '127.0.0.1' etc.
         port: 8080, //e.g. port 80, 443, 8000
-        //redirect: 'http://localhost:8082' //instead of serving the default content, redirect ot another url
+        //redirect: 'http://localhost:8082', //instead of serving the default content, redirect to another url
         //headers: { 'Content-Security-Policy': '*'  }, //global header overrides
         startpage: 'index.html',  //default home page/app entry point 
+        hotreload: 5000,  //hotreload websocket server port
+        socket_protocol: "ws", //frontend socket protocol, wss for served, ws for localhost
         /*
         routes:{ //set additional page routes (for sites instead of single page applications)
             '/page2': 'mypage.html',
@@ -62,8 +64,6 @@ const config = {
             '/404':'packager/node_server/other/404.html', //e.g. custom error page
         },
         */
-        socket_protocol: "ws", //frontend socket protocol, wss for served, ws for localhost
-        hotreload: 5000,  //hotreload websocket server port
         //reloadscripts: false, //hot swap scripts, can break things if script handles initializations, otherwise css, link, srcs all hot swap without page reloading fairly intelligently
         //delay: 50, //millisecond delay on the watch command for hot reloading
         //pwa: "dist/service-worker.js",  //pwa mode? Injects service worker registry code in (see pwa README.md)
