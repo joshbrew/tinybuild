@@ -156,25 +156,25 @@ export function bundle(configs) {
 
     
     if(config.bundleBrowser){ // kinda UMD
-      bundles.browser = await bundleBrowser(config);
+      bundles.browser = await bundleBrowser(config, configs.length > 1);
     }
     
     // console.log('CONFIG', config)
     if(config.bundleESM) {
-      bundles.esm = await bundleESM(config);
+      bundles.esm = await bundleESM(config, configs.length > 1);
     }
 
     if(config.bundleNode) {
-      bundles.node = await bundleNode(config);
+      bundles.node = await bundleNode(config, configs.length > 1);
     }
     
     if(config.bundleCommonJS) {
-      bundles.commonjs = await bundleCommonJS(config);
+      bundles.commonjs = await bundleCommonJS(config, configs.length > 1);
     }
 
     // Create Types Once
     if(config.bundleTypes == true || config.bundleIIFE === true) {
-      bundles.ts = await bundleTypes(config);
+      bundles.ts = await bundleTypes(config, configs.length > 1);
     }
 
     return bundles;
@@ -360,7 +360,7 @@ export async function bundleBrowser(config) {
 }
 
 //bundle .esm.js
-export function bundleESM(config) {
+export function bundleESM(config, alterPath=true) {
   console.time('\n🌌   Built .esm.js file(s)')
   
   if(!config.defaultConfig) config = Object.assign(Object.assign({},defaultBundler),config); //add defaults 
@@ -385,7 +385,7 @@ export function bundleESM(config) {
   let withfile = (fname) => {  
     if(cfg.modifyExtensions !== false) {
       if(!fname.endsWith('.js') && !fname.endsWith('.mjs')) { fname += '.js';}
-      if(!fname.includes('.esm')) {
+      if(alterPath && !fname.includes('.esm')) {
         let f = fname.split('.');
         f.splice(f.length-1,0,'esm');
         fname = f.join('.'); 
@@ -396,8 +396,8 @@ export function bundleESM(config) {
   }
 
   if(cfg.outfile) {
-    cfg.outfile = withfile(cfg.outfile);
-  } else if (cfg.outdir) cfg.outdir += '/esm';
+    cfg.outfile = withfile(cfg.outfile, alterPath);
+  } else if (cfg.outdir && alterPath) cfg.outdir += '/esm';
 
 
   cleanupConfig(cfg);
@@ -410,7 +410,7 @@ export function bundleESM(config) {
 }
 
 //bundle node defaults
-export function bundleNode(config) {
+export function bundleNode(config, alterPath=true) {
   console.time('\n☀️   Built node .js file(s)');
   
   if(!config.defaultConfig) config = Object.assign(Object.assign({},defaultBundler),config); //add defaults 
@@ -433,10 +433,10 @@ export function bundleNode(config) {
   cfg.logLevel = 'error';
   if(cfg.format) delete cfg.format;
 
-  let withfile = (fname) => {  
+  let withfile = (fname, alterPath) => {  
     if(cfg.modifyExtensions !== false) {
       if(!fname.endsWith('.js') && !fname.endsWith('.cjs') && !fname.endsWith('.mjs')) { fname += '.js';}
-      if(!fname.includes('.node')) {
+      if(alterPath && !fname.includes('.node')) {
         let f = fname.split('.');
         f.splice(f.length-1,0,'node');
         fname = f.join('.'); 
@@ -447,8 +447,8 @@ export function bundleNode(config) {
   }
 
   if(cfg.outfile) {
-    cfg.outfile = withfile(cfg.outfile);
-  } else if (cfg.outdir) cfg.outdir += '/node';
+    cfg.outfile = withfile(cfg.outfile, alterPath);
+  } else if (cfg.outdir && alterPath) cfg.outdir += '/node';
 
 
   cleanupConfig(cfg);
@@ -462,7 +462,7 @@ export function bundleNode(config) {
 }
 
 //bundle commonjs
-export function bundleCommonJS(config) {
+export function bundleCommonJS(config, alterPath=true) {
   console.time('\n🌙   Built .cjs');
   
   if(!config.defaultConfig) config = Object.assign(Object.assign({},defaultBundler),config); //add defaults 
@@ -486,7 +486,8 @@ export function bundleCommonJS(config) {
   if(cfg.modifyExtensions !== false) {
     if(cfg.outfile) {
       if(cfg.outfile.endsWith('.js')) cfg.outfile = cfg.outfile.substring(0,cfg.outfile.length - 3);
-      if(!cfg.outfile.endsWith('.cjs')) cfg.outfile += '.cjs';
+      if(!alterPath) cfg.outfile += '.js'
+      else if(!cfg.outfile.endsWith('.cjs')) cfg.outfile += '.cjs';
     } else if (cfg.outdir) cfg.outdir += '/cjs'
   }
 
@@ -501,7 +502,7 @@ export function bundleCommonJS(config) {
 }
 
 ///bundle .d.ts and .iife.js files
-export async function bundleTypes(config) {
+export async function bundleTypes(config, alterPath=true) {
   console.log(`\n🪐   Starting to bundle types   🪐`);
   console.time(`\n🪐   Built .d.ts files`);
 
