@@ -140,7 +140,7 @@ export function bundle(configs) {
       }
     }
     
-    if(!config.bundleBrowser && !config.bundleNode && !config.bundleCommonJS && !config.bundleESM && !config.bundleCommonJS && !config.bundleIIFE) 
+    if(!config.bundleBrowser && !config.bundleNode && !config.bundleESM && !config.bundleCommonJS && !config.bundleIIFE) 
       config.bundleBrowser = true; //need one thing true
       
     if(config.entryPoints && !Array.isArray(config.entryPoints)) config.entryPoints = [config.entryPoints]; 
@@ -154,27 +154,34 @@ export function bundle(configs) {
       config
     }
 
+    function atLeastTwoTrue(...bools) {
+      const trueCount = bools.reduce((acc, bool) => acc + (bool ? 1 : 0), 0);
+      return trueCount >= 2;
+    }
+
+    //if at least two are true
+    let alterPath = configs.length > 1 || atLeastTwoTrue(config.bundleBrowser, config.bundleNode, config.bundleCommonJS, config.bundleESM, config.bundleIIFE);
     
     if(config.bundleBrowser){ // kinda UMD
-      bundles.browser = await bundleBrowser(config, configs.length > 1);
+      bundles.browser = await bundleBrowser(config);
     }
     
     // console.log('CONFIG', config)
     if(config.bundleESM) {
-      bundles.esm = await bundleESM(config, configs.length > 1);
+      bundles.esm = await bundleESM(config, alterPath);
     }
 
     if(config.bundleNode) {
-      bundles.node = await bundleNode(config, configs.length > 1);
+      bundles.node = await bundleNode(config, alterPath);
     }
     
     if(config.bundleCommonJS) {
-      bundles.commonjs = await bundleCommonJS(config, configs.length > 1);
+      bundles.commonjs = await bundleCommonJS(config, alterPath);
     }
 
     // Create Types Once
     if(config.bundleTypes == true || config.bundleIIFE === true) {
-      bundles.ts = await bundleTypes(config, configs.length > 1);
+      bundles.ts = await bundleTypes(config, alterPath);
     }
 
     return bundles;
