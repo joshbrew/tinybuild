@@ -99,13 +99,11 @@ export function bundle(configs) {
       Object.assign(config.loader, defaultBundlerCopy.loader);
     }
 
-   
-
+    const uneditedConfig = Object.assign({},config);
     config = Object.assign(defaultBundlerCopy, config);
-
-        
-    if(config.plugins) {
-      let customPlugins = config.plugins;
+  
+    if(uneditedConfig.plugins) {
+      let customPlugins = uneditedConfig.plugins;
       if(!('includeDefaultPlugins' in config) || config.includeDefaultPlugins) {
         const plugins = [];
         defaultBundler.plugins.forEach((d) => {
@@ -127,6 +125,8 @@ export function bundle(configs) {
         config.plugins = plugins; //now contains both default plugins and custom plugins
       }
       
+    } else if (!uneditedConfig.includeDefaultPlugins) {
+      delete config.plugins;
     }
 
     if(config.outdir) delete config.outfile;
