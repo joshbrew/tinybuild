@@ -125,7 +125,7 @@ export function bundle(configs) {
         config.plugins = plugins; //now contains both default plugins and custom plugins
       }
       
-    } else if (!uneditedConfig.includeDefaultPlugins) {
+    } else if (uneditedConfig.includeDefaultPlugins === false) {
       delete config.plugins;
     }
 
