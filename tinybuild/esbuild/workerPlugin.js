@@ -35,6 +35,8 @@ export const workerPlugin = (
 
                     split.find((ln) => {
                         if(ln.includes('outfile')) {
+                            ln = ln.replaceAll("'",'"'); //exception case
+                            ln = ln.replaceAll("`",'"');
                             let spl = ln.split(':')[1].split('"')[1].trim().split('//')[0].replace(',','');
                             let nm = spl;
                             nm = nm.split('/'); nm.pop();
@@ -42,6 +44,8 @@ export const workerPlugin = (
                             outdir = nm.join('/'); //left with folder name
                             return true;
                         } else if (ln.includes('outdir')) {
+                            ln = ln.replaceAll("'",'"');
+                            ln = ln.replaceAll("`",'"');
                             let spl = ln.split(':')[1].split('"')[1].trim().split('//')[0].replace(',','');
                             outdir = spl;
                             return true;
