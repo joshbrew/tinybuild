@@ -13,6 +13,8 @@
 
 ## One stop HTML5/Javascript web, server, desktop, and mobile application development
 
+Please contribute if you are interested in this for your own workflow automation, currently we edit and break and fix this on the basis of our own development so there is absolutely no source control, but we try our best to make it as versatile as possible.
+
 <table style="margin-left: auto; margin-right: auto;">
     <tbody>
         <tr>
