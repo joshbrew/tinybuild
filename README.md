@@ -133,7 +133,7 @@ const config = {
         hotreload: 5000,  //hotreload websocket server port
         //reloadscripts: false, //hot swap scripts, can break things if script handles initializations, otherwise css, link, srcs all hot swap without page reloading fairly intelligently
         //delay: 50, //millisecond delay on the watch command for hot reloading
-        //pwa: "dist/service-worker.js",  //pwa mode? Injects service worker registry code in (see pwa README.md)
+        //pwa: "service-worker.js",  //pwa mode? Injects service worker webpage code to live site, will create a service worker and webmanifest for you if not existent
         //watch: ['../'], //watch additional directories other than the current working directory
         //python: false,//7000,  //quart server port (configured via the python server script file still)
         //python_node:7001, //websocket relay port (relays messages to client from nodejs that were sent to it by python)

@@ -207,13 +207,11 @@ function onRequest(request, response, cfg) {
                     }
                     
                     //inject pwa code
-                    if(cfg.pwa) {
-                       
+                    if (cfg.pwa) {
                         let cstr = content;
-                        if(typeof cstr !== 'string') cstr = cstr.toString();
+                        if (typeof cstr !== 'string') cstr = cstr.toString();
 
-//This is the injection for the HTML to deal with service worker initialization, requires HTTPS
-                        content = `${cstr}\n\n
+                        const pwaString = `
 <link rel="manifest" href="manifest.webmanifest">
 <script>
     // Check that service workers are supported
@@ -230,7 +228,7 @@ function onRequest(request, response, cfg) {
 
     function registerSW() {
         navigator.serviceWorker
-        .register("${cfg.pwa}",{ scope: "/" })
+        .register("${cfg.pwa}", { scope: "/" })
         .then(registration => {
             registration.onupdatefound = () => {
                 const installingWorker = registration.installing;
@@ -265,9 +263,9 @@ function onRequest(request, response, cfg) {
     }
 
     if ("serviceWorker" in navigator) addEventListener('load', () => {
-        if(isLocalhost) {
+        if (isLocalhost) {
             // Add some additional logging to localhost, pointing developers to the
-            if(window.location.origin.startsWith("https://localhost")) {
+            if (window.location.origin.startsWith("https://localhost")) {
                 console.log(\`
 Launch Chrome with the following if using self-signed certificates:
 # replace https://localhost:8080 with your port
@@ -316,7 +314,15 @@ Launch Chrome with the following if using self-signed certificates:
         } 
     });
 </script>`;
-                        
+
+                        const headTagPattern = /<head[^>]*>/i;
+                        const hasHeadTag = headTagPattern.test(cstr);
+
+                        if (hasHeadTag) {
+                            content = cstr.replace(headTagPattern, match => `${match}\n${pwaString}`);
+                        } else {
+                            content = `<head>\n${pwaString}\n</head>\n` + cstr;
+                        }
                     }
 
                 }
