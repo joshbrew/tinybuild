@@ -8,7 +8,7 @@ import {HotReload, addHotReloadClient} from './hotreload/hotreload.js'
 
 import { PythonRelay, PythonClient } from './relay/python_relay.js';
 import { parseArgs } from '../commands/command.js'
-import { getTemplateSync as getT } from './get.js'
+import { getPath as getP, getTemplateSync as getT } from './get.js'
 
 export const defaultServer = {
     debug:false, //print debug messages?
@@ -365,10 +365,18 @@ function onUpgrade(request, socket, head, cfg, sockets) { //https://github.com/w
 
 
 //runs when the server starts successfully.
-function onStarted(cfg) {      
-    
+function onStarted(cfg) {    
     console.timeEnd(`\n🐱   Node server started at ${cfg.protocol}://${cfg.host}:${cfg.port}/`);
     setTimeout(()=>{console.log(`\nFind the server live at ${cfg.protocol}://${cfg.host}:${cfg.port}/`);}, 200);
+}
+
+function createDirectoryIfNotExists(directoryPath) {
+    if (!fs.existsSync(directoryPath)) {
+      fs.mkdirSync(directoryPath, { recursive: true });
+      console.log(`Directory ${directoryPath} created.`);
+    } else {
+      console.log(`Directory ${directoryPath} already exists.`);
+    }
 }
 
 // create the http/https server. For hosted servers, use the IP and open ports. Default html port is 80 or sometimes 443
@@ -434,9 +442,18 @@ export const serve = async (cfg=defaultServer, BUILD_PROCESS) => {
         }
         
         if(!fs.existsSync(path.join(process.cwd(),'manifest.webmanifest'))) { //lets create a default webmanifest on the local server if none found
-            fs.copyFileSync(path.join(globalThis.__ndirname,'pwa/pwaicon.png'),path.join(process.cwd(),'pwaicon.png'));
+            createDirectoryIfNotExists(path.join(process.cwd(),'dist'));  //placeholder, could get the outdir instead to make better assumptions but for now this jives easier for mobile cross comp stuff we are doing
+            createDirectoryIfNotExists(path.join(process.cwd(),'dist/assets'));
+            fs.copyFileSync(path.join(getP('pwa/logo32.png')),path.join(process.cwd(),'dist/assets/logo32.png'));
+            fs.copyFileSync(path.join(getP('pwa/logo64.png')),path.join(process.cwd(),'dist/assets/logo64.png'));
+            fs.copyFileSync(path.join(getP('pwa/logo256.png')),path.join(process.cwd(),'dist/assets/logo256.png'));
+            fs.copyFileSync(path.join(getP('pwa/logo512.png')),path.join(process.cwd(),'dist/assets/logo512.png'));
             fs.writeFileSync('manifest.webmanifest',getT('pwa/manifest.webmanifest'));
         }
+    }
+
+    if(!fs.existsSync(path.join(process.cwd(),'favicon.ico'))) { //this will throw an error otherwise in chrome anyway
+        fs.copyFileSync(getP('favicon.ico'),path.join(process.cwd(),'favicon.ico'));
     }
     
 

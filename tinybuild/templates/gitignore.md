@@ -4,9 +4,9 @@ dist
 **/*.pem
 **/*.pfxs
 **/*.key
+**/*.crt
 **/*.lock
 **/package-lock.json
-**/*.key
 **/*.log
 
 

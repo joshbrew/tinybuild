@@ -11,8 +11,20 @@
       "storage"
     ],
     "icons":[{
-      "src": "/square.png",
+      "src": "dist/assets/logo32.png",
+      "type": "image/png",
+      "sizes": "32x32"
+    },{
+      "src": "dist/assets/logo64.png",
+      "type": "image/png",
+      "sizes": "64x64"
+    },{
+      "src": "dist/assets/logo256.png",
       "type": "image/png",
       "sizes": "256x256"
+    },{
+      "src": "dist/assets/logo512.png",
+      "type": "image/png",
+      "sizes": "512x512"
     }]
   }

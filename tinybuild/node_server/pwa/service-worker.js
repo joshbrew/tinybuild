@@ -6,7 +6,7 @@ const assets = [
   "/index.html",
   "/dist/index.css",
   "/dist/index.js",
-  //"/favicon.ico"
+  "/assets"
 ];
 
 let cacheExpiration = 1000 * 60 * //seconds 
