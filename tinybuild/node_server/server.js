@@ -270,10 +270,10 @@ function onRequest(request, response, cfg) {
 Launch Chrome with the following if using self-signed certificates:
 # replace https://localhost:8080 with your port
 # on windows
-"C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe" --ignore-certificate-errors --unsafely-treat-insecure-origin-as-secure=https://localhost:8080
+"C:\\\\Program Files (x86)\\\\Google\\\\Chrome\\\\Application\\\\chrome.exe" --ignore-certificate-errors --unsafely-treat-insecure-origin-as-secure=https://localhost:8080
 # on mac
-/Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome \\
-   /Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome --user-data-dir=/tmp/foo --ignore-certificate-errors --unsafely-treat-insecure-origin-as-secure=https://localhost:8080
+/Applications/Google\\\\ Chrome.app/Contents/MacOS/Google\\\\ Chrome \\\\
+   /Applications/Google\\\\ Chrome.app/Contents/MacOS/Google\\\\ Chrome --user-data-dir=/tmp/foo --ignore-certificate-errors --unsafely-treat-insecure-origin-as-secure=https://localhost:8080
 
 (from: https://deanhume.com/testing-service-workers-locally-with-self-signed-certificates/)
 \`);
