@@ -8,6 +8,7 @@ import {HotReload, addHotReloadClient} from './hotreload/hotreload.js'
 
 import { PythonRelay, PythonClient } from './relay/python_relay.js';
 import { parseArgs } from '../commands/command.js'
+import { getTemplateSync as getT } from './get.js'
 
 export const defaultServer = {
     debug:false, //print debug messages?
@@ -80,8 +81,8 @@ function onRequest(request, response, cfg) {
         return;
     }   
 
-    //process the request, in this case simply reading a file based on the request url    
-    const testURL = 'http://localhost';
+    //process the request
+    const testURL = cfg.protocol + '://' + cfg.host;
     var requestURL = '.' + new URL( testURL +  request.url).pathname
 
     let headers = {}; //200 response
@@ -206,145 +207,116 @@ function onRequest(request, response, cfg) {
                     }
                     
                     //inject pwa code
-                    if(cfg.pwa && cfg.protocol === 'https') {
-                        if(fs.existsSync(path.join(process.cwd(),cfg.pwa))) {
-                            if(!fs.existsSync(path.join(process.cwd(),'manifest.webmanifest'))) { //lets create a default webmanifest on the local server if none found
-                                fs.writeFileSync('manifest.webmanifest',
-                                `{
-                                    "short_name": "PWA",
-                                    "name": "PWA",
-                                    "start_url": ".",
-                                    "display": "standalone",
-                                    "theme_color": "#000000",
-                                    "background_color": "#ffffff",
-                                    "description": "PWA Test",
-                                    "lang": "en-US",
-                                    "permissions": [
-                                    "storage"
-                                    ]
-                                }`
-                                )
-                            }
-                            if(!fs.existsSync(path.join(process.cwd(),cfg.pwa))) { //lets create a default webmanifest on the local server if none found
-                                fs.writeFileSync(path.join(process.cwd(),cfg.pwa),
-                                `//https://github.com/ibrahima92/pwa-with-vanilla-js
-                                const assets = [
-                                  "/",
-                                  "/index.html",
-                                  "/dist/index.js"
-                                ];
-                                
-                                self.addEventListener("install", installEvent => {
-                                  installEvent.waitUntil(
-                                    caches.open(staticDevCoffee).then(cache => {
-                                      cache.addAll(assets);
-                                    })
-                                  );
-                                });
-                                
-                                self.addEventListener("fetch", fetchEvent => {
-                                  fetchEvent.respondWith(
-                                    caches.match(fetchEvent.request).then(res => {
-                                      return res || fetch(fetchEvent.request);
-                                    })
-                                  );
-                                });`
-                                )
-                            }
-                            let cstr = content;
-                            if(typeof cstr !== 'string') cstr = cstr.toString();
-                            content = `${cstr}\n\n
-                                <link rel="manifest" href="manifest.webmanifest">
-                                <script>
-                                    // Check that service workers are supported
+                    if(cfg.pwa) {
+                       
+                        let cstr = content;
+                        if(typeof cstr !== 'string') cstr = cstr.toString();
 
-                                    const isLocalhost = Boolean(
-                                        window.location.hostname === 'localhost' ||
-                                          // [::1] is the IPv6 localhost address.
-                                          window.location.hostname === '[::1]' ||
-                                          // 127.0.0.1/8 is considered localhost for IPv4.
-                                          window.location.hostname.match(
-                                            /^127(?:\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$/
-                                          )
-                                    );
+//This is the injection for the HTML to deal with service worker initialization, requires HTTPS
+                        content = `${cstr}\n\n
+<link rel="manifest" href="manifest.webmanifest">
+<script>
+    // Check that service workers are supported
 
-                                    function registerSW() {
-                                        navigator.serviceWorker
-                                        .register("${cfg.pwa}")
-                                        .then(registration => {
-                                            registration.onupdatefound = () => {
-                                              const installingWorker = registration.installing;
-                                              if (installingWorker == null) {
-                                                return;
-                                              }
-                                              installingWorker.onstatechange = () => {
-                                                if (installingWorker.state === 'installed') {
-                                                  if (navigator.serviceWorker.controller) {
-                                                    // At this point, the updated pre-cached content has been fetched,
-                                                    // but the previous service worker will still serve the older
-                                                    // content until all client tabs are closed.
-                                                    console.log(
-                                                      'New content is available and will be used when all ' +
-                                                        'tabs for this page are closed. See https://bit.ly/CRA-PWA.'
-                                                    );
-                                      
-                                                  } else {
-                                                    // At this point, everything has been pre-cached.
-                                                    // It's the perfect time to display a
-                                                    // "Content is cached for offline use." message.
-                                                    console.log('Content is cached for offline use.');
-                                      
-                                                  }
-                                                }
-                                              };
-                                            };
-                                        })
-                                        .catch(error => {
-                                        console.error('Error during service worker registration:', error);
-                                        });
-                                    }
+    const isLocalhost = Boolean(
+        window.location.hostname === 'localhost' ||
+            // [::1] is the IPv6 localhost address.
+            window.location.hostname === '[::1]' ||
+            // 127.0.0.1/8 is considered localhost for IPv4.
+            window.location.hostname.match(
+            /^127(?:\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$/
+            )
+    );
 
-                                    if ("serviceWorker" in navigator) addEventListener('load', () => {
-                                        if(isLocalhost) {
-                                            // Add some additional logging to localhost, pointing developers to the
-                                            
-                                            // Check if the service worker can be found. If it can't reload the page.
-                                            fetch("${cfg.pwa}")
-                                            .then(response => {
-                                                // Ensure service worker exists, and that we really are getting a JS file.
-                                                const contentType = response.headers.get('content-type');
-                                                if (
-                                                response.status === 404 ||
-                                                (contentType != null && contentType.indexOf('javascript') === -1)
-                                                ) {
-                                                // No service worker found. Probably a different app. Reload the page.
-                                                navigator.serviceWorker.ready.then(registration => {
-                                                    registration.unregister().then(() => {
-                                                    window.location.reload();
-                                                    });
-                                                });
-                                                } else {
-                                                // Service worker found. Proceed as normal.
-                                                    registerSW();
-                                                }
-                                            })
-                                            .catch(() => {
-                                                console.log(
-                                                'No internet connection found. App is running in offline mode.'
-                                                );
-                                            });
-                                            
-                                            // service worker/PWA documentation.
-                                            navigator.serviceWorker.ready.then(() => {
-                                                console.log('This web app is being served cache-first by a service worker.');
-                                            });
-                                        }
-                                        else {
-                                            registerSW();
-                                        } 
-                                    });
-                                </script>`;
-                        }
+    function registerSW() {
+        navigator.serviceWorker
+        .register("${cfg.pwa}",{ scope: "/" })
+        .then(registration => {
+            registration.onupdatefound = () => {
+                const installingWorker = registration.installing;
+                if (installingWorker == null) {
+                return;
+                }
+                installingWorker.onstatechange = () => {
+                if (installingWorker.state === 'installed') {
+                    if (navigator.serviceWorker.controller) {
+                    // At this point, the updated pre-cached content has been fetched,
+                    // but the previous service worker will still serve the older
+                    // content until all client tabs are closed.
+                    console.log(
+                        'New content is available and will be used when all ' +
+                        'tabs for this page are closed. See https://bit.ly/CRA-PWA.'
+                    );
+        
+                    } else {
+                    // At this point, everything has been pre-cached.
+                    // It's the perfect time to display a
+                    // "Content is cached for offline use." message.
+                    console.log('Content is cached for offline use.');
+        
+                    }
+                }
+                };
+            };
+        })
+        .catch(error => {
+        console.error('Error during service worker registration:', error);
+        });
+    }
+
+    if ("serviceWorker" in navigator) addEventListener('load', () => {
+        if(isLocalhost) {
+            // Add some additional logging to localhost, pointing developers to the
+            if(window.location.origin.startsWith("https://localhost")) {
+                console.log(\`
+Launch Chrome with the following if using self-signed certificates:
+# replace https://localhost:8080 with your port
+# on windows
+"C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe" --ignore-certificate-errors --unsafely-treat-insecure-origin-as-secure=https://localhost:8080
+# on mac
+/Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome \\
+   /Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome --user-data-dir=/tmp/foo --ignore-certificate-errors --unsafely-treat-insecure-origin-as-secure=https://localhost:8080
+
+(from: https://deanhume.com/testing-service-workers-locally-with-self-signed-certificates/)
+\`);
+    }
+            // Check if the service worker can be found. If it can't reload the page.
+            fetch("${cfg.pwa}")
+            .then(response => {
+                // Ensure service worker exists, and that we really are getting a JS file.
+                const contentType = response.headers.get('content-type');
+                if (
+                response.status === 404 ||
+                (contentType != null && contentType.indexOf('javascript') === -1)
+                ) {
+                // No service worker found. Probably a different app. Reload the page.
+                navigator.serviceWorker.ready.then(registration => {
+                    registration.unregister().then(() => {
+                    window.location.reload();
+                    });
+                });
+                } else {
+                // Service worker found. Proceed as normal.
+                    registerSW();
+                }
+            })
+            .catch(() => {
+                console.log(
+                'No internet connection found. App is running in offline mode.'
+                );
+            });
+            
+            // service worker/PWA documentation.
+            navigator.serviceWorker.ready.then(() => {
+                console.log('This web app is being served cache-first by a service worker.');
+            });
+        }
+        else {
+            registerSW();
+        } 
+    });
+</script>`;
+                        
                     }
 
                 }
@@ -446,6 +418,19 @@ export const serve = async (cfg=defaultServer, BUILD_PROCESS) => {
     if (cfg.python) {
         sockets.python = new PythonRelay(cfg);
         sockets.py_client = new PythonClient(cfg,sockets.python);
+    }
+
+    //instantiate pwa files if not found
+    if(cfg.pwa) {
+        //setup pwa files if not found (sould probably do this external)
+        if(!fs.existsSync(path.join(process.cwd(),cfg.pwa))) {
+            fs.writeFileSync(path.join(process.cwd(),cfg.pwa), getT('pwa/service-worker.js'));
+        }
+        
+        if(!fs.existsSync(path.join(process.cwd(),'manifest.webmanifest'))) { //lets create a default webmanifest on the local server if none found
+            fs.copyFileSync(path.join(globalThis.__ndirname,'pwa/pwaicon.png'),path.join(process.cwd(),'pwaicon.png'));
+            fs.writeFileSync('manifest.webmanifest',getT('pwa/manifest.webmanifest'));
+        }
     }
     
 

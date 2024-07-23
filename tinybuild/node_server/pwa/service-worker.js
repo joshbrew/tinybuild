@@ -1,14 +1,12 @@
-
-//https://github.com/ibrahima92/pwa-with-vanilla-js
 const version = '1.0'; // Increment this version to update all caches
 const cacheNamePrefix = 'pwa-assets-';
 const cacheName = `${cacheNamePrefix}${version}`;
 const assets = [
   "/",
   "/index.html",
-  "/dist/index.css", //alt default paths
+  "/dist/index.css",
   "/dist/index.js",
-  '/favicon.ico'
+  //"/favicon.ico"
 ];
 
 let cacheExpiration = 1000 * 60 * //seconds 
@@ -26,13 +24,9 @@ let isValidCacheName = function(cacheName) {
 self.addEventListener('fetch', event => {
   event.respondWith(
     caches.match(event.request).then(cachedResponse => {
-
-      // Check if online; if not, return cached response immediately
       if (!navigator.onLine) {
         return cachedResponse;
       }
-
-      // Serve from cache if valid, otherwise fetch from network
       return caches.keys().then(cacheNames => {
         const relevantCacheName = cacheNames.find(name => name.startsWith(cacheNamePrefix));
         if (relevantCacheName && isValidCacheName(relevantCacheName)) {
@@ -47,7 +41,6 @@ self.addEventListener('fetch', event => {
 
 function fetchAndUpdateCache(request, cacheName) {
   return fetch(request).then(response => {
-    // Only cache GET requests to whitelisted assets
     if (request.method === 'GET' && assets.includes(new URL(request.url).pathname)) {
       const responseToCache = response.clone();
       caches.open(cacheName).then(cache => {
@@ -55,8 +48,8 @@ function fetchAndUpdateCache(request, cacheName) {
       });
     }
     return response;
-  }).catch(() => {
-    // Attempt to serve from cache if the network request fails
+  }).catch(error => {
+    console.error('Fetch failed; returning cached page instead.', error);
     return caches.match(request);
   });
 }
@@ -75,7 +68,12 @@ self.addEventListener('activate', event => {
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(cacheName)
-      .then(cache => cache.addAll(assets))
+      .then(cache => {
+        return cache.addAll(assets).catch(error => {
+          console.error('Failed to cache assets during install:', error);
+          throw error;
+        });
+      })
       .then(() => self.skipWaiting())
   );
 });

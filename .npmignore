@@ -9,4 +9,4 @@ backend_server
 **/package-lock.json
 **/*.key
 **/*.log
-**/*.png
+#**/*.png

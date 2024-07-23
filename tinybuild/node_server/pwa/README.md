@@ -1,3 +1,4 @@
+## [Secure SSL on localhost](https://deanhume.com/testing-service-workers-locally-with-self-signed-certificates/)
 ## [Instructions](https://dev.to/digitalplayer1125/custom-service-worker-in-any-app-with-esbuild-3020)
 
 

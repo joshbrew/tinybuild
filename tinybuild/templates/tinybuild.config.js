@@ -66,13 +66,13 @@ const config = {
         */
         //reloadscripts: false, //hot swap scripts, can break things if script handles initializations, otherwise css, link, srcs all hot swap without page reloading fairly intelligently
         //delay: 50, //millisecond delay on the watch command for hot reloading
-        //pwa: "dist/service-worker.js",  //pwa mode? Injects service worker registry code in (see pwa README.md)
+        //pwa: "service-worker.js",  //pwa mode? Injects service worker webpage code to live site, will create a service worker and webmanifest for you if not existent
         //watch: ['../'], //watch additional directories other than the current working directory
         //python: false,//7000,  //quart server port (configured via the python server script file still)
         //python_node:7001, //websocket relay port (relays messages to client from nodejs that were sent to it by python)
         errpage: 'node_modules/tinybuild/tinybuild/node_server/other/404.html', //default error page, etc.
-        certpath:'node_modules/tinybuild/tinybuild/node_server/ssl/cert.pem',//if using https, this is required. See cert.pfx.md for instructions
-        keypath:'node_modules/tinybuild/tinybuild/node_server/ssl/key.pem'//if using https, this is required. See cert.pfx.md for instructions
+        certpath:'node_modules/tinybuild/tinybuild/node_server/ssl/server.crt',//if using https, this is required. See cert.pfx.md for instructions
+        keypath:'node_modules/tinybuild/tinybuild/node_server/ssl/server.key'//if using https, this is required. See cert.pfx.md for instructions
     },
     /*
     mobile:{ //this will copy the dist and index.html to capacitor builds that can create small interoperable javascript webview + native functionality (e.g. bluetooth) mobile apps (~2Mb at minimum). 

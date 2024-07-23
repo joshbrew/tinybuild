@@ -130,7 +130,7 @@ export function bundle(configs) {
     }
 
     if(config.outdir) delete config.outfile;
-    
+
     if((config.bundleNode || config.platform === 'node') && config.external?.includes('node:fetch')) config.external = [];
 
     //bundle false requires certain loaders to be disabled if no outfile or outdir specified

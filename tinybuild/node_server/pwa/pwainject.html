@@ -1,0 +1,105 @@
+<link rel="manifest" href="manifest.webmanifest">
+<script>
+    // Check that service workers are supported
+    let sw_path = '/dist/service-worker.js';
+
+    if(window.location.origin.startsWith("https://localhost")) {
+        console.log(`
+Launch Chrome with the following if using self-signed certificates:
+# replace https://localhost:8080 with your port
+# on windows
+"C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe" --ignore-certificate-errors --unsafely-treat-insecure-origin-as-secure=https://localhost:8080
+# on mac
+/Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome \\
+   /Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome --user-data-dir=/tmp/foo --ignore-certificate-errors --unsafely-treat-insecure-origin-as-secure=https://localhost:8080
+
+(https://deanhume.com/testing-service-workers-locally-with-self-signed-certificates/)
+`);
+    }
+
+    const isLocalhost = Boolean(
+        window.location.hostname === 'localhost' ||
+            // [::1] is the IPv6 localhost address.
+            window.location.hostname === '[::1]' ||
+            // 127.0.0.1/8 is considered localhost for IPv4.
+            window.location.hostname.match(
+            /^127(?:\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$/
+            )
+    );
+
+    function registerSW() {
+        navigator.serviceWorker
+        .register(sw_path)
+        .then(registration => {
+            registration.onupdatefound = () => {
+                const installingWorker = registration.installing;
+                if (installingWorker == null) {
+                return;
+                }
+                installingWorker.onstatechange = () => {
+                if (installingWorker.state === 'installed') {
+                    if (navigator.serviceWorker.controller) {
+                    // At this point, the updated pre-cached content has been fetched,
+                    // but the previous service worker will still serve the older
+                    // content until all client tabs are closed.
+                    console.log(
+                        'New content is available and will be used when all ' +
+                        'tabs for this page are closed. See https://bit.ly/CRA-PWA.'
+                    );
+        
+                    } else {
+                    // At this point, everything has been pre-cached.
+                    // It's the perfect time to display a
+                    // "Content is cached for offline use." message.
+                    console.log('Content is cached for offline use.');
+        
+                    }
+                }
+                };
+            };
+        })
+        .catch(error => {
+        console.error('Error during service worker registration:', error);
+        });
+    }
+
+    if ("serviceWorker" in navigator) addEventListener('load', () => {
+        if(isLocalhost) {
+            // Add some additional logging to localhost, pointing developers to the
+            
+            // Check if the service worker can be found. If it can't reload the page.
+            fetch(sw_path)
+            .then(response => {
+                // Ensure service worker exists, and that we really are getting a JS file.
+                const contentType = response.headers.get('content-type');
+                if (
+                response.status === 404 ||
+                (contentType != null && contentType.indexOf('javascript') === -1)
+                ) {
+                // No service worker found. Probably a different app. Reload the page.
+                navigator.serviceWorker.ready.then(registration => {
+                    registration.unregister().then(() => {
+                    window.location.reload();
+                    });
+                });
+                } else {
+                // Service worker found. Proceed as normal.
+                    registerSW();
+                }
+            })
+            .catch(() => {
+                console.log(
+                'No internet connection found. App is running in offline mode.'
+                );
+            });
+            
+            // service worker/PWA documentation.
+            navigator.serviceWorker.ready.then(() => {
+                console.log('This web app is being served cache-first by a service worker.');
+            });
+        }
+        else {
+            registerSW();
+        } 
+    });
+</script>
