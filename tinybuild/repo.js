@@ -391,8 +391,8 @@ export async function checkBoilerPlate(tinybuildCfg=defaultConfig,onlyConfig=tru
 
     let needPackage = !fs.existsSync(packagePath);
 
-    let needHTML = true;
-    let needEntry = true;
+    let needHTML = !fs.existsSync(htmlPath);
+    let needEntry = !fs.existsSync(path.join(process.cwd(),entryFile)) && !fs.existsSync(path.join(process.cwd(),entryFile.replace(path.extname(entryFile),'.ts')));;
     if(tinybuildCfg.server?.startpage) {
         htmlPath = tinybuildCfg.server.startpage;
     } 
@@ -403,7 +403,6 @@ export async function checkBoilerPlate(tinybuildCfg=defaultConfig,onlyConfig=tru
         entryFile = tinybuildCfg.bundler.entryPoints[0];
     } 
 
-    needEntry = !fs.existsSync(path.join(process.cwd(),entryFile)) && !fs.existsSync(path.join(process.cwd(),entryFile.replace(path.extname(entryFile),'.ts')));
     let entryFilePath = path.join(process.cwd(), entryFile) // assign index by first entrypoint
 
     if(needPackage) {
