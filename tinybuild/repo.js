@@ -72,7 +72,7 @@ export function runOnChange(
     command, 
     args=process.argv,
     ignore=['dist','temp','package'], 
-    extensions=['js','ts','css','html','jpg','png','txt','csv','xls']
+    extensions=['js','ts','css','html','jpg','png','txt','csv','xls','jsx','tsx','scss','vue','less','sass']
 ) { 
 
     let argMap; 
@@ -184,7 +184,7 @@ export function runAndWatch(
     script,
     args=process.argv,
     ignore=[`dist${path.sep}`,'.temp','package.json'], 
-    extensions=['js','ts','css','html','jpg','png','txt','csv','xls'],
+    extensions=['js','ts','css','html','jpg','png','txt','csv','xls','jsx','tsx','scss','vue','less','sass'],
     restartDelay=50
 ) {    
 

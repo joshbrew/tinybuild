@@ -6,7 +6,7 @@ const config = {
         "index.js"
         ],
         outfile: "dist/index", //exit point file, will append .js as well as indicators like .esm.js, .node.js for other build flags
-        //outdir:'dist'         //exit point folder, define for multiple entryPoints
+        //outdir:'dist',         //exit point folder, define for multiple entryPoints
         bundleBrowser: true, //create plain js build? Can include globals and init scripts
         bundleESM: false, //create esm module js files // { platform:'node' } //etc you can also supply an object here to add more specific esbuild settings
         bundleTypes: false, //create .d.ts files, //you need a .tsconfig for this to work
@@ -68,11 +68,13 @@ const config = {
         //delay: 50, //millisecond delay on the watch command for hot reloading
         //pwa: "service-worker.js",  //pwa mode? Injects service worker webpage code to live site, will create a service worker and webmanifest for you if not existent
         //watch: ['../'], //watch additional directories other than the current working directory
-        //python: false,//7000,  //quart server port (configured via the python server script file still)
-        //python_node:7001, //websocket relay port (relays messages to client from nodejs that were sent to it by python)
+        //ignore:['./assets'], //ignore these paths
+        //extensions:['pdf'], //custom file extensions to watch
         errpage: 'node_modules/tinybuild/tinybuild/node_server/other/404.html', //default error page, etc.
         certpath:'node_modules/tinybuild/tinybuild/node_server/ssl/server.crt',//if using https, this is required. See cert.pfx.md for instructions
         keypath:'node_modules/tinybuild/tinybuild/node_server/ssl/server.key'//if using https, this is required. See cert.pfx.md for instructions
+        //python: false,//7000,  //quart server port (configured via the python server script file still)
+        //python_node:7001, //websocket relay port (relays messages to client from nodejs that were sent to it by python)
     },
     /*
     mobile:{ //this will copy the dist and index.html to capacitor builds that can create small interoperable javascript webview + native functionality (e.g. bluetooth) mobile apps (~2Mb at minimum). 
