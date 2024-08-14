@@ -7,8 +7,10 @@ const config = {
         ],
         outfile: "dist/index", //exit point file, will append .js as well as indicators like .esm.js, .node.js for other build flags
         //outdir:'dist',         //exit point folder, define for multiple entryPoints
+
+        //we can run multiple esbuild configs separately, set to true to target different outputs, we'll put it all in the dist in a way that keeps the files separate (e.g. index.js for the browser, index.esm.js for esm, index.node.js for node, or if only 1 bundler specified just index.js for any, it's the most general) when using multiple bundlers, additionally when specifying an outdir instead of outfile.
         bundleBrowser: true, //create plain js build? Can include globals and init scripts
-        bundleESM: false, //create esm module js files // { platform:'node' } //etc you can also supply an object here to add more specific esbuild settings
+        bundleESM: false, //create esm module js files 
         bundleTypes: false, //create .d.ts files, //you need a .tsconfig for this to work
         bundleNode: false, //create node platform plain js build, specify platform:'node' to do the rest of the files 
         bundleHTML: false, //wrap the first entry point file as a plain js script in a boilerplate html file, frontend scripts can be run standalone like a .exe! Server serves this as start page if set to true.
@@ -23,7 +25,7 @@ const config = {
         //globalThis:null //'mymodule'
         //globals:{'index.js':['Graph']}
         //init:{'index.js':function(bundle) { console.log('prepackaged bundle script!', bundle); }.toString(); }      
-        //  outputs:{ //overwrites main config settings for specific use cases
+        //  outputs:{ //overwrites main config settings for specific use cases, you can also just use objects instead of booleans on the above toggles for bundler modes
         //     node:{ //e.g. for bundleNode
         //     // external:[] //externals for node environment builds
         //     },
@@ -36,6 +38,8 @@ const config = {
         // },
         
         //refer to esbuild docs for more settings
+        //platform:'node'//etc 
+        //loader:{ '.xml':'file', '.html':'text' } //etc etc, we supply a bunch of these for you you can copy typical files by default or import html text etc.
     },
     server: {  //node server settings, set false to skip server step or add serve:true to config object to only serve (alt methods)
         debug: false,

@@ -57,8 +57,8 @@ export class HotReload {
           watchBuffer.forEach((p) => {
             let found = cfg.hotreloadwatch.find((v) => { if(p.split(path.sep).join('/').includes(v)) return true; });
             let isMainJS = p.includes(outfilesplit);
-            let isJS = p.endsWith('js') || p.endsWith('ts') || p.endsWith('jsx') || p.endsWith('tsx');
-            let isCSS = p.endsWith('css') || p.endsWith('sass');
+            let isJS = p.includes('.js') || p.includes('.ts') || p.includes('.jsx') || p.includes('.tsx');
+            let isCSS = p.includes('.css') || p.includes('.sass');
   
             //css and js will change in main repo before updating in dist so we can do this check to prevent reduncancies
             //console.log(p, found, isCSS, csschanged);
@@ -81,7 +81,6 @@ export class HotReload {
                 csschanged = true;
               } 
               else {
-                console.log("Server updated: "+`${cfg.protocol}://${cfg.host}:${cfg.port}/`);
               
                 for(const key in sockets) {
                   sockets[key].send(JSON.stringify({file:p, reloadscripts:cfg.reloadscripts}));
@@ -209,12 +208,13 @@ export const HotReloadClient = (socketUrl, esbuild_cssFileName) => {
       if(message.file) {
         let f = message.file;
         let rs = message.reloadscripts;
-        if(f.endsWith('html') || f.endsWith('xml') || f.endsWith('wasm')) { //could add other formats
+        console.log("File updated on server: ", f);
+        if(f.includes('.html') || f.includes('.xml') || f.includes('.wasm')) { //could add other formats
           window.location.reload();
-        } else if(f.endsWith('css')) {
-          if(!esbuild_cssFileName.endsWith('css')) esbuild_cssFileName += '.css';
+        } else if(f.includes('.css')) {
+          if(!esbuild_cssFileName.includes('.css')) esbuild_cssFileName += '.css';
           reloadLink(esbuild_cssFileName); //reload all css since esbuild typically bundles one file same name as the dist file
-        } else if (f.endsWith('js') || f.endsWith('ts') || f.endsWith('jsx') || f.endsWith('tsx') || f.endsWith('vue')) { //IDK what other third party formats would be nice to haves
+        } else if (f.includes('.js') || f.includes('.ts') || f.includes('.jsx') || f.includes('.tsx') || f.includes('.vue')) { //IDK what other third party formats would be nice to haves
           reloadAsset(f, rs);
         } else {
           //could be an href or src

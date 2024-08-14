@@ -163,24 +163,29 @@ export function bundle(configs) {
     let alterPath = configs.length > 1 || atLeastTwoTrue(config.bundleBrowser, config.bundleNode, config.bundleCommonJS, config.bundleESM, config.bundleIIFE);
     
     if(config.bundleBrowser){ // kinda UMD
+      if(typeof config.bundleBrowser === 'object') Object.assign(config,config.browser);
       bundles.browser = await bundleBrowser(config);
     }
     
     // console.log('CONFIG', config)
     if(config.bundleESM) {
+      if(typeof config.bundleESM === 'object') Object.assign(config,config.bundleESM);
       bundles.esm = await bundleESM(config, alterPath);
     }
 
     if(config.bundleNode) {
+      if(typeof config.bundleNode === 'object') Object.assign(config,config.bundleNode);
       bundles.node = await bundleNode(config, alterPath);
     }
     
     if(config.bundleCommonJS) {
+      if(typeof config.bundleCommonJS === 'object') Object.assign(config,config.bundleCommonJS);
       bundles.commonjs = await bundleCommonJS(config, alterPath);
     }
 
     // Create Types Once
     if(config.bundleTypes == true || config.bundleIIFE === true) {
+      if(typeof config.bundleIIFE === 'object') Object.assign(config,config.bundleIIFE);
       bundles.ts = await bundleTypes(config, alterPath);
     }
 
