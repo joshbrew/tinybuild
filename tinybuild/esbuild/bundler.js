@@ -40,7 +40,7 @@ export const defaultBundler = {
   allowOverwrite:true, 
   loader: { //just a bunch of path import resolvers, will supply urls if marked 'file', text if marked 'text', and dataurls (blobs) if marked 'dataurl'. 'copy' for copying without bundling, 'empty' for skipping a file format
     '.html': 'text', //not always necessary but it doesn't hurt
-    '.txt': 'text','.yaml': 'text', '.toml':'text', '.xml' : 'text','.xhtml': 'text', '.md':'text',
+    '.js':'.jsx','.txt': 'text','.yaml': 'text', '.toml':'text', '.xml' : 'text','.xhtml': 'text', '.md':'text',
     '.gitignore':'file','.wasm':'file',
     '.png' : 'file','.PNG' : 'file','.jpg' : 'file','.gif' : 'file','.ico' : 'file','.bmp' : 'file',
     '.svg': 'file','.webm': 'file', '.mid': 'file', '.midi': 'file',
