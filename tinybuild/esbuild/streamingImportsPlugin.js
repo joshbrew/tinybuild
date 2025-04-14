@@ -99,6 +99,13 @@ export const streamingImportsPlugin = {
     // Handle all import/require paths starting with "http://" or "https://"
     build.onResolve({ filter: /^https?:\/\// }, async (args) => {
 
+      const skipExtensions = ['.css', '.scss', '.sass', '.less'];
+
+      // If the URL ends with any of the skipExtensions, mark it as external.
+      if (skipExtensions.some(ext => args.path.endsWith(ext))) {
+        return { path: args.path, external: true };
+      }
+
       if(args.kind?.includes('import') || args.kind?.includes('require')) {
         const {cachepath} = await handleImport(args.path)
 
