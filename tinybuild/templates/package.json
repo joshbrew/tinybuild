@@ -1,7 +1,7 @@
 {
     "name": "tinybuildapp",
     "version": "0.0.0",
-    "description": "Barebones esbuild and test node server implementation. For building",
+    "description": "Dummy tinybuild app, for building. Replace description before publishing.",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "type":"module",
@@ -21,11 +21,11 @@
         "ios":"npx cap open ios",
         "tauri": "tauri"
     },
+    "author": "",
+    "license": "",
     "keywords": [
         "esbuild"
     ],
-    "author": "",
-    "license": "",
     "dependencies": {
     },
     "devDependencies": {

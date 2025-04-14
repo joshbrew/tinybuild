@@ -1,134 +1,118 @@
-
-
-import fs from 'fs'
+import fs from 'fs';
 import path from 'path';
 
 // NOTE: Will be thrown by comments, but is not catastrophic
-const re = /import([ \n\t]*(?:(?:\* (?:as .+))|(?:[^ \n\t\{\}]+[ \n\t]*,?)|(?:[ \n\t]*\{(?:[ \n\t]*[^ \n\t"'\{\}]+[ \n\t]*,?)+\}))[ \n\t]*)from[ \n\t]*(['"])([^'"\n]+)(?:['"])([ \n\t]*assert[ \n\t]*{type:[ \n\t]*(['"])([^'"\n]+)(?:['"])})?/g 
+const re = /import([ \n\t]*(?:(?:\* (?:as .+))|(?:[^ \n\t\{\}]+[ \n\t]*,?)|(?:[ \n\t]*\{(?:[ \n\t]*[^ \n\t"'\{\}]+[ \n\t]*,?)+\}))[ \n\t]*)from[ \n\t]*(['"])([^'"\n]+)(?:['"])([ \n\t]*assert[ \n\t]*{type:[ \n\t]*(['"])([^'"\n]+)(?:['"])})?/g;
 
+// Simple function to remove invalid Windows filename characters
+function sanitizeFilename(name) {
+  return name.replace(/[<>:"/\\|?*]/g, '-');
+}
 
-const handleImport = async (pathStr, tryFileExtension=true) => {
-  const pathArr = pathStr.split('/')
-  const pathSlice = pathArr.splice(2)
-  const pathAddition = ['node_modules','.cache', ...pathSlice]
-  const pathDir = path.dirname(path.join(...pathSlice)).split(path.sep)
-  const dir = path.dirname(path.join(...pathAddition)).split(path.sep)
-  const filename = path.basename(pathStr) ?? 'index.js'
-  let cachepath = path.join(process.cwd(), ...dir, filename);
+const handleImport = async (pathStr, tryFileExtension = true) => {
+  // Use the URL constructor for easier parsing and to remove query params from the filename
+  const urlObj = new URL(pathStr);
+  const rawName = path.basename(urlObj.pathname) || 'index';
+  // Decide on extension: if the URL is from fonts.googleapis.com, use .css (adjust as needed)
+  const ext = path.extname(urlObj.pathname) || (pathStr.includes('fonts.googleapis.com') ? '.css' : '.js');
+  // Create a safe filename with the extension
+  const safeFilename = sanitizeFilename(rawName) + ext;
 
-  if(!path.extname(cachepath)){ 
-    cachepath += '.js'; //should account for other file types like css if they can be imported without extensions
+  // Build cache directory based on URL host for better organization
+  const cacheDir = path.join(process.cwd(), 'node_modules', '.cache', urlObj.host);
+
+  // Create the directory if it doesn't exist already
+  if (!fs.existsSync(cacheDir)) {
+    fs.mkdirSync(cacheDir, { recursive: true });
   }
-  //if(!cachepath.endsWith('.js') < 0) cachepath += '.js';
-  //request http/s resource
-  //write file to cache
-  //resolve new path to local cache for bundler to target 
 
-  if(!fs.existsSync(cachepath)) {
-    const pathAccum = []
-    dir.forEach(str => {
-      pathAccum.push(str)
-      const thisPath = path.join(process.cwd(), ...pathAccum)
-      if(!fs.existsSync(thisPath)) fs.mkdirSync(thisPath);
-    })
+  let cachepath = path.join(cacheDir, safeFilename);
 
-    const pathPrefix = pathArr[0]+ '//'
-    const fetchPath = pathPrefix + path.join(...pathSlice)
+  if (!fs.existsSync(cachepath)) {
+    const pathPrefix = urlObj.protocol + "//";
+    // Reconstruct the fetch URL (include the search params so you get the correct file)
+    const fetchPath = pathPrefix + path.join(urlObj.host, urlObj.pathname) + urlObj.search;
 
-    console.time('esbuild cached streamed http(s) import at ' + cachepath);
-    let text = await httpGet(fetchPath).then(async buffer => {
-      const text =  await buffer.toString('utf-8')
+    console.time('Caching import at ' + cachepath);
+    let text = await httpGet(fetchPath).then(async (buffer) => {
+      const text = buffer.toString('utf-8');
       if (!text.includes("Couldn't find the requested file")) {
-        return text
+        return text;
       } else {
-        const fileExtensionPath = pathPrefix + path.join(...pathDir, filename, 'index.js')
+        const fileExtensionPath =
+          urlObj.protocol +
+          "//" +
+          path.join(urlObj.host, path.dirname(urlObj.pathname), rawName, 'index.js');
         if (tryFileExtension) {
-        const {cachename, text} = await handleImport( fileExtensionPath, false)
-      } else console.error('Could not find file', fileExtensionPath)
-        return 
+          const { cachepath, text } = await handleImport(fileExtensionPath, false);
+          return text;
+        } else {
+          console.error('Could not find file', fileExtensionPath);
+          return;
+        }
       }
-    })
+    });
 
-    
     if (text) {
-     text = await text.toString('utf-8')
-
-    let textCopy = text
-    // Get Internal Imports
-    let m;
-    do {
-        m = re.exec(textCopy)
-
+      let textCopy = text;
+      let m;
+      do {
+        m = re.exec(textCopy);
         if (m == null) m = re.exec(textCopy); // be extra sure (weird bug)
         if (m) {
-          console.log('found', m[0])
-
-            textCopy = textCopy.replace(m[0], ``) // Replace found text in checked string
-            const importPath = m[3]
-
-            // Only cache JS files
-            if (importPath.slice(-2) === 'js'){
-              const updatedPath = pathPrefix + path.join(...pathDir, importPath)
-              await handleImport(updatedPath)
-            } else break; // abort further imports. TODO: Check whether we can 
+          console.log('found', m[0]);
+          textCopy = textCopy.replace(m[0], ``); // Replace found text in checked string
+          const importPath = m[3];
+          // Only cache JS files
+          if (importPath.slice(-2) === 'js') {
+            const updatedPath =
+              urlObj.protocol +
+              '//' +
+              path.join(urlObj.host, path.dirname(urlObj.pathname), importPath);
+            await handleImport(updatedPath);
+          } else break; // abort further imports. TODO: Check whether we can 
         }
-    } while (m);
+      } while (m);
 
-    fs.writeFileSync(cachepath, text); //cache cdn imports etc.
-  
-  //we should handle skypack stuff too which has nested import/exports from urls (this is a snowpack provided site to turn cdn links into esm bundles)
-  // let split = text.split('\n'); 
-  // split.forEach((ln,i) => {
-  //   if(ln.includes('export ') || ln.includes('import ')) {
-  //     ln[i] = 
-  //   }
-  // })
-  // console.log(text.split('\n'));
-    console.timeEnd('esbuild cached streamed http(s) import at ' + cachepath);
-  }
+      fs.writeFileSync(cachepath, text); // Cache the fetched file
+      console.timeEnd('Caching import at ' + cachepath);
+    }
   }
 
   return {
     cachepath,
-  }
-}
+  };
+};
 
 export const streamingImportsPlugin = {
-  name:'streamImports',
+  name: 'streamImports',
   setup(build) {
     // Handle all import/require paths starting with "http://" or "https://"
     build.onResolve({ filter: /^https?:\/\// }, async (args) => {
-
-      let toSkip = ['.css','.scss','.sass','.less']
-
-      if(toSkip.find((ex) => args.importer.endsWith(ex))) return;
-
-      if(((args.kind?.includes('import') && !args.kind?.includes('@import')) || args.kind?.includes('require'))) {
-        const {cachepath} = await handleImport(args.path)
-
-        return { path:path.join(cachepath) }
+      if (args.kind?.includes('import') || args.kind?.includes('require')) {
+        const { cachepath } = await handleImport(args.path);
+        return { path: cachepath };
       }
     });
   }
-}
+};
 
 import http from 'http';
 import https from 'https';
-import { cwd } from 'process';
-//custom plugin to resolve http imports
+
+// Custom plugin to resolve HTTP imports
 export function httpGet(url) {
   return new Promise((resolve, reject) => {
-
     let client = http;
 
-    if (url.toString().indexOf("https") === 0) {
+    if (url.startsWith("https")) {
       client = https;
     }
 
     client.get(url, (resp) => {
       let chunks = [];
 
-      // A chunk of data has been recieved.
+      // A chunk of data has been received.
       resp.on('data', (chunk) => {
         chunks.push(chunk);
       });
@@ -137,7 +121,6 @@ export function httpGet(url) {
       resp.on('end', () => {
         resolve(Buffer.concat(chunks));
       });
-
     }).on("error", (err) => {
       reject(err);
     });
