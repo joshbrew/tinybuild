@@ -14,7 +14,7 @@ const handleImport = async (pathStr, tryFileExtension = true) => {
   const urlObj = new URL(pathStr);
   const rawName = path.basename(urlObj.pathname) || 'index';
   // Decide on extension: if the URL is from fonts.googleapis.com, use .css (adjust as needed)
-  const ext = path.extname(urlObj.pathname) || (pathStr.includes('fonts.googleapis.com') ? '.css' : '.js');
+  const ext = path.extname(urlObj.pathname) || (pathStr.includes('font') ? '.css' : '.js');
   // Create a safe filename with the extension
   const safeFilename = sanitizeFilename(rawName) + ext;
 
