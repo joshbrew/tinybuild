@@ -36,6 +36,7 @@ This is the bundler and development server combo you always wanted. Goodbye esot
 - Lightweight automated packaging of native Mobile and Desktop Apps via [Capacitor](https://capacitorjs.com/), [Electron](https://www.electronjs.org/), or [Tauri](https://tauri.app/). 
 - Bonus [Python Quart](https://pgjones.gitlab.io/quart/) multithreaded concurrent build and test env examples (not required). 
 
+### [GPT + Tinybuild Template! Use tinybuild without coding it yourself.](https://github.com/joshbrew/tinybuild-autogpt-template)
 
 ## Quickstart
 
