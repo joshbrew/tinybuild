@@ -1,85 +1,85 @@
-//hack to get workers to bundle correctly
+// hotreloadPlugin.js
+// ──────────────────────────────────────────────────────────────────────────────
+// Copy only the first entry-point’s CSS-like sub-dependencies into a temporary
+// index file so they can be rebuilt quickly.  All other entry-point graphs are
+// ignored – even during incremental rebuilds.
 
 import path from 'path';
-import fs from 'fs';
+import fs   from 'fs';
 
-let dirPath = path.join(process.cwd(),'node_modules','.temp');
+const TEMP_DIR   = path.join(process.cwd(), 'node_modules', '.temp');
+const CACHE_FILE = '__cachedSubdependencies.js';
 
-//this simply copies desired file formats imported in your project 
-//  to a cached .js file which will enable recompiling only specific parts of the program to speed things up.
-//  especially good for css but could apply to other assets. The hotreload server will update the page via socket for you.
-export function hotreloadPlugin(
-    extnames = ['css','sass','less','scss']
-) {
+export function hotreloadPlugin(extnames = ['css', 'sass', 'less', 'scss']) {
+  // Matches .css, .sass, ...
+  const filter = new RegExp(`\\.(${extnames.join('|').replaceAll('.', '')})$`, 'i');
 
-    let filter = new RegExp(`\.(${extnames.join('|').replaceAll('.','')})$`);
-    let files = [];
+  // State containers (cleared on every build/rebuild)
+  let collected  = new Set();    // paths to cache
+  let fromFirst  = new Set();    // graph walk
+  let firstEntry = null;         // absolute path
 
-    let cwd = process.cwd();
-    cwd = cwd.split(path.sep).join('/');
-    
-    return {
-        name:'hotreloadcacher',
-        setup(builder) {
-            builder.onResolve({ filter }, async (args) => {
-                if((args.kind.includes('import') || args.kind.includes('require')) && !args.importer.includes('node_modules')){
-                    
-                    
-                    let filepath = args.path;
-                    if(filepath.startsWith('./')) {
-                        filepath = filepath.substring(1);
-                        filepath = args.resolveDir.split(path.sep).join('/') + filepath; //relative path
-                    } else 
-                        filepath = cwd + '/' + filepath; 
+  return {
+    name: 'hotreloadcacher',
+    setup(builder) {
 
-                    if(!fs.existsSync(dirPath)) {
-                        fs.mkdirSync(dirPath);
-                    }
+      // ── 1.  Identify the first entry-point before the graph walk starts ──
+      builder.onStart(() => {
+        collected.clear();
+        fromFirst.clear();
 
-                    //make sure the copied files get unique names e.g. for redundantly named styles.css type stuff in big web component libraries
-                    //note: we can't do anything about scoped style tags as esbuild compiles it all into one file
-                    let fname = path.basename(filepath);
-                    if(files.includes(fname)) {
-                        let ctr = 1;
-                        while(files.includes(fname)) {
-                            fname = path.basename(filepath) + ctr;
-                            ctr++;
-                        }
-                    }
+        const eps = builder.initialOptions.entryPoints;
+        if (!eps) return;   // no entry points?  nothing to do
 
-                    files.push(filepath);
+        if (typeof eps === 'string')        firstEntry = path.resolve(eps);
+        else if (Array.isArray(eps))        firstEntry = path.resolve(eps[0]);
+        else if (typeof eps === 'object')   firstEntry = path.resolve(Object.values(eps)[0]);
+      });
 
-                    //fs.copyFileSync(args.path, path.join(process.cwd(),'node_modules','.cache',fname));
-                    
-                }
-            });
-    
-            // builder.onLoad({ filter: /.*/},
-            //     async (args) => {
-            //     });
-            // }
+      // ── 2.  Walk the module graph, but only the first entry-point’s branch ──
+      builder.onResolve({ filter: /.*/ }, (args) => {
+        // Ignore anything that’s already inside node_modules
+        if (args.importer?.includes('node_modules')) return;
 
-            builder.onStart(() => {
-                files = [];
-            });
+        // Resolve absolute path for args.path
+        const resolved = path.isAbsolute(args.path)
+          ? path.normalize(args.path)
+          : path.normalize(path.join(args.resolveDir, args.path));
 
-            builder.onEnd(() => {
-                let indexFile = ``;
-
-                files.forEach((f) => {
-                    indexFile += `import '${f}' \n`; //import
-                });
-
-                //write an index file that imports all of the files for esbuild to resolve this in a separate build
-                if(fs.existsSync(dirPath)) 
-                    fs.writeFileSync(path.join(process.cwd(),'node_modules','.temp','__cachedSubdependencies.js'), indexFile); 
-            });
-
-            //build.onDispose(() => {})
+        // `importer === ''` means “this module is an entry point”
+        if (args.importer === '') {
+          // Start *only* if this is literally the first entry-point file
+          if (resolved === firstEntry) {
+            fromFirst.add(resolved);
+            if (filter.test(resolved)) collected.add(resolved);
+          }
+          // For any other entry-point we just bail – no caching for that tree
+          return;
         }
-    }
-    
+
+        // We’re inside the tree – keep going only if the importer
+        // is already known to belong to the first entry-point branch.
+        if (fromFirst.has(path.normalize(args.importer))) {
+          fromFirst.add(resolved);
+          if (filter.test(resolved)) collected.add(resolved);
+        }
+
+        // Let esbuild finish its normal resolution
+        return;
+      });
+
+      // ── 3.  Emit a synthetic file that re-imports the collected assets ──
+      builder.onEnd(() => {
+        if (!collected.size) return;      // nothing to emit
+
+        if (!fs.existsSync(TEMP_DIR)) fs.mkdirSync(TEMP_DIR, { recursive: true });
+
+        const indexSrc = [...collected]
+          .map(p => `import '${p.split(path.sep).join('/')}'`)
+          .join('\n');
+
+        fs.writeFileSync(path.join(TEMP_DIR, CACHE_FILE), indexSrc);
+      });
+    },
+  };
 }
-
-
-
