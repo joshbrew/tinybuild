@@ -54,7 +54,7 @@ npm i -D tinybuild
 
 > *Because javascript's tooling treadmill eats more time and headspace than the solutions it's meant to help you build faster and cheaper.*
 
-The dev community’s mood has shifted: we’re done re‑learning a new package manager every quarter, swimming through 30‑page migration guides, and praying that today’s “must‑have” plugin still compiles tomorrow. The zeitgeist favours **boringly fast, single‑purpose tools** that stay out of the way, skipping the third party esoteric formats to get straight to testing production-ready, native cross-platform javascript compilations.
+The dev community’s mood has shifted: we’re done re‑learning a new package manager every quarter that nobody understands anyway, swimming through 30‑page migration guides, and praying that today’s “must‑have” plugin still compiles tomorrow. The zeitgeist favours **boringly fast, single‑purpose tools** that stay out of the way, skipping the third party esoteric formats to get straight to testing production-ready, native cross-platform javascript compilations.
 
 | Decision axis                   | **Tinybuild (minimalist 2025 stack)**                                      | Vite / Webpack / Bun (ecosystem treadmill)                            |
 | ------------------------------- | -------------------------------------------------------------------------- | --------------------------------------------------------------------- |
