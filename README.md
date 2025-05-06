@@ -283,6 +283,8 @@ const config = {
 export default config;
 ```
 
+Please note the bundler object simply uses the base esbuild commands plus some extras that we filter out. We preset certain things like the file import formats so you easily import html and so on as text files or url refs or other as appropriate, then your specifications will override our defaults otherwise, which you can see if you go to tinybuild/esbuild and explore the files 
+
 ## tinybuild CLI commands:
 
 e.g. `tinybuild build` or `tinybuild serve` to run isolated commands 
