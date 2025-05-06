@@ -65,7 +65,7 @@ The dev community’s mood has shifted: we’re done re‑learning a new package
 | *Remote imports & auto‑install* | Built‑in fetch + `npm install` on‑the‑fly.                                 | Rare / experimental add‑ons.                                          |
 | *AI / automation readiness*     | Deterministic CLI, zero prompts, scriptable `packager()`.                  | Interactive scaffolds, variable outputs, harder to automate.          |
 
-**Tinybuild exists because complexity =/= effective development; predictability and mental calm matter just as much.** Owning a <100 line esbuild wrapper grants permanent immunity from tooling churn so we can spend that reclaimed time shipping features.
+**Tinybuild exists because complexity =/= effective development; predictability and mental calm matter just as much.** Owning a <100 line esbuild wrapper with all of the core developer automations grants permanent immunity from tooling churn so we can spend that reclaimed time shipping features.
 
 ---
 
