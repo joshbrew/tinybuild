@@ -60,7 +60,7 @@ The dev community’s mood has shifted: we’re done re‑learning a new package
 | ------------------------------- | -------------------------------------------------------------------------- | --------------------------------------------------------------------- |
 | *First build experience*        | `tinybuild` → scaffold + serve in < 2 s.                                   | `npm create vite@latest`, pick template, install deps, tweak config.  |
 | *Cognitive overhead*            | One plain JS config; flags are real nouns (`bundleBrowser`, `bundleNode`). | Custom DSL, nested Rollup, plugin labyrinth, breaking changes yearly. |
-| *Plugin longevity*              | Four in‑tree plugins you can read in one sitting.                          | Thousands of 3rd‑party plugins; many unmaintained within 12 mo.       |
+| *Plugin longevity*              | Four in‑tree plugins you can read in one sitting. Add any esbuild plugins. | Thousands of 3rd‑party plugins; many unmaintained within 12 mo.       |
 | *Cross‑target output*           | Native flags `--electron`, `--tauri`, `mobile={}`.                         | Separate plugins & boilerplates (`vite-electron-builder`, etc.).      |
 | *Remote imports & auto‑install* | Built‑in fetch + `npm install` on‑the‑fly.                                 | Rare / experimental add‑ons.                                          |
 | *AI / automation readiness*     | Deterministic CLI, zero prompts, scriptable `packager()`.                  | Interactive scaffolds, variable outputs, harder to automate.          |
