@@ -1,64 +1,187 @@
-
 <p align="center">
   <img width="65%" height="65%" src="./catgnome.png" />
 </p>
 
-
 # tinybuild
-![tinybuild-status](https://img.shields.io/npm/v/tinybuild.svg) 
-![tinybuild-downloads](https://img.shields.io/npm/dt/tinybuild.svg)
-![tinybuild-l](https://img.shields.io/npm/l/tinybuild)
 
-`npm i -g tinybuild` or `npm i tinybuild` in local projects.
-
-## One stop HTML5/Javascript web, server, desktop, and mobile application development
-
-Please contribute if you are interested in this for your own workflow automation, currently we edit and break and fix this on the basis of our own development so there is absolutely no source control, but we try our best to make it as versatile as possible.
-
-<table style="margin-left: auto; margin-right: auto;">
-    <tbody>
-        <tr>
-            <td><img width="100px" src="./img/esbuild.svg"/></td>
-            <td><img width="100px" src="./img/nodejs.png"/></td>
-            <td><img width="100px" src="./img/http.png"/></td>
-            <td><img width="100px" src="./img/desktop.png"/></td>
-            <td><img width="100px" src="./img/smartphone.png"/></td>
-        </tr>
-    </tbody>
+<table align="center">
+  <tr>
+    <td><img width="100" src="./img/esbuild.svg" alt="esbuild"></td>
+    <td><img width="100" src="./img/nodejs.png" alt="Node.js"></td>
+    <td><img width="100" src="./img/http.png"   alt="http dev‑server"></td>
+    <td><img width="100" src="./img/desktop.png" alt="Desktop (Electron/Tauri)"></td>
+    <td><img width="100" src="./img/smartphone.png" alt="Mobile (Capacitor)"></td>
+  </tr>
 </table>
 
+[![npm version](https://img.shields.io/npm/v/tinybuild.svg)](https://www.npmjs.com/package/tinybuild)
+[![npm downloads](https://img.shields.io/npm/dt/tinybuild.svg)](https://www.npmjs.com/package/tinybuild)
+![license](https://img.shields.io/npm/l/tinybuild)
 
-This is the bundler and development server combo you always wanted. Goodbye esoteric instructions, goodbye unwieldy dependencies, and goodbye time wasted staring at your compiler running! Move over Webpack, Parcel, and Vite, there's a new game in town.
+> **One‑stop HTML5 / JavaScript web, server, desktop & mobile build tool — with zero cognitive rent.**
 
-- Minimal [esbuild](https://esbuild.github.io/getting-started/#your-first-bundle) bundler wrapper with custom boilerplate and plugins for all of your common javascript or typescript application, server, and library packaging needs. Has inbuilt support for typescript, jsx, and much more.
-- Custom esbuild plugins for web workers, streaming imports, types bundling (e.g. for library development), and hotswapping css.
-- Pure [Nodejs](https://developer.mozilla.org/en-US/docs/Learn/Server-side/Node_server_without_framework) hot reloading test environment with hot module swapping. Only 1 small third party dependency. 
-- Lightweight automated packaging of native Mobile and Desktop Apps via [Capacitor](https://capacitorjs.com/), [Electron](https://www.electronjs.org/), or [Tauri](https://tauri.app/). 
-- Bonus [Python Quart](https://pgjones.gitlab.io/quart/) multithreaded concurrent build and test env examples (not required). 
+Install globally:
 
-### [GPT + Tinybuild Template! Use tinybuild without coding it yourself.](https://github.com/joshbrew/tinybuild-autogpt-template)
+```bash
+npm i -g tinybuild
+```
+
+…or as a local dev‑dependency:
+
+```bash
+npm i -D tinybuild
+```
+
+---
+
+
+## Core Features
+
+* **Minimal esbuild wrapper** – Typescript, JSX/TSX, CSS imports, code‑splitting.
+* **Custom plugins** – Web‑worker bundling, streaming imports, automatic type‑generation, CSS hot‑swap.
+* **Pure Node.js dev‑server** – Hot‑module reload via WebSockets; only one runtime dep (`chokidar`).
+* **Multi‑target outputs** – Browser, ESM, Node, CommonJS, IIFE, `.d.ts` in the same run.
+* **Native packaging** – Electron, Tauri, Capacitor flags copy your build into desktop/mobile shells.
+* **Remote import helper** – Import from `https://` URLs or missing npm deps and Tinybuild grabs them for you.
+* **Optional Python Quart bridge** – Full‑stack hot‑reload for async Python back‑ends.
+
+> *“Goodbye esoteric instructions, goodbye unwieldy dependencies, goodbye staring at your compiler.”*
+
+
+---
+
+### Why roll our own?
+
+> *Because javascript's tooling treadmill eats more time and headspace than the solutions it's meant to help you build faster and cheaper.*
+
+The dev community’s mood has shifted: we’re done re‑learning a new package manager every quarter, swimming through 30‑page migration guides, and praying that today’s “must‑have” plugin still compiles tomorrow. The zeitgeist favours **boringly fast, single‑purpose tools** that stay out of the way, skipping the third party esoteric formats to get straight to testing production-ready, native cross-platform javascript compilations.
+
+| Decision axis                   | **Tinybuild (minimalist 2025 stack)**                                      | Vite / Webpack / Bun (ecosystem treadmill)                            |
+| ------------------------------- | -------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| *First build experience*        | `tinybuild` → scaffold + serve in < 2 s.                                   | `npm create vite@latest`, pick template, install deps, tweak config.  |
+| *Cognitive overhead*            | One plain JS config; flags are real nouns (`bundleBrowser`, `bundleNode`). | Custom DSL, nested Rollup, plugin labyrinth, breaking changes yearly. |
+| *Plugin longevity*              | Four in‑tree plugins you can read in one sitting.                          | Thousands of 3rd‑party plugins; many unmaintained within 12 mo.       |
+| *Cross‑target output*           | Native flags `--electron`, `--tauri`, `mobile={}`.                         | Separate plugins & boilerplates (`vite-electron-builder`, etc.).      |
+| *Remote imports & auto‑install* | Built‑in fetch + `npm install` on‑the‑fly.                                 | Rare / experimental add‑ons.                                          |
+| *AI / automation readiness*     | Deterministic CLI, zero prompts, scriptable `packager()`.                  | Interactive scaffolds, variable outputs, harder to automate.          |
+
+**Tinybuild exists because speed isn’t the only KPI; predictability and mental calm matter just as much.** Owning a 300‑line esbuild wrapper grants permanent immunity from tooling churn so we can spend that reclaimed time shipping features.
+
+---
+
+---
 
 ## Quickstart
 
-Prerequisites: [Latest NodeJS LTS](https://nodejs.org/en/download/current)
+```bash
+# 1. Global install (or use npx tinybuild)
+npm i -g tinybuild
 
-### Globally install Tinybuild:
-`npm i -g tinybuild`
+# 2. In a clean folder
+tinybuild           # scaffolds + bundles + starts dev‑server
+```
 
-### From an empty project folder, initialize a default app instantly with:
+Prerequisite: **Node.js LTS**.
 
-`tinybuild`
+### Local (per‑project) install
 
-You are ready to develop your applications or libraries!
+```bash
+npm i -D tinybuild
+npx tinybuild       # or node tinybuild.js if you import { packager }
+```
 
-Modify the tinybuild.config.js and package.json to your needs. You may add `build:true` or set `server:false` in the config to disable the development server.
+---
 
-Tinybuild also works as a local dependency e.g. `npx tinybuild` or executing the packager script via node.js in a custom script. See docs for more details and check out the source code.
+## Adding to an Existing Project
 
-![tinybuild](tinybuild/docs/globalOutp.PNG)
+1. `npm init -y` (if needed)
+2. `npm i -D tinybuild`
+3. Generate config: `tinybuild init` or paste template below.
+4. Run `npx tinybuild`.
 
-The bundler and server presets include a full CLI, config file, or functional (in-script) wrapper for esbuild and server customization, and for creating multiple distributions from a single config (e.g. for browser, esm, node). Bundles and serves complicated libraries and programs in milliseconds with a hot reloading test environment, and makes it easier to scale to production.
+<details>
+<summary>Minimal config template ▼</summary>
 
+```js
+const config = {
+  bundler: {
+    entryPoints: ["index.js"],
+    outfile: "dist/index",
+    bundleBrowser: true,
+    bundleESM: false,
+    bundleTypes: false,
+    bundleNode: false,
+    bundleHTML: false,
+    minify: true,
+  },
+  server: { //development server for testing distributions in a boilerplate html environment
+    protocol: "http",
+    host: "localhost",
+    port: 8080,
+    hotreload: 5000,
+    startpage: "index.html",
+  },
+  // electron:true,
+  // tauri:true,
+  // mobile:{ android:'open', ios:false },
+};
+export default config;
+```
+
+</details>
+
+See below for full instructions!
+
+---
+
+## CLI Cheatsheet
+
+| Command                      | Description                                            |
+| ---------------------------- | ------------------------------------------------------ |
+| `tinybuild`                  | Build **and** serve (default)                          |
+| `tinybuild build`            | Bundle only                                            |
+| `tinybuild serve`            | Dev‑server only (no build)                             |
+| `--config='{…}'`             | Inline JSON config override                            |
+
+Everything is also exposed programmatically via:
+
+```js
+import { packager } from 'tinybuild';
+packager(myConfig);
+```
+
+See below for full instructions!
+
+---
+
+## Deep‑Dive Docs
+
+* **Quickstart** – [`docs/tinybuild.md`](tinybuild/docs/tinybuild.md)
+* **esbuild Details** – [`docs/esbuild.md`](tinybuild/docs/esbuild.md)
+* **Node Server** – [`docs/server.md`](tinybuild/docs/server.md)
+* **Python Bridge** – [`docs/python.md`](tinybuild/docs/python.md)
+
+---
+
+## Troubleshooting
+
+* **macOS shebang fix**
+
+  ```bash
+  brew install dos2unix
+  sudo dos2unix $(npm root -g)/tinybuild/tinybuild/bin/global.js
+  ```
+* **Windows global perms** – search the npm error and apply usual ACL / build‑tools fixes.
+
+---
+
+## Contributing
+
+We use Tinybuild daily; main may break occasionally. PRs, issues & feature ideas are welcome, especially **plugins** and **native‑target enhancements**.
+
+---
+
+## Full Configuration Reference
 
 ## For Existing Projects
 
@@ -159,30 +282,6 @@ const config = {
 export default config;
 ```
 
-Then run `tinybuild` to supply this to the packager to build and run your project. Customize it to your needs, e.g. for different entry points and use cases. Typescript is automatically recognized, including JSX and TSX. CSS is automatically compiled if you import them in your scripts somewhere. See examples for more.
-
-## Docs
-### - [Quickstart](tinybuild/docs/tinybuild.md)
-### - [esbuild app and library bundling](tinybuild/docs/esbuild.md)
-### - [Node development/production server](tinybuild/docs/server.md)
-### - [Python development/production server](tinybuild/docs/python.md)
-
-## Local node_modules/tinybuild Builds (no global package manager)
-For using tinybuild locally (`npm install` vs `npm install -g`) you must import and run `packager(config)` from the tinybuild library yourself, and run it in a script file.
-
-### Example:
-
-Create tinybuild.js at the root of your project directory
-```js
-import {packager} from 'tinybuild'
-import config from './tinybuild.config.js'
-
-packager(config);
-
-```
-
-then in the console from that project directory run `node tinybuild.js`
-
 ## tinybuild CLI commands:
 
 e.g. `tinybuild build` or `tinybuild serve` to run isolated commands 
@@ -244,21 +343,3 @@ local command:
 
 
 
-### Other notes:
-
-See README.md files in each subfolder for more explanation on how to work with these types of applications.
-
-#### Installation Issues
-If you've installed tinybuild on Mac and it isn't working, try running the following command in the terminal based in [this StackOverflow Post](https://stackoverflow.com/questions/30344858/node-script-executable-not-working-on-mac-env-node-r-no-such-file-or-directo):
-
-```
-brew install dos2unix
-sudo dos2unix node_modules/tinybuild/tinybuild/bin/global.js
-```
-
-Windows may also throw an error for global package permissions, just copy the error you get into google and use the command line solution you find and you will be good to go.
-
-
-## Contributing
-
-Feel free to suggest or make changes and report bugs via Issues or direct contact to Joshua Brewster, the entire development system is modular and is a simple automation on top of several simplified development tools. We use this in our daily development workflow so it is battle-tested but on a small sample size.
