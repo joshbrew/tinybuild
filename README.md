@@ -73,6 +73,8 @@ The dev community’s mood has shifted: we’re done re‑learning a new package
 
 ## Quickstart
 
+In a blank or npm initialized project folder:
+
 ```bash
 # 1. Global install (or use npx tinybuild)
 npm i -g tinybuild
