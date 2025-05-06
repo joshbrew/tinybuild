@@ -141,6 +141,7 @@ See below for full instructions!
 | `tinybuild`                  | Build **and** serve (default)                          |
 | `tinybuild build`            | Bundle only                                            |
 | `tinybuild serve`            | Dev‑server only (no build)                             |
+| `tinybuild help`             | List CLI/config commands.                              |
 | `--config='{…}'`             | Inline JSON config override                            |
 
 Everything is also exposed programmatically via:
