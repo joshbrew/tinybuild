@@ -3,6 +3,9 @@
 </p>
 
 # tinybuild
+[![npm version](https://img.shields.io/npm/v/tinybuild.svg)](https://www.npmjs.com/package/tinybuild)
+[![npm downloads](https://img.shields.io/npm/dt/tinybuild.svg)](https://www.npmjs.com/package/tinybuild)
+![license](https://img.shields.io/npm/l/tinybuild)
 
 <table align="center">
   <tr>
@@ -14,9 +17,6 @@
   </tr>
 </table>
 
-[![npm version](https://img.shields.io/npm/v/tinybuild.svg)](https://www.npmjs.com/package/tinybuild)
-[![npm downloads](https://img.shields.io/npm/dt/tinybuild.svg)](https://www.npmjs.com/package/tinybuild)
-![license](https://img.shields.io/npm/l/tinybuild)
 
 > **One‑stop HTML5 / JavaScript web, server, desktop & mobile build tool — with zero cognitive rent.**
 
