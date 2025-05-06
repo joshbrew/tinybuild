@@ -84,6 +84,7 @@ tinybuild           # scaffolds + bundles + starts dev‑server
 Prerequisite: **Node.js LTS**.
 
 When you run you should see something like: 
+
 ![img](https://github.com/joshbrew/tinybuild/blob/master/tinybuild/docs/globalOutp.PNG?raw=true)
 
 These are typical benchmarks even on 10 year old laptops.
