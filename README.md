@@ -37,7 +37,7 @@ npm i -D tinybuild
 
 ## Core Features
 
-* **Minimal esbuild wrapper** – Typescript, JSX/TSX, CSS imports, code‑splitting. Build large apps in milliseconds. Deliver minimal compilations to mobile and desktop builds.
+* **Minimal esbuild wrapper** – Typescript, JSX/TSX, CSS imports, code‑splitting. Build large apps in milliseconds. Deliver minimal compilations for fast web, mobile, and desktop builds.
 * **Custom plugins** – Web‑worker bundling, streaming imports, automatic type‑generation, CSS hot‑swap.
 * **Pure Node.js dev‑server** – Hot‑module reload via WebSockets; only one runtime dep (`chokidar`).
 * **Multi‑target outputs** – Browser, ESM, Node, CommonJS, IIFE, `.d.ts` in the same run.
