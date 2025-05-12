@@ -87,7 +87,7 @@ Prerequisite: **Node.js LTS**.
 
 When you run you should see something like: 
 
-![img](https://github.com/joshbrew/tinybuild/blob/master/tinybuild/docs/globalOutp.PNG?raw=true)
+![image](https://github.com/user-attachments/assets/50f34052-e87f-484a-84a6-136e3a02b174)
 
 These are typical benchmarks even on 10 year old laptops.
 
