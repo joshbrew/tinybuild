@@ -31,7 +31,7 @@ export async function packager(config=defaultConfig, exitOnBundle=true) {
     let parsed;
     if(process?.argv) { //add any command line arguments
         parsed = parseArgs(process.argv);
-
+        if(parsed.path) parsed.cfgpath = path.join(process.cwd(),parsed.path);
         if(parsed.cfgpath) {
             let settingsModule = await import('file:///'+parsed.cfgpath);
             if(settingsModule.default) Object.assign(parsed, settingsModule.default);
