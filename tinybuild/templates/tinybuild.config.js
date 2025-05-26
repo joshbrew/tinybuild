@@ -3,7 +3,7 @@ const config = {
     //serve:true //or enable this to skip build step (same as cli)
     bundler: { //esbuild settings, set false to skip build step or add bundle:true to config object to only bundle (alt methods)
         entryPoints: [ //entry point file(s). These can include .js, .mjs, .ts, .jsx, .tsx, or other javascript files. Make sure your entry point is a ts file if you want to generate types
-        "index.js"
+            "index.js"
         ],
         outfile: "dist/index", //exit point file, will append .js as well as indicators like .esm.js, .node.js for other build flags
         //outdir:'dist',         //exit point folder, define for multiple entryPoints
@@ -36,7 +36,7 @@ const config = {
         //     // external:[] //we only use the iife for types so it doesn't really matter if it bundles node, just note otherwise if you need iife for some obscure reason
         //     }
         // },
-        
+
         //refer to esbuild docs for more settings
         //platform:'node'//etc 
         //loader:{ '.xml':'file', '.html':'text' } //etc etc, we supply a bunch of these for you you can copy typical files by default or import html text etc.
@@ -66,6 +66,18 @@ const config = {
             '/other':(request,response) => {}, //custom request/response handling, return true to prevent any default response handling afterward
             '/': 'index.html', //alt start page declaration
             '/404':'packager/node_server/other/404.html', //e.g. custom error page
+             // ─── Example parameterized routes ─────────────────────────────────
+            '/user/:userId/:action':{             // e.g. GET /user/42/edit
+                onrequest: (req,res) => {
+                    const { userId, action } = req.params;
+                    res.end(`User ${userId} wants to ${action}`);
+                    return true;                  // signal “handled”
+                }
+            },
+            '/product/:productId': 'product.html',// serve same template for any product
+            '/posts/:year/:month/:slug':{         // e.g. /posts/2025/05/awesome-post
+                template:'<h1>Blog post here…</h1>'
+            }
         },
         */
         //reloadscripts: false, //hot swap scripts, can break things if script handles initializations, otherwise css, link, srcs all hot swap without page reloading fairly intelligently
@@ -74,9 +86,9 @@ const config = {
         //watch: ['../'], //watch additional directories other than the current working directory
         //ignore:['./assets'], //ignore these paths
         //extensions:['pdf'], //custom file extensions to watch
-        errpage: 'node_modules/tinybuild/tinybuild/node_server/other/404.html', //default error page, etc.
-        certpath:'node_modules/tinybuild/tinybuild/node_server/ssl/server.crt',//if using https, this is required. See cert.pfx.md for instructions
-        keypath:'node_modules/tinybuild/tinybuild/node_server/ssl/server.key'//if using https, this is required. See cert.pfx.md for instructions
+        errpage:  'node_modules/tinybuild/tinybuild/node_server/other/404.html', //default error page, etc.
+        certpath: 'node_modules/tinybuild/tinybuild/node_server/ssl/server.crt',//if using https, this is required. See cert.pfx.md for instructions
+        keypath:  'node_modules/tinybuild/tinybuild/node_server/ssl/server.key'//if using https, this is required. See cert.pfx.md for instructions
         //python: false,//7000,  //quart server port (configured via the python server script file still)
         //python_node:7001, //websocket relay port (relays messages to client from nodejs that were sent to it by python)
     },

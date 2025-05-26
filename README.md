@@ -253,6 +253,18 @@ const config = {
                 headers: { 'Content-Security-Policy': '*' }, //page specific headers 
                 template:'<html><head></head><body><div>Hello World!</div></body></html>'
                 //path: 'mypage.html' //or a file path (e.g. plus specific headers)
+                // ─── Example parameterized routes ─────────────────────────────────
+                '/user/:userId/:action':{             // e.g. GET /user/42/edit
+                    onrequest: (req,res) => {
+                        const { userId, action } = req.params;
+                        res.end(`User ${userId} wants to ${action}`);
+                        return true;                  // signal “handled”
+                    }
+                },
+                '/product/:productId': 'product.html',// serve same template for any product
+                '/posts/:year/:month/:slug':{         // e.g. /posts/2025/05/awesome-post
+                    template:'<h1>Blog post here…</h1>'
+                }
             },
             '/redirect':{ //e.g. custom redirect
                 redirect:'https://google.com'

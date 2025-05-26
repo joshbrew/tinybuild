@@ -4,15 +4,15 @@ import * as https from 'https'
 import * as fs from 'fs'
 import * as path from 'path'
 
-import {HotReload, addHotReloadClient} from './hotreload/hotreload.js'
+import { HotReload, addHotReloadClient } from './hotreload/hotreload.js'
 
 import { PythonRelay, PythonClient } from './relay/python_relay.js';
 import { parseArgs } from '../commands/command.js'
 import { getPath as getP, getTemplateSync as getT } from './get.js'
 
 export const defaultServer = {
-    debug:false, //print debug messages?
-    protocol:'http', //'http' or 'https'. HTTPS required for Nodejs <---> Python sockets. If using http, set production to False in python/server.py as well
+    debug: false, //print debug messages?
+    protocol: 'http', //'http' or 'https'. HTTPS required for Nodejs <---> Python sockets. If using http, set production to False in python/server.py as well
     host: 'localhost', //'localhost' or '127.0.0.1' etc.
     port: 8080, //e.g. port 80, 443, 8000
     //redirect: 'http://localhost:8082' //instead of serving the default content, redirect ot another url
@@ -32,19 +32,31 @@ export const defaultServer = {
             '/other':(request,response) => {},
             '/': 'index.html', //alt start page declaration
             '/404':'packager/node_server/other/404.html', //alt error page declaration
+            // ─── Example parameterized routes ─────────────────────────────────
+            '/user/:userId/:action':{             // e.g. GET /user/42/edit
+                onrequest: (req,res) => {
+                    const { userId, action } = req.params;
+                    res.end(`User ${userId} wants to ${action}`);
+                    return true;                  // signal “handled”
+                }
+            },
+            '/product/:productId': 'product.html',// serve same template for any product
+            '/posts/:year/:month/:slug':{         // e.g. /posts/2025/05/awesome-post
+                template:'<h1>Blog post here…</h1>'
+            }
         },
     */
     socket_protocol: 'ws', //frontend socket protocol, wss for served, ws for localhost
     hotreload: 5000, //hotreload websocket server port
-    hotreloadExtensions:['css','sass','scss','less'], //will tell tinybuild's watch command to rebundle these files in a separate context for speed
+    hotreloadExtensions: ['css', 'sass', 'scss', 'less'], //will tell tinybuild's watch command to rebundle these files in a separate context for speed
     //reloadscripts: true, //hot swap scripts in-page
     //watch: ['../'], //watch additional directories other than the current working directory
     //pwa:'dist/service-worker.js', //pwa mode? Injects service worker registry code in (see pwa README.md)
     python: false,//7000,  //quart server port (configured via the python server script file still)
-    python_node:7001, //websocket relay port (relays messages to client from nodejs that were sent to it by python)
+    python_node: 7001, //websocket relay port (relays messages to client from nodejs that were sent to it by python)
     errpage: 'packager/node_server/other/404.html', //default error page
-    certpath:'packager/node_server/ssl/cert.pem',//if using https, this is required. See cert.pfx.md for instructions
-    keypath:'packager/node_server/ssl/key.pem'//if using https, this is required. See cert.pfx.md for instructions
+    certpath: 'packager/node_server/ssl/cert.pem',//if using https, this is required. See cert.pfx.md for instructions
+    keypath: 'packager/node_server/ssl/key.pem'//if using https, this is required. See cert.pfx.md for instructions
     //SERVER
     //SOCKETS
 };
@@ -52,90 +64,140 @@ export const defaultServer = {
 let SERVERCONFIG = {};
 
 let foundArgs;
-if(process.argv) foundArgs = parseArgs(process.argv);
+if (process.argv) foundArgs = parseArgs(process.argv);
 
 const mimeTypes = {
-    '.html': 'text/html', '.htm': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.txt':'text/plain',
-    '.png': 'image/png', '.jpg': 'image/jpg', '.jpeg': 'image/jpg','.gif': 'image/gif', '.svg': 'image/svg+xml', '.xhtml':'application/xhtml+xml', '.bmp':'image/bmp',
-    '.wav': 'audio/wav', '.mp3':'audio/mpeg', '.mp4': 'video/mp4', '.xml':'application/xml', '.webm':'video/webm', '.webp':'image/webp', '.weba':'audio/webm',
-    '.woff': 'font/woff', 'woff2':'font/woff2', '.ttf': 'application/font-ttf', '.eot': 'application/vnd.ms-fontobject', '.otf': 'application/font-otf',
-    '.wasm': 'application/wasm', '.zip':'application/zip','.xlsx':'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', '.tif':'image/tiff',
-    '.sh':'application/x-sh', '.csh':'application/x-csh', '.rar':'application/vnd.rar','.ppt':'application/vnd.ms-powerpoint', '.pptx':'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-    '.odt':'application/vnd.oasis.opendocument.text','.ods':'application/vnd.oasis.opendocument.spreadsheet','.odp':'application/vnd.oasis.opendocument.presentation',
-    '.mpeg':'video/mpeg','.mjs':'text/javascript','.cjs':'text/javascript','.jsonld':'application/ld+json', '.jar':'application/java-archive', '.ico':'image/vnd.microsoft.icon',
-    '.gz':'application/gzip', 'epub':'application/epub+zip', '.doc':'application/msword', '.docx':'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    '.csv':'text/csv', '.avi':'video/x-msvideo', '.aac':'audio/aac', '.mpkg':'application/vnd.apple.installer+xml','.oga':'audio/ogg','.ogv':'video/ogg','ogx':'application/ogg',
-    '.php':'application/x-httpd-php', '.rtf':'application/rtf', '.swf':'application/x-shockwave-flash', '.7z':'application/x-7z-compressed', '.3gp':'video/3gpp'
+    '.html': 'text/html', '.htm': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.txt': 'text/plain',
+    '.png': 'image/png', '.jpg': 'image/jpg', '.jpeg': 'image/jpg', '.gif': 'image/gif', '.svg': 'image/svg+xml', '.xhtml': 'application/xhtml+xml', '.bmp': 'image/bmp',
+    '.wav': 'audio/wav', '.mp3': 'audio/mpeg', '.mp4': 'video/mp4', '.xml': 'application/xml', '.webm': 'video/webm', '.webp': 'image/webp', '.weba': 'audio/webm',
+    '.woff': 'font/woff', 'woff2': 'font/woff2', '.ttf': 'application/font-ttf', '.eot': 'application/vnd.ms-fontobject', '.otf': 'application/font-otf',
+    '.wasm': 'application/wasm', '.zip': 'application/zip', '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', '.tif': 'image/tiff',
+    '.sh': 'application/x-sh', '.csh': 'application/x-csh', '.rar': 'application/vnd.rar', '.ppt': 'application/vnd.ms-powerpoint', '.pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    '.odt': 'application/vnd.oasis.opendocument.text', '.ods': 'application/vnd.oasis.opendocument.spreadsheet', '.odp': 'application/vnd.oasis.opendocument.presentation',
+    '.mpeg': 'video/mpeg', '.mjs': 'text/javascript', '.cjs': 'text/javascript', '.jsonld': 'application/ld+json', '.jar': 'application/java-archive', '.ico': 'image/vnd.microsoft.icon',
+    '.gz': 'application/gzip', 'epub': 'application/epub+zip', '.doc': 'application/msword', '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    '.csv': 'text/csv', '.avi': 'video/x-msvideo', '.aac': 'audio/aac', '.mpkg': 'application/vnd.apple.installer+xml', '.oga': 'audio/ogg', '.ogv': 'video/ogg', 'ogx': 'application/ogg',
+    '.php': 'application/x-httpd-php', '.rtf': 'application/rtf', '.swf': 'application/x-shockwave-flash', '.7z': 'application/x-7z-compressed', '.3gp': 'video/3gpp'
 };
+
+// ─────────────────────────────────────────────
+//  Enhanced resolver for cfg.routes
+//  - exact match  → params = {}
+//  - "/path/:id"  → params = { id: "123" }
+//  - returns null if nothing matches
+// ─────────────────────────────────────────────
+function findRouteCfg(
+    pathname,
+    routes      // cfg.routes
+) {
+
+    /* 1) exact */
+    if (routes[pathname]) {
+        return { def: routes[pathname], params: {} };
+    }
+
+    /* 2) parameterised */
+    for (const [pattern, def] of Object.entries(routes)) {
+        if (!pattern.includes("/:")) continue;
+
+        const parts = pattern.split("/").filter(Boolean);
+        const segs = pathname.split("/").filter(Boolean);
+        if (parts.length !== segs.length) continue;
+
+        const paramNames = [];
+        const regex = new RegExp(
+            "^/" + parts.map(p => {
+                if (p.startsWith(":")) {
+                    paramNames.push(p.slice(1));
+                    return "([^/]+)";
+                }
+                return p.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&");
+            }).join("/") + "/?$"
+        );
+
+        const m = pathname.match(regex);
+        if (!m) continue;
+
+        const params = paramNames.reduce((o, name, i) => {
+            o[name] = decodeURIComponent(m[i + 1]);
+            return o;
+        }, {});
+        return { def, params };
+    }
+    return null;
+}
+
 
 //when a request is made to the server from a user, what should we do with it?
 function onRequest(request, response, cfg) {
-    if(cfg.debug) console.log('request ', request.url);
-    //console.log(request); //debug
+    if (cfg.debug) console.log('request', request.url);
 
-    if(cfg.redirect) {
-        response.writeHead(301, {
-            Location: cfg.redirect
-        });
+    if (cfg.redirect) {
+        response.writeHead(301, { Location: cfg.redirect });
         response.end();
         return;
-    }   
-
-    //process the request
-    const testURL = cfg.protocol + '://' + cfg.host;
-    var requestURL = '.' + new URL( testURL +  request.url).pathname
-
-    let headers = {}; //200 response
-
-    if(cfg.headers) {
-        Object.assign(headers,cfg.headers);
     }
 
-    if(cfg.routes?.[request.url]) {
-        if(typeof cfg.routes[request.url] === 'string') {
-            requestURL = cfg.routes[request.url]; //relative path
-        } else if (typeof cfg.routes[request.url] === 'function') {
-            let result = cfg.routes[request.url](request, response);
-            if(result) {//return true to call response.end and end the request
-                return; 
+    const testURL = cfg.protocol + '://' + cfg.host;
+    let requestURL = '.' + new URL(testURL + request.url).pathname;
+    const headers = Object.assign({}, cfg.headers || {});
+
+    /* ── dynamic route matching ─────────────────────────────── */
+    let match = null;
+    if (cfg.routes) {
+        const pathname = new URL(request.url, testURL).pathname;
+        match = findRouteCfg(pathname, cfg.routes);
+    }
+
+    if (match) {
+        const routeDef = match.def;
+        // expose params for downstream handlers
+        request.params = match.params;
+
+        if (typeof routeDef === 'string') {
+            // treat as local file path to serve
+            requestURL = routeDef;
+        } else if (typeof routeDef === 'function') {
+            const handled = routeDef(request, response);
+            if (handled) return;    // the function finished the response
+        } else if (typeof routeDef === 'object') {
+            if (routeDef.headers) Object.assign(headers, routeDef.headers);
+
+            if (routeDef.onrequest) {
+                const handled = routeDef.onrequest(request, response);
+                if (handled) return;
             }
-        } else if (typeof cfg.routes[request.url] === 'object') {
-            if(cfg.routes[request.url].headers) {
-                Object.assign(headers, cfg.routes[request.url].headers); //specify headers for a page
-            }
-            if (cfg.routes[request.url].onrequest) { //can run request/response, be sure to call response.end() if dealing entirely within the function called
-                let result = cfg.routes[request.url].onrequest(request, response);
-                if(result) {//return true to call response.end and end the request;
-                    return; 
-                }
-            }
-            if(cfg.routes[request.url].template) { //raw template string
-                var contentType = 'text/html';
-                Object.assign(headers, { 'Content-Type': contentType })
-                response.writeHead(200, headers); //set response headers
-                response.end(cfg.routes[request.url].template, 'utf-8'); //set response content
+
+            if (routeDef.template) {
+                headers['Content-Type'] = 'text/html';
+                response.writeHead(200, headers);
+                response.end(routeDef.template, 'utf-8');
                 return;
-            } else if (cfg.routes[request.url].redirect) { //redirect url
-                response.writeHead(301, {
-                    'Location': cfg.routes[request.url].redirect
-                });
+            }
+
+            if (routeDef.redirect) {
+                response.writeHead(301, { Location: routeDef.redirect });
                 response.end();
                 return;
-            } else if (cfg.routes[request.url].path) { //local file path (easier to just use the string
-                requestURL = cfg.routes[request.url].path; 
+            }
+
+            if (routeDef.path) {
+                requestURL = routeDef.path;
             }
         }
-    } else if (requestURL == './') { //root should point to start page
-        requestURL = cfg.startpage; //point to the start page
+    } else if (requestURL === './') {
+        // root → startpage
+        requestURL = cfg.startpage;
     }
+
 
     const missing = (content) => {
 
         response.writeHead(404, { 'Content-Type': 'text/html' }); //set response headers
 
         //add hot reload if specified
-        if(requestURL.endsWith('.html') && cfg.hotreload) {
-            content = addHotReloadClient(content,`${cfg.socket_protocol}://${cfg.host}:${cfg.port}/hotreload`);
+        if (requestURL.endsWith('.html') && cfg.hotreload) {
+            content = addHotReloadClient(content, `${cfg.socket_protocol}://${cfg.host}:${cfg.port}/hotreload`);
         }
 
         response.end(content, 'utf-8'); //set response content
@@ -145,11 +207,11 @@ function onRequest(request, response, cfg) {
 
     const throwerror = () => {
         let errPage = cfg.errpage;
-        if(cfg.routes?.['/404']) {
-            if(typeof cfg.routes['/404'] === 'string') {
+        if (cfg.routes?.['/404']) {
+            if (typeof cfg.routes['/404'] === 'string') {
                 errPage = cfg.routes['/404'];
             } else if (typeof cfg.routes['/404'] === 'object') {
-                if(cfg.routes[request.url].template) { //raw template string
+                if (cfg.routes[request.url].template) { //raw template string
                     var contentType = 'text/html';
                     Object.assign(headers, { 'Content-Type': contentType });
                     response.writeHead(200, headers); //set response headers
@@ -162,7 +224,7 @@ function onRequest(request, response, cfg) {
                     response.end();
                     return;
                 } else if (cfg.routes['/404'].path) { //local file path (easier to just use the string
-                    errPage = cfg.routes['/404'].path; 
+                    errPage = cfg.routes['/404'].path;
                 } else if (cfg.routes['/404'].onrequest) {
                     cfg.routes['/404'].onrequest(request, response);
                     response.end();
@@ -175,17 +237,17 @@ function onRequest(request, response, cfg) {
         });
     }
 
-    
+
     //read the file on the server
-    if(fs.existsSync(requestURL)){
+    if (fs.existsSync(requestURL)) {
         fs.readFile(requestURL, (error, content) => {
             if (error) {
-                if(error.code == 'ENOENT') { //page not found: 404
+                if (error.code == 'ENOENT') { //page not found: 404
                     throwerror();
                 }
                 else { //other error
                     response.writeHead(500); //set response headers
-                    response.end('Something went wrong: '+error.code+' ..\n'); //set response content
+                    response.end('Something went wrong: ' + error.code + ' ..\n'); //set response content
                 }
             }
             else { //file read successfully, serve the content back
@@ -199,13 +261,13 @@ function onRequest(request, response, cfg) {
                 response.writeHead(200, headers); //set response headers
 
                 //html injection
-                if(requestURL.endsWith('.html')) {
+                if (requestURL.endsWith('.html')) {
 
                     //inject hot reload if specified
-                    if(cfg.hotreload) {
-                        content = addHotReloadClient(content,`${cfg.socket_protocol}://${cfg.host}:${cfg.port}/hotreload`, cfg.hotreloadoutfile);
+                    if (cfg.hotreload) {
+                        content = addHotReloadClient(content, `${cfg.socket_protocol}://${cfg.host}:${cfg.port}/hotreload`, cfg.hotreloadoutfile);
                     }
-                    
+
                     //inject pwa code
                     if (cfg.pwa) {
                         let cstr = content;
@@ -333,7 +395,7 @@ Launch Chrome with the following if using self-signed certificates:
             }
         });
     } else {
-        if(cfg.debug) console.log(`File ${requestURL} does not exist on path!`);
+        if (cfg.debug) console.log(`File ${requestURL} does not exist on path!`);
         throwerror();
     }
 
@@ -345,47 +407,47 @@ Launch Chrome with the following if using self-signed certificates:
 //Websocket upgrading
 function onUpgrade(request, socket, head, cfg, sockets) { //https://github.com/websockets/ws
 
-    if(cfg.debug) console.log("Upgrade request at: ", request.url);
-    
-    if(request.url === '/' || request.url === '/home') {
-        if(cfg.python) {
+    if (cfg.debug) console.log("Upgrade request at: ", request.url);
+
+    if (request.url === '/' || request.url === '/home') {
+        if (cfg.python) {
             sockets.python.wss.handleUpgrade(request, socket, head, (ws) => {
                 sockets.python.wss.emit('connection', ws, request);
             });
         }
-    } else if(request.url === '/hotreload') {
-        if(cfg.hotreload) {
+    } else if (request.url === '/hotreload') {
+        if (cfg.hotreload) {
             sockets.hotreload.wss.handleUpgrade(request, socket, head, (ws) => {
                 sockets.hotreload.wss.emit('connection', ws, request);
-            }); 
+            });
         }
-    } 
+    }
 }
 
 
 
 //runs when the server starts successfully.
-function onStarted(cfg) {    
+function onStarted(cfg) {
     console.timeEnd(`\n🐱   Node server started at ${cfg.protocol}://${cfg.host}:${cfg.port}/`);
-    setTimeout(()=>{console.log(`\nFind the server live at ${cfg.protocol}://${cfg.host}:${cfg.port}/`);}, 200);
+    setTimeout(() => { console.log(`\nFind the server live at ${cfg.protocol}://${cfg.host}:${cfg.port}/`); }, 200);
 }
 
 function createDirectoryIfNotExists(directoryPath) {
     if (!fs.existsSync(directoryPath)) {
-      fs.mkdirSync(directoryPath, { recursive: true });
-      console.log(`Directory ${directoryPath} created.`);
+        fs.mkdirSync(directoryPath, { recursive: true });
+        console.log(`Directory ${directoryPath} created.`);
     } else {
-      console.log(`Directory ${directoryPath} already exists.`);
+        console.log(`Directory ${directoryPath} already exists.`);
     }
 }
 
 // create the http/https server. For hosted servers, use the IP and open ports. Default html port is 80 or sometimes 443
-export const serve = async (cfg=defaultServer, BUILD_PROCESS) => {
+export const serve = async (cfg = defaultServer, BUILD_PROCESS) => {
 
-    if(BUILD_PROCESS) {
-        await new Promise((res,rej) => {
+    if (BUILD_PROCESS) {
+        await new Promise((res, rej) => {
             BUILD_PROCESS.process.stdout.on('data', (chunk) => {
-                if(chunk.toString().includes('Packager finished!')) res(true);
+                if (chunk.toString().includes('Packager finished!')) res(true);
             })
         })
     }
@@ -394,80 +456,80 @@ export const serve = async (cfg=defaultServer, BUILD_PROCESS) => {
 
     function exitHandler(options, exitCode) {
 
-        if(typeof SERVERCONFIG.SOCKETS?.py_client != 'undefined') {
-            if(SERVERCONFIG.SOCKETS.py_client.ws?.readyState === 1) {
+        if (typeof SERVERCONFIG.SOCKETS?.py_client != 'undefined') {
+            if (SERVERCONFIG.SOCKETS.py_client.ws?.readyState === 1) {
                 SERVERCONFIG.SOCKETS.py_client.ws.send('kill');
             }
         }
-    
-        if (exitCode || exitCode === 0) console.log('SERVER EXITED WITH CODE: ',exitCode);
+
+        if (exitCode || exitCode === 0) console.log('SERVER EXITED WITH CODE: ', exitCode);
         if (options.exit) process.exit();
     }
-    
+
     //do something when app is closing
-    process.on('exit', exitHandler.bind(null,{cleanup:true}));
-    process.on(2, exitHandler.bind(null,{cleanup:true, exit:true}));
-    
+    process.on('exit', exitHandler.bind(null, { cleanup: true }));
+    process.on(2, exitHandler.bind(null, { cleanup: true, exit: true }));
+
     //catches ctrl+c event
-    process.on('SIGINT', exitHandler.bind(null, {exit:true}));
+    process.on('SIGINT', exitHandler.bind(null, { exit: true }));
 
 
     let obj = Object.assign({}, defaultServer); // Make modules editable
-    for(const prop in cfg) {
-        if(cfg[prop] === undefined) delete cfg[prop];
+    for (const prop in cfg) {
+        if (cfg[prop] === undefined) delete cfg[prop];
     }
-    cfg = Object.assign(obj,cfg); //overwrite non-default values
+    cfg = Object.assign(obj, cfg); //overwrite non-default values
 
     let foundArgs;
-    if(process.argv) parseArgs(process.argv);
-    if(foundArgs) {
-        cfg = Object.assign(cfg,foundArgs);
+    if (process.argv) parseArgs(process.argv);
+    if (foundArgs) {
+        cfg = Object.assign(cfg, foundArgs);
     }
     SERVERCONFIG = cfg;
     // Create classes to pass
 
     let sockets = {}; //socket server tools
-    
+
     if (cfg.hotreload) sockets.hotreload = new HotReload(cfg, BUILD_PROCESS);
     if (cfg.python) {
         sockets.python = new PythonRelay(cfg);
-        sockets.py_client = new PythonClient(cfg,sockets.python);
+        sockets.py_client = new PythonClient(cfg, sockets.python);
     }
 
     //instantiate pwa files if not found
-    if(cfg.pwa) {
+    if (cfg.pwa) {
         //setup pwa files if not found (sould probably do this external)
-        if(!fs.existsSync(path.join(process.cwd(),cfg.pwa))) {
-            fs.writeFileSync(path.join(process.cwd(),cfg.pwa), getT('pwa/service-worker.js'));
+        if (!fs.existsSync(path.join(process.cwd(), cfg.pwa))) {
+            fs.writeFileSync(path.join(process.cwd(), cfg.pwa), getT('pwa/service-worker.js'));
         }
-        
-        if(!fs.existsSync(path.join(process.cwd(),'manifest.webmanifest'))) { //lets create a default webmanifest on the local server if none found
-            createDirectoryIfNotExists(path.join(process.cwd(),'dist'));  //placeholder, could get the outdir instead to make better assumptions but for now this jives easier for mobile cross comp stuff we are doing
-            createDirectoryIfNotExists(path.join(process.cwd(),'dist/assets'));
-            fs.copyFileSync(path.join(getP('pwa/logo32.png')),path.join(process.cwd(),'dist/assets/logo32.png'));
-            fs.copyFileSync(path.join(getP('pwa/logo64.png')),path.join(process.cwd(),'dist/assets/logo64.png'));
-            fs.copyFileSync(path.join(getP('pwa/logo256.png')),path.join(process.cwd(),'dist/assets/logo256.png'));
-            fs.copyFileSync(path.join(getP('pwa/logo512.png')),path.join(process.cwd(),'dist/assets/logo512.png'));
-            fs.writeFileSync('manifest.webmanifest',getT('pwa/manifest.webmanifest'));
+
+        if (!fs.existsSync(path.join(process.cwd(), 'manifest.webmanifest'))) { //lets create a default webmanifest on the local server if none found
+            createDirectoryIfNotExists(path.join(process.cwd(), 'dist'));  //placeholder, could get the outdir instead to make better assumptions but for now this jives easier for mobile cross comp stuff we are doing
+            createDirectoryIfNotExists(path.join(process.cwd(), 'dist/assets'));
+            fs.copyFileSync(path.join(getP('pwa/logo32.png')), path.join(process.cwd(), 'dist/assets/logo32.png'));
+            fs.copyFileSync(path.join(getP('pwa/logo64.png')), path.join(process.cwd(), 'dist/assets/logo64.png'));
+            fs.copyFileSync(path.join(getP('pwa/logo256.png')), path.join(process.cwd(), 'dist/assets/logo256.png'));
+            fs.copyFileSync(path.join(getP('pwa/logo512.png')), path.join(process.cwd(), 'dist/assets/logo512.png'));
+            fs.writeFileSync('manifest.webmanifest', getT('pwa/manifest.webmanifest'));
         }
     }
 
-    if(!fs.existsSync(path.join(process.cwd(),'favicon.ico'))) { //this will throw an error otherwise in chrome anyway
-        fs.copyFileSync(getP('favicon.ico'),path.join(process.cwd(),'favicon.ico'));
+    if (!fs.existsSync(path.join(process.cwd(), 'favicon.ico'))) { //this will throw an error otherwise in chrome anyway
+        fs.copyFileSync(getP('favicon.ico'), path.join(process.cwd(), 'favicon.ico'));
     }
-    
 
-    if(cfg.protocol === 'http') {
-        
+
+    if (cfg.protocol === 'http') {
+
         //var http = require('http');
         let server = http.createServer(
-            (request,response) => onRequest(request, response, cfg)
+            (request, response) => onRequest(request, response, cfg)
         );
 
-        server.on('error',(err)=>{
-            console.error('onupgrade error:',err.toString());
+        server.on('error', (err) => {
+            console.error('onupgrade error:', err.toString());
         })
-        
+
         server.on('upgrade', (request, socket, head) => {
             onUpgrade(request, socket, head, cfg, sockets);
         });
@@ -475,13 +537,13 @@ export const serve = async (cfg=defaultServer, BUILD_PROCESS) => {
         server.listen( //SITE AVAILABLE ON PORT:
             cfg.port,
             cfg.host,
-            () => {onStarted(cfg)}
+            () => { onStarted(cfg) }
         );
 
         cfg.SERVER = server;
     }
     else if (cfg.protocol === 'https') {
-        
+
         //var https = require('https');
         // options are used by the https server
         // pfx handles the certificate file
@@ -492,21 +554,21 @@ export const serve = async (cfg=defaultServer, BUILD_PROCESS) => {
         };
         let server = https.createServer(
             options,
-            (request,response) => onRequest(request,response, cfg)
+            (request, response) => onRequest(request, response, cfg)
         );
 
-        server.on('error',(err)=>{
-            console.error('onupgrade error:',err.toString());
+        server.on('error', (err) => {
+            console.error('onupgrade error:', err.toString());
         })
-        
+
         server.on('upgrade', (request, socket, head) => {
             onUpgrade(request, socket, head, cfg, sockets);
         });
-        
+
         server.listen(
             cfg.port,
             cfg.host,
-            () => {onStarted(cfg)}
+            () => { onStarted(cfg) }
         );
 
         cfg.SERVER = server;
