@@ -12,34 +12,34 @@ import { defaultBundler } from '../bundler.js';
 
 ///copy specific assets for rebundling outside the main context 
 export async function hotBundle(
-    bundlerConfig=defaultBundler, //imported from tinybuild
-    changed=''
+    bundlerConfig = defaultBundler, //imported from tinybuild
+    changed = ''
 ) {
 
     console.time(`🔥 Hotswapped${changed ? ' ' + changed : ''} 🔥`);
 
     let outdir = bundlerConfig.outdir;
-    if(!outdir) {
-        if(bundlerConfig.outfile) {
+    if (!outdir) {
+        if (bundlerConfig.outfile) {
             let split = bundlerConfig.outfile.split('/');
             split.pop();
             outdir = split.join('/');
         } else {
             let split = bundlerConfig.entryPoints[0].split('/');
             split.pop();
-            if(split.length === 0) outdir = 'dist';
+            if (split.length === 0) outdir = 'dist';
             else outdir = split.join('/');
         }
     }
     let outfile = bundlerConfig.outfile;
-    if(!outfile) {
+    if (!outfile) {
         outfile = bundlerConfig.entryPoints[0];
     }
 
     outfile = outfile.split('/').pop();
 
     let bundlerLookup = bundlerConfig.outfile;
-    if(!bundlerConfig.outfile.startsWith('./')) bundlerLookup = './' + bundlerLookup;
+    if (!bundlerConfig.outfile.startsWith('./')) bundlerLookup = './' + bundlerLookup;
 
     //let loader = {};
     // hotreloadExtensions.forEach((ext) => {
@@ -61,29 +61,39 @@ export async function hotBundle(
 
     //after copying the css over we need to bundle the cached file e.g. to recompile the css only
 
-    let result = 'node_modules/.temp/'+outfile;
-    if(!result.endsWith('.js')) result += '.js';
+    // 1. Ensure cache file exists
+    const TEMP_DIR = path.join(process.cwd(), 'node_modules', '.temp');
+    const CACHE_FILE = '__cachedSubdependencies.js';
+    const cacheFile = path.join(TEMP_DIR, CACHE_FILE);
+    if (!fs.existsSync(cacheFile)) {
+        console.warn(`🔥 No CSS cache found at ${cacheFile}, skipping hotBundle`);
+        console.timeEnd(`🔥 Hotswapped${changed ? ' ' + changed : ''} 🔥`);
+        return;
+    }
+
+    let result = 'node_modules/.temp/' + outfile;
+    if (!result.endsWith('.js')) result += '.js';
 
     await esbuild.build({
-        entryPoints:['node_modules/.temp/__cachedSubdependencies.js'],
-        outfile:result,
-        bundle:true,
-        allowOverwrite:true,
-        plugins:bundlerConfig.plugins ? bundlerConfig.plugins : [], //e.g. apply esbuild sass plugin
-        loader:bundlerConfig.loader ? bundlerConfig.loader : {} //for future use, e.g. hotswapping html or assets
+        entryPoints: ['node_modules/.temp/__cachedSubdependencies.js'],
+        outfile: result,
+        bundle: true,
+        allowOverwrite: true,
+        plugins: bundlerConfig.plugins ? bundlerConfig.plugins : [], //e.g. apply esbuild sass plugin
+        loader: bundlerConfig.loader ? bundlerConfig.loader : {} //for future use, e.g. hotswapping html or assets
     });
 
 
     let cssresult = result.split('/').join(path.sep).replace(new RegExp('js' + '$'), 'css');
-    if( //copy new css back over if css as it will bundle in its own file
+    if ( //copy new css back over if css as it will bundle in its own file
         fs.existsSync(cssresult)
     ) {
         let cssfile = outfile;
-        if(outfile.endsWith('js')) cssfile = outfile.replace(new RegExp('js' + '$'), 'css');
+        if (outfile.endsWith('js')) cssfile = outfile.replace(new RegExp('js' + '$'), 'css');
         else cssfile += '.css';
         fs.renameSync(
-            cssresult, 
-            path.join(outdir,cssfile)
+            cssresult,
+            path.join(outdir, cssfile)
         );
         //now the hotreload should trigger for css
     }
@@ -95,6 +105,6 @@ export async function hotBundle(
     // try { fs.rmdirSync('node_modules/.temp/'); } catch(er) {console.error(er);}
 
     console.timeEnd(`🔥 Hotswapped${changed ? ' ' + changed : ''} 🔥`);
-    
+
 }
 

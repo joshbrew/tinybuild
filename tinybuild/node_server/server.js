@@ -86,46 +86,56 @@ const mimeTypes = {
 //  - "/path/:id"  → params = { id: "123" }
 //  - returns null if nothing matches
 // ─────────────────────────────────────────────
-function findRouteCfg(
-    pathname,
-    routes      // cfg.routes
-) {
-
-    /* 1) exact */
+export function findRouteCfg(
+    rawPathname,
+    routes
+  ) {
+    // — strip off querystring and hash —
+    const pathname = rawPathname.split(/[?#]/)[0];
+  
+    // 1) exact match
     if (routes[pathname]) {
-        return { def: routes[pathname], params: {} };
+      return { def: routes[pathname], params: {} };
     }
-
-    /* 2) parameterised */
+  
+    // 2) parameterised match
     for (const [pattern, def] of Object.entries(routes)) {
-        if (!pattern.includes("/:")) continue;
-
-        const parts = pattern.split("/").filter(Boolean);
-        const segs = pathname.split("/").filter(Boolean);
-        if (parts.length !== segs.length) continue;
-
-        const paramNames = [];
-        const regex = new RegExp(
-            "^/" + parts.map(p => {
-                if (p.startsWith(":")) {
-                    paramNames.push(p.slice(1));
-                    return "([^/]+)";
-                }
-                return p.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&");
-            }).join("/") + "/?$"
-        );
-
-        const m = pathname.match(regex);
-        if (!m) continue;
-
-        const params = paramNames.reduce((o, name, i) => {
-            o[name] = decodeURIComponent(m[i + 1]);
-            return o;
-        }, {});
-        return { def, params };
+      if (!pattern.includes("/:")) continue;
+  
+      const parts = pattern.split("/").filter(Boolean);
+      const segs  = pathname.split("/").filter(Boolean);
+      if (parts.length !== segs.length) continue;
+  
+      const paramNames = [];
+      const regex = new RegExp(
+        "^/" +
+          parts
+            .map((p) => {
+              if (p.startsWith(":")) {
+                paramNames.push(p.slice(1));
+                return "([^/]+)";
+              }
+              // escape literal segment
+              return p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+            })
+            .join("/") +
+          "/?$"
+      );
+  
+      const m = pathname.match(regex);
+      if (!m) continue;
+  
+      const params = paramNames.reduce((o, name, i) => {
+        o[name] = decodeURIComponent(m[i + 1]);
+        return o;
+      }, {});
+  
+      return { def, params };
     }
+  
+    // no match
     return null;
-}
+  }
 
 
 //when a request is made to the server from a user, what should we do with it?
