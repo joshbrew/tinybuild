@@ -1,5 +1,5 @@
 <p align="center">
-  <img width="65%" height="65%" src="./catgnome.png" />
+  <img width="35%" src="./catgnome.png" />
 </p>
 
 # tinybuild
