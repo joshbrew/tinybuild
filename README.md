@@ -99,6 +99,8 @@ Overrides such as `--port 8081` win over the file. `--cfgpath app.mjs` selects a
 
 `npm run check` tests the API, all examples and the installed package. `npm run test:browser` checks browser behavior; `npm run check:release` adds the reload stress test. Native/device checks are opt-in. [Testing instructions →](tinybuild/docs/platform-testing.md)
 
+Feel free to submit issues or PRs
+
 ## Complete config reference
 
 Common build and server settings are first. Optional features stay commented until you enable them.
