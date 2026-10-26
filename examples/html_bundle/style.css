@@ -1,0 +1,11 @@
+body {
+  font-family: system-ui, sans-serif;
+  margin: 2rem;
+}
+img {
+  width: 4rem;
+}
+pre {
+  padding: 1rem;
+  background: #e5f5e8;
+}

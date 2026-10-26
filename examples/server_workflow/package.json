@@ -1,0 +1,13 @@
+{
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node ../../tinybuild/bin/global.js dev",
+    "open": "node ../../tinybuild/bin/global.js dev --open",
+    "build": "node ../../tinybuild/bin/global.js build --production",
+    "serve": "node ../../tinybuild/bin/global.js serve --production",
+    "status": "node ../../tinybuild/bin/global.js status",
+    "env": "node ../../tinybuild/bin/global.js dev --envFile demo.env",
+    "debug": "node ../../tinybuild/bin/global.js dev --debug"
+  }
+}

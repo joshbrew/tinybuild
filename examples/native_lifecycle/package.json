@@ -1,0 +1,13 @@
+{
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node ../../tinybuild/bin/global.js dev",
+    "build": "node ../../tinybuild/bin/global.js build",
+    "android": "node ../../tinybuild/bin/global.js mobile=android",
+    "device:plan": "node ../../scripts/check-mobile.js --platform android --id com.example.lifecycle --device emulator-5554 --artifact app.apk --permissions android.permission.CAMERA --backgrounds 2 --backgroundDelay 1000 --dryRun",
+    "mac:plan": "node ../../scripts/verify-native-signature.js Tinybuild.app --notarized --dryRun",
+    "remote:mac:plan": "node ../../tinybuild/bin/global.js --remote mac --dryRun",
+    "remote:windows:plan": "node ../../tinybuild/bin/global.js --remote windows --dryRun"
+  }
+}

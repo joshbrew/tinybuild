@@ -1,0 +1,11 @@
+{
+  "type": "module",
+  "name": "tinybuild-example-multi_page",
+  "scripts": {
+    "start": "node ../../tinybuild/bin/global.js",
+    "serve": "node ../../tinybuild/bin/global.js serve",
+    "build": "node ../../tinybuild/bin/global.js build"
+  },
+  "private": true,
+  "version": "0.0.0"
+}

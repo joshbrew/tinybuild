@@ -1,563 +1,491 @@
-import fs from 'fs';
-import path from 'path';
-import chokidar from 'chokidar';
-import {execSync, spawn} from 'child_process';
-// import { defaultServer } from './node_server/server.js';
-import { defaultConfig } from './packager.js';
-import * as commandUtil from './commands/command.js';
-import { parseArgs } from './commands/command.js';
-import create from './create.js';
-import { getTemplateSync } from './templates/get.js';
+import fs from "node:fs";
+import path from "node:path";
+import chokidar from "chokidar";
+import { spawn } from "node:child_process";
+import { once, EventEmitter } from "node:events";
+import create, { writeMissing } from "./create.js";
+import { getTemplateSync, getPath } from "./templates/get.js";
+import { runPackageCommand, terminateChild } from "./process.js";
+import { writeConfigEdits } from "./configure.js";
+import { outputContext } from "./reporting.js";
 
-
-//https://stackoverflow.com/questions/13786160/copy-folder-recursively-in-node-js
-export function copyFolderRecursiveSync( source, target ) {
-    var files = [];
-
-    // Check if folder needs to be created or integrated
-    var targetFolder = path.join( target, path.basename( source ) );
-    if ( !fs.existsSync( targetFolder ) ) {
-        fs.mkdirSync( targetFolder );
-    }
-
-    // Copy
-    if ( fs.lstatSync( source ).isDirectory() ) {
-        files = fs.readdirSync( source );
-        files.forEach( function ( file ) {
-            var curSource = path.join( source, file );
-            if ( fs.lstatSync( curSource ).isDirectory() ) {
-                copyFolderRecursiveSync( curSource, targetFolder );
-            } else {
-                fs.copyFileSync( curSource, targetFolder );
-            }
-        } );
-    }
+export function copyFolderRecursiveSync(source, target) {
+  fs.cpSync(source, path.join(target, path.basename(source)), {
+    recursive: true,
+    force: false,
+  });
+}
+export function checkNodeModules(cwd = process.cwd()) {
+  return fs.existsSync(path.join(cwd, "node_modules"))
+    ? Promise.resolve()
+    : runPackageCommand(["install"], { cwd });
+}
+export function checkTSConfig(cwd = process.cwd(), entry) {
+  return create.tsconfig(path.join(cwd, "tsconfig.json"), undefined, entry);
+}
+export function checkConfig(
+  filename = path.join(process.cwd(), "tinybuild.config.js"),
+) {
+  return create.config(filename);
+}
+export function checkBuildScript(cwd = process.cwd()) {
+  return create.tinybuild(path.join(cwd, "tinybuild.js"));
+}
+export function checkCoreExists(cwd = process.cwd()) {
+  fs.cpSync(path.resolve(getPath(""), ".."), path.join(cwd, "tinybuild"), {
+    recursive: true,
+    force: false,
+  });
 }
 
-
-/// todo: fix the live reload functions as there are issues on mac
-
-//BUG, REQUIRES NODEMON 
-// export async function runNodemon(script) {
-//     let NODEMON_PROCESS;
-//     try{
-//         const nodemon = await import('nodemon').nodemon
-//         process.env.HOTRELOAD = true; //enables the hot reloading port
-    
-//         console.log("nodemon watching for changes...");
-//         NODEMON_PROCESS = nodemon(`--ignore ${process.cwd()}/dist/ --ignore ${process.cwd()}/node_modules/ --ignore ${process.cwd()}/.temp/ --exec 'node ${script}' -e ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv`);
-//         NODEMON_PROCESS.on('restart',()=>{console.log('nodemon restarted')})
-//         NODEMON_PROCESS.on('start',()=>{console.log('nodemon started')})
-//         //NODEMON_PROCESS.on('exit',()=>{console.log('nodemon exited'); process.exit()})
-//         NODEMON_PROCESS.on('crash',()=>{console.log('nodemon CRASHED'); process.exit()})
-//         NODEMON_PROCESS.on('log',(msg)=>{console.log('nodemon: ', msg.message)});
-//         // // let process = spawn("nodemon", [`--exec \"node ${script}\"`, "-e ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv"]); //should just watch the directory and otherwise restart this script and run the packager here for even smaller footprint
-        
-//         // console.log(NODEMON_PROCESS.config);
-//         if(NODEMON_PROCESS.stdout) NODEMON_PROCESS.stdout.on('data',(data)=>{
-//             console.log('nodemon: ',data.toString());
-//         });
-    
-//         if(NODEMON_PROCESS.stderr) NODEMON_PROCESS.stderr.on('data',(data)=>{
-//             console.log('nodemon error: ',data.message.toString());
-//         });
-//     } catch {}
-    
-//     return NODEMON_PROCESS;
-
-// }
-
-//spawns a child process when a change is detected in the working repository, e.g. a one-shot bundler script
-export function runOnChange(
-    command, 
-    args=process.argv,
-    ignore=['dist','temp','package'], 
-    extensions=['js','ts','css','html','jpg','png','txt','csv','xls','jsx','tsx','scss','vue','less','sass']
-) { 
-
-    let argMap; 
-    try {argMap = commandUtil.check(args) } catch {}
-
-    let watchPaths = process.cwd();
-       
-    if(argMap && argMap.server?.watch) { //watch='../../otherlibraryfolder'
-        watchPaths = argMap.server.watch
-        if(watchPaths.includes('[')) watchPaths = JSON.parse(watchPaths).push(process.cwd());
-        else {
-            watchPaths = watchPaths.split(',');
-            watchPaths = [process.cwd(),...watchPaths];
-        }
-    }
-
-    if(argMap && argMap.server?.extensions) { //watchext='../../otherlibraryfolder'
-        let extPaths = argMap.server.extensions
-        if(extPaths.includes('[')) extensions = JSON.parse(extPaths).push(...extensions);
-        else {
-            extPaths = extPaths.split(',');
-            extensions = [...extensions,...watchPaths];
-        }
-    }
-    
-    if(argMap && argMap.server?.ignore) { //watch='../../otherlibraryfolder'
-        let ignorePaths = argMap.server.ignore
-        if(ignorePaths.includes('[')) ignore = JSON.parse(ignorePaths).push(...ignore);
-        else {
-            ignorePaths = ignorePaths.split(',');
-            ignore = [...ignore,...ignorePaths];
-        }
-    }
-
-
-    const watcher = chokidar.watch(
-        watchPaths,{
-            ignored: /^(?:.*[\\\\\\/])?(package|\.git|node_modules|android|mobile_dist|src-tauri|android|ios|electron)(?:[\\\\\\/].*)?$/, // ignore node_modules
-            persistent: true,
-            ignoreInitial:true,
-            interval:100,
-            binaryInterval:200
-        }
+export async function checkBoilerPlate(
+  config = {},
+  onlyConfig = true,
+  cwd = process.cwd(),
+) {
+  cwd = path.resolve(cwd);
+  const bundler =
+    (Array.isArray(config.bundler) ? config.bundler[0] : config.bundler) || {};
+  const entries = bundler.entryPoints ||
+    config.entryPoints || [config.entryFile || "index.js"];
+  const first = Array.isArray(entries)
+    ? entries[0]
+    : typeof entries === "string"
+      ? entries
+      : Object.values(entries)[0];
+  const entry = typeof first === "string" ? first : first?.in || "index.js";
+  if (onlyConfig) checkConfig(path.join(cwd, "tinybuild.config.js"));
+  else checkBuildScript(cwd);
+  create.package(path.join(cwd, "package.json"));
+  const entryPath = path.resolve(cwd, entry);
+  const stylesheet = entryPath.replace(/\.[^.]+$/, ".css");
+  const existingTS = entryPath.replace(/\.js$/, ".ts");
+  if (!fs.existsSync(entryPath) && !fs.existsSync(existingTS)) {
+    create.entry(entryPath, () =>
+      getTemplateSync("index.js")
+        .toString()
+        .replace('"./index.css"', () =>
+          JSON.stringify("./" + path.basename(stylesheet)),
+        ),
     );
-
-    watcher.on('change',(path,stats)=>{
-        let skip = false;
-        ignore.forEach((p) => {
-            if(path.includes(p)) {
-                skip = true;
-            }
-        });
-        if(!skip) {
-            let extension = path.split('.').pop();
-            extensions.forEach((ex) => {
-            if(extension.includes(ex)) {
-                skip = false;
-            }
-            })
-        }
-
-        if(!skip) {
-            console.log('change detected at', path,'\n...Restarting...');
-
-            let newprocess = spawn(
-                command, [...args, '--changed', path], {
-                cwd: process.cwd(),
-                env: process.env,
-                detached: true
-            }); //spawn the new script
-            let p = newprocess;
-    
-            if(p.stderr) {
-                p.stderr.on('data',(dat) => {
-                    console.error(dat.toString());
-                });
-    
-                p.stderr.pipe(process.stderr);
-            }
-    
-            if(p.stdout) {
-    
-                p.stdout.on('data',(dat) => {
-                    console.log(dat.toString());
-                });
-            
-                p.stdout.pipe(process.stdout);
-            }
-    
-            p.on('message', (msg) => {
-                console.log('message from server:', msg);
-            });
-
-            p.on('close', ()=>{
-                console.log("Child process finished: ", command,...args)
-            })
-        }
-        
-    })
-    
-    console.log("Watching for changes...");
-
-    return watcher;
-
+    writeMissing(stylesheet, getTemplateSync("index.css"));
+  }
+  if (config.server !== false) {
+    const html = path.resolve(cwd, config.server?.startpage || "index.html");
+    let output =
+      bundler.outfile ||
+      path.join(
+        bundler.outdir || "dist",
+        path.basename(entry, path.extname(entry)),
+      );
+    output = output.replace(/\.[cm]?js$/, "");
+    const relative = path
+      .relative(path.dirname(html), path.resolve(cwd, output))
+      .split(path.sep)
+      .join("/");
+    const resource = relative.split("/").map(encodeURIComponent).join("/");
+    writeMissing(
+      html,
+      getTemplateSync("index.html")
+        .toString()
+        .replaceAll("./dist/index", () => resource),
+    );
+  }
+  create.gitignore(cwd);
+  create.readme(cwd, () => {
+    const files = [
+      [entryPath, "App code"],
+      [stylesheet, "Styles"],
+      ...(config.server === false
+        ? []
+        : [
+            [
+              path.resolve(cwd, config.server?.startpage || "index.html"),
+              "Page layout",
+            ],
+          ]),
+      [path.join(cwd, "tinybuild.config.js"), "Build and server settings"],
+    ].filter(([filename]) => fs.existsSync(filename));
+    const table =
+      "| File | Edit it for |\n| --- | --- |\n" +
+      files
+        .map(
+          ([filename, description]) =>
+            "| `" +
+            path.relative(cwd, filename).split(path.sep).join("/") +
+            "` | " +
+            description +
+            " |",
+        )
+        .join("\n");
+    let readme = getTemplateSync("README.md")
+      .toString()
+      .replace(
+        /^Follow the printed URL\..*$/m,
+        () =>
+          (config.server === false
+            ? "Build once with `npm run build`; this setup does not start a web server."
+            : "Follow the printed URL. Edit a source file and save to update the page. Stop development with Ctrl+C.") +
+          "\n\n" +
+          table,
+      );
+    if (config.server === false)
+      readme = readme
+        .replace(/npm install\r?\nnpm start/, "npm install\nnpm run build")
+        .replace(/^\| Serve files I already built.*\r?\n/gm, "")
+        .replace(
+          "entry file, output path and server port",
+          "entry file and output path",
+        );
+    return readme;
+  });
+  if (bundler.bundleTypes) checkTSConfig(cwd, entry);
 }
-
-//run a script and watch the directory for changes then restart the script
-export function runAndWatch(
-    script,
-    args=process.argv,
-    ignore=[`dist${path.sep}`,'.temp','package.json'], 
-    extensions=['js','ts','css','html','jpg','png','txt','csv','xls','jsx','tsx','scss','vue','less','sass'],
-    restartDelay=50
-) {    
-
-    let watchPaths = process.cwd();
-
-    let argMap; 
-    argMap = parseArgs(process.argv);
-
-    if(argMap && argMap.server?.watch) { //watch='../../otherlibraryfolder'
-        watchPaths = argMap.server.watch
-        if(watchPaths.includes('[')) watchPaths = JSON.parse(watchPaths).push(process.cwd());
-        else {
-            watchPaths = watchPaths.split(',');
-            watchPaths = [process.cwd(),...watchPaths];
-        }
-    }
-
-
-    if(argMap && argMap.server?.extensions) { //watchext='../../otherlibraryfolder'
-        let extPaths = argMap.server.extensions
-        if(extPaths.includes('[')) extensions = JSON.parse(extPaths).push(...extensions);
-        else {
-            extPaths = extPaths.split(',');
-            extensions = [...extensions,...watchPaths];
-        }
-    }
-    
-    if(argMap && argMap.server?.ignore) { //watch='../../otherlibraryfolder'
-        let ignorePaths = argMap.server.ignore
-        if(ignorePaths.includes('[')) ignore = JSON.parse(ignorePaths).push(...ignore);
-        else {
-            ignorePaths = ignorePaths.split(',');
-            ignore = [...ignore,...ignorePaths];
-        }
-    }
-
-    const watcher = chokidar.watch(
-        watchPaths,{
-        ignored: /^(?:.*[\\\\\\/])?(package|\.git|node_modules|android|mobile_dist|src-tauri|android|ios|electron)(?:[\\\\\\/].*)?$/,
-        persistent: true,
-        ignoreInitial:true,
-        interval:100,
-        binaryInterval:200
-    });
-
-    let SERVER_PROCESS = {process:spawn('node',[script, ...args])}
-    let p = SERVER_PROCESS.process;
-
-    if(p.stderr) p.stderr.on('data',(dat) => {
-        console.error(dat.toString());
-        p.on('exit',(code,sig) => {
-            if(typeof code === 'number') process.exit();
-        });
-    });
-
-    if(p.stdout) p.stdout.on('data',(dat) => {
-        console.log(dat.toString());
-    });
-
-    p.on('message', (msg) => {
-        console.log('message from server:', msg.toString());
-    });
-
-
-    watcher.on('change',(path,stats)=>{
-        let skip = false;
-        ignore.forEach((p) => {
-            if(path.includes(p)) {
-                skip = true;
-            }
-        });
-        if(!skip) {
-            let extension = path.split('.').pop();
-            extensions.forEach((ex) => {
-                if(extension.includes(ex)) {
-                    skip = false;
-                }
-            })
-        }
-
-        //console.log(path, skip);
-
-        if(!skip) {
-
-            console.log('change detected at', path,'\n...Restarting...');
-            const onclose = (code,signal) => {
-                let respawn = () => {
-                    SERVER_PROCESS.process = spawn('node',[script,...args, '--changed', path]);
-                    p = SERVER_PROCESS.process;
-    
-                    if(p.stderr) p.stderr.on('data',(dat) => {
-                        let er = dat.toString();
-                        if(!p.killed && er.includes('build')) p.kill();
-                        console.error(er);
-                    });
-        
-                    if(p.stdout) p.stdout.on('data',(dat) => {
-                        let str = dat.toString();
-                        console.log(str);
-                    })
-        
-                    p.on('message', (msg) => {
-                        console.log('message from server:', msg);
-                    })
-                }
-                if(restartDelay) {
-                    setTimeout(()=>{
-                        respawn();
-                    },
-                    restartDelay);
-                }
-                else respawn();
-            }
-            p.on('close', onclose);
-        
-
-            if(!p.killed) p.kill();
-            else onclose();
-
-        }
-        
-    })
-
-    console.log("Watching for changes...");
-
-    return SERVER_PROCESS;
-}
-
-export function checkNodeModules() {
-            
-    if(!fs.existsSync(path.join(process.cwd(), 'node_modules'))) {
-        console.log('Installing node modules...')
-        if(process.argv.includes('yarn')) execSync(`yarn`); //install the node modules in the global repo
-        else execSync(`npm i`); //install the node modules in the global repo
-        console.log('Installed node modules!')
-    }
-}
-
-export async function checkTSConfig() {
-    const location = path.join(process.cwd(),'tsconfig.json')
-    if(!fs.existsSync(location)) create.tsconfig(location)
-}
-
-
-export function checkCoreExists() {
-    if(!fs.existsSync(path.join(process.cwd(), 'tinybuild'))) {
-        const nodeMods = path.join('node_modules', 'tinybuild','tinybuild');
-        if(fs.existsSync(nodeMods)) {
-            copyFolderRecursiveSync(nodeMods,'tinybuild');
-        }
-    }
-}
-
-
-export async function checkConfig(cfgpath = path.join(process.cwd(),'tinybuild.config.js')) {
-    let cfgexists = fs.existsSync(cfgpath)
-
-    // Create Configuration File
-    if(cfgexists) return false;
-    else {
-
-        create.config(cfgpath)
-
-        return true;
-    }
-}
-
-//'tinybuild' will trigger this script otherwise if it exists
-export async function checkBuildScript() {
-
-    const tinybuildPath = path.join(process.cwd(), 'tinybuild.js')
-
-    if(!fs.existsSync(tinybuildPath)) {
-        create.tinybuild(tinybuildPath)
-        return true;
-    }
-    return false;
-}
-
-// NOTE: At a minimum, boilerplate includes a (1) a script / config , (1) a package.json and (3) an index.html file.
-// If these files exist, none of the others are created.
-// IMPORTANT: Using the tinybuild.config.js file at process.cwd() OR a generated one.
-export async function checkBoilerPlate(tinybuildCfg=defaultConfig,onlyConfig=true) {
-    //const config = await ((onlyConfig) ? createConfig() : checkBuildScript()); //this is borderline unreadable, also the import thing doesnt work unless the package is type:module, this builds on es5 packages now
-
-    //let config; 
-    if(!onlyConfig) {
-        checkBuildScript();
-    }
-    checkConfig();
-    
-    let packagePath = path.join(process.cwd(),'package.json')
-
-    let htmlPath = process.cwd()+'/index.html'
-
-    let entryFile = tinybuildCfg.entryPoints ? tinybuildCfg.entryPoints[0] : tinybuildCfg.entryFile ? tinybuildCfg.entryFile : 'index.js';
-
-    let outfile = 'dist/index';
-    if(tinybuildCfg.bundler?.outfile) {
-        outfile = tinybuildCfg.bundler.outfile;
-    } else if(tinybuildCfg.bundler?.outdir) {
-        outfile = tinybuildCfg.bundler.outdir[0];
-    }
-
-    let needPackage = !fs.existsSync(packagePath);
-
-    let needHTML = !fs.existsSync(htmlPath);
-    let needEntry = !fs.existsSync(path.join(process.cwd(),entryFile)) && !fs.existsSync(path.join(process.cwd(),entryFile.replace(path.extname(entryFile),'.ts')));;
-    if(tinybuildCfg.server?.startpage) {
-        htmlPath = tinybuildCfg.server.startpage;
-    } 
-    if(tinybuildCfg.server) {
-        needHTML = !fs.existsSync(htmlPath);
-    }
-    if(tinybuildCfg.bundler?.entryPoints[0]) {
-        entryFile = tinybuildCfg.bundler.entryPoints[0];
-    } 
-
-    let entryFilePath = path.join(process.cwd(), entryFile) // assign index by first entrypoint
-
-    if(needPackage) {
-
-        create.package(packagePath)
-
-        //console.log("Installing node modules...");
-        
-        // if(process.argv.includes('yarn')) execSync('yarn')
-        // else execSync('npm i');
-
-        //console.log("Installed node modules!");
-        
-    }
-
-
-    // Auto-assign distpath
-    if(needHTML) { //the python server needs the index.html
-
-        console.log('Creating html boilerplate.');
-
-        fs.writeFileSync(htmlPath,`
-<!DOCTYPE html>
-<html>
-    <head>
-        <link rel="stylesheet" href="${path.relative(path.join(htmlPath,'../'), path.join(process.cwd(),outfile)).split(path.sep).join('/')}.css">
-    </head>
-    <body>  
-        <script src="${path.relative(path.join(htmlPath,'../'), path.join(process.cwd(),outfile)).split(path.sep).join('/')}.js">
-        </script>
-    </body>
-</html>
-        `)
-    }
-
-    if(needEntry) {
-
-        console.log('Creating entry file: ', entryFilePath)
-
-        // Make index.js if it doesn't exist
-        if (needEntry) create.entry(entryFilePath) 
-
-        //add css boilerplate
-        fs.writeFileSync(path.join(process.cwd(),entryFile.replace(path.extname(entryFile),'.css')), getTemplateSync('index.css'));
-    }
-
-    
-    if(!fs.existsSync(path.join(process.cwd(),'.gitignore'))) {
-        console.log('Creating .gitignore');
-        create.gitignore(process.cwd());
-    }
-
-    if(!fs.existsSync(path.join(process.cwd(),'README.md'))) {
-        console.log('Creating README');
-        create.readme(process.cwd());
-    }
-
-    if(tinybuildCfg.bundler?.bundleTypes && !fs.existsSync(path.join(process.cwd(),'tsconfig.json'))) {
-        console.log('Creating tsconfig');
-        create.tsconfig(path.join(process.cwd(),'tsconfig.json'), undefined, entryFile); 
-    }
-        
-
-}
-
-//TODO: Make this more intelligent
-
-//initialize a project repo with a simplified packager set up for you.
-// If you set includeCore to true then the new repo can be used as a template for creating more repos with standalone tinybuild files
 export async function initRepo(
-    dirName='example',    
-    entryPoints=['index.js'], //your head js file
-    initScript=undefined,
-    config={
-        bundler:{
-            entryPoints:entryPoints,
-            outfile: 'dist/'+entryPoints[0].slice(0,entryPoints.lastIndexOf('.')),
-            bundleBrowser: true, //plain js format
-            bundleESM: false, //.esm format
-            bundleTypes: false, //entry point should be a ts or jsx (or other typescript) file
-            bundleHTML: true //can wrap the built outfile (or first file in outdir) automatically and serve it or click and run the file without hosting.
-        },
-        server:server.defaultServer
-    }, //can set the config here
-    includeCore=true, //include the core bundler and node server files, not necessary if you are building libraries or quickly testing an app.js
-    ) {
+  dirName = "example",
+  entryPoints = ["index.js"],
+  initScript,
+  config,
+  includeCore = false,
+) {
+  const cwd = path.resolve(dirName);
+  const entries = Array.isArray(entryPoints) ? entryPoints : [entryPoints];
+  const settings = config || {
+    bundler: {
+      entryPoints: entries,
+      outfile: "dist/" + path.basename(entries[0], path.extname(entries[0])),
+      bundleBrowser: true,
+    },
+    server: { startpage: "index.html" },
+  };
+  fs.mkdirSync(cwd, { recursive: true });
+  if (!fs.existsSync(path.join(cwd, "tinybuild.config.js")))
+    await writeConfigEdits("tinybuild.config.js", settings, { cwd });
+  if (initScript) create.entry(path.join(cwd, entries[0]), initScript);
+  await checkBoilerPlate(settings, true, cwd);
+  if (includeCore) {
+    checkCoreExists(cwd);
+    create.tinybuild(
+      path.join(cwd, "tinybuild.js"),
+      'import {packager} from "./tinybuild/packager.js"; import config from "./tinybuild.config.js"; await packager(config);\n',
+    );
+  }
+  return cwd;
+}
 
-        console.log('INIT REPO')
+export function isWatchedFile(
+  filename,
+  { cwd = process.cwd(), ignore = [], extensions = [], watchPaths = [] } = {},
+) {
+  const absolute = path.resolve(cwd, filename);
+  if (/\.tinybuild-gzip\.tmp$/.test(absolute)) return false;
+  if (/^\.tinybuild-config-.*\.[cm]js$/.test(path.basename(absolute)))
+    return false;
+  if (
+    ![cwd, ...watchPaths].some((root) => {
+      const child = path.relative(path.resolve(cwd, root), absolute);
+      return (
+        child === "" ||
+        (child !== ".." &&
+          !child.startsWith(".." + path.sep) &&
+          !path.isAbsolute(child))
+      );
+    })
+  )
+    return false;
+  const relative = path.relative(cwd, absolute);
+  if (
+    relative
+      .split(path.sep)
+      .some((part) =>
+        [
+          "node_modules",
+          ".git",
+          ".temp",
+          ".tinybuild",
+          "android",
+          "ios",
+          "electron",
+          "src-tauri",
+          "mobile_dist",
+        ].includes(part),
+      )
+  )
+    return false;
+  for (const value of ignore) {
+    const ignored = path.resolve(cwd, value);
+    const child = path.relative(ignored, absolute);
+    if (
+      child === "" ||
+      (!child.startsWith(".." + path.sep) &&
+        child !== ".." &&
+        !path.isAbsolute(child))
+    )
+      return false;
+  }
+  return (
+    !extensions.length ||
+    extensions
+      .map((extension) => extension.replace(/^\./, "").toLowerCase())
+      .includes(path.extname(filename).slice(1).toLowerCase())
+  );
+}
 
-    if(!fs.existsSync(dirName)) 
-        fs.mkdirSync(dirName); //will be made in the folder calling the init script
-
-    //console.log(dirName);
-
-    if(!fs.existsSync(path.join(dirName, Array.isArray(entryPoints) ? entryPoints[0] : entryPoints)) && !fs.existsSync(path.join(dirName, 'index.js')) && !fs.existsSync(path.join(dirName, 'index.ts'))) 
-        create.entry(path.join(dirName, Array.isArray(entryPoints) ? entryPoints[0] : entryPoints))
-
-    //copy the bundler files
-    const tinybuildPath = path.join(dirName, 'tinybuild.js')
-    let packagePath = path.join(dirName, 'package.json')
-
-    if(!includeCore){
-        //tinybuild.js file using the npm package 
-        create.tinybuild(tinybuildPath,
-        `
-//use command 'node tinybuild.js' to build and run after doing npm install!
-
-import {packager, defaultServer, initRepo} from 'tinybuild'
-let config = ${JSON.stringify(config)};
-
-//bundle and serve
-packager(config);
-        `);
-
-
+export function runAndWatch(
+  script,
+  args = [],
+  ignore = ["dist", ".temp", "package.json"],
+  extensions = [
+    "js",
+    "mjs",
+    "cjs",
+    "ts",
+    "css",
+    "html",
+    "jpg",
+    "png",
+    "txt",
+    "csv",
+    "jsx",
+    "tsx",
+    "scss",
+    "vue",
+    "less",
+    "sass",
+  ],
+  restartDelay = 150,
+  options = {},
+) {
+  const cwd = options.cwd || process.cwd();
+  const controller = new EventEmitter();
+  const spawnChild = options.spawn || spawn;
+  const completedChildren = new WeakSet();
+  let closed = false,
+    running = false,
+    dirty = false,
+    timer;
+  let pending = new Set();
+  const childArgs = args === process.argv ? args.slice(2) : args;
+  function launch(changes = []) {
+    const child = spawnChild(
+      options.command || process.execPath,
+      [
+        path.resolve(cwd, script),
+        ...childArgs,
+        ...(!options.command && changes.length
+          ? ["--changed", changes.at(-1)]
+          : []),
+      ],
+      {
+        cwd,
+        detached: process.platform !== "win32",
+        windowsHide: true,
+        env: options.env || process.env,
+        stdio:
+          options.ipc && !options.command
+            ? [
+                "ignore",
+                outputContext.getStore()?.machine ? 2 : "inherit",
+                "inherit",
+                "ipc",
+              ]
+            : outputContext.getStore()?.machine
+              ? ["inherit", 2, 2]
+              : "inherit",
+      },
+    );
+    controller.process = child;
+    child.once("close", () => completedChildren.add(child));
+    child.on("error", (error) => controller.emit("childError", error));
+    child.on("message", (message) => controller.emit("message", message));
+    child.once("exit", (code, signal) =>
+      controller.emit("childExit", { code, signal }),
+    );
+    return child;
+  }
+  async function stop() {
+    const child = controller.process;
+    if (!child || completedChildren.has(child)) return;
+    const realChild = typeof child.connected === "boolean";
+    if (!realChild && (child.exitCode != null || child.signalCode)) return;
+    const exited = once(child, realChild ? "close" : "exit").catch(() => {});
+    if (child.connected) child.disconnect();
+    if (child.exitCode == null && !child.signalCode)
+      await terminateChild(child);
+    const force = setTimeout(
+      () => terminateChild(child, "SIGKILL").catch(() => {}),
+      options.killTimeout || 2000,
+    );
+    force.unref?.();
+    try {
+      await exited;
+    } finally {
+      clearTimeout(force);
     }
-    else { //tinybuild js using a copy of the source and other prepared build files
-        config.bundler.bundleHTML = false; //we'll target the index.html file instead of building this one
-
-        let outfile = config.bundler.outfile;
-        if(config.bundler.outdir) outfile = config.bundler.outdir + '/' + config.bundler.entryPoints[0];
-
-        //index.html file
-        fs.writeFileSync(path.join(dirName,'/index.html'),
-        `
-<!DOCTYPE html>
-<html>
-    <head></head>
-    <body>
-        <script src='${outfile}.js'></script>
-    </body>
-</html>
-        `);
-
-        copyFolderRecursiveSync('tinybuild',tinybuildPath);
-
-        if(!fs.existsSync(tinybuildPath)) create.tinybuild(tinybuildPath,`
-//create an init script (see example)
-//node init.js to run the packager function
-
-export * from './tinybuild/packager.js'
-import { packager, defaultServer } from './tinybuild/packager.js'
-
-let config = ${JSON.stringify(config)};
-
-//bundle and serve
-packager(config);
-        `);
-
+  }
+  async function flush() {
+    if (running || closed) return;
+    running = true;
+    try {
+      await stop();
+      if (!closed) {
+        const changes = [...pending];
+        pending.clear();
+        dirty = false;
+        launch(changes);
+      }
+    } finally {
+      running = false;
+      if (dirty && !closed) schedule();
     }
-
-    if(!fs.existsSync(packagePath)) create.package(packagePath);
-    if(!fs.existsSync(path.join(process.cwd(),'.gitignore'))) create.gitignore(process.cwd());
-
-    if(config.bundleTypes && !fs.existsSync(path.join(process.cwd(),'tsconfig.json'))) 
-        create.tsconfig(path.join(process.cwd(),'tsconfig.json')); 
-
+  }
+  function schedule() {
+    clearTimeout(timer);
+    timer = setTimeout(
+      () => flush().catch((error) => controller.emit("childError", error)),
+      restartDelay,
+    );
+  }
+  controller.restart = (filename) => {
+    if (closed) return;
+    if (filename) pending.add(filename);
+    dirty = true;
+    if (!running) schedule();
+  };
+  launch();
+  controller.watcher = (options.watch || chokidar.watch)(
+    [
+      cwd,
+      ...(options.watchPaths || []).map((value) => path.resolve(cwd, value)),
+    ],
+    {
+      ignored: (filename) =>
+        !isWatchedFile(filename, {
+          cwd,
+          ignore,
+          watchPaths: options.watchPaths,
+        }),
+      ignoreInitial: true,
+      awaitWriteFinish: { stabilityThreshold: 50, pollInterval: 10 },
+    },
+  );
+  // Let the initial directory scan settle before closing. Removing a project
+  // during that scan can otherwise leave newly registered native watchers open.
+  controller.ready = options.watch
+    ? Promise.resolve(controller)
+    : once(controller.watcher, "ready").then(() => controller);
+  controller.ready.catch((error) => controller.emit("childError", error));
+  controller.watcher.on("all", (event, filename) => {
+    if (
+      ["add", "change", "unlink"].includes(event) &&
+      isWatchedFile(filename, {
+        cwd,
+        ignore,
+        extensions,
+        watchPaths: options.watchPaths,
+      })
+    )
+      controller.restart(filename);
+  });
+  controller.close = async () => {
+    if (closed) return;
+    closed = true;
+    clearTimeout(timer);
+    await controller.ready.catch(() => {});
+    await controller.watcher.close();
+    await stop();
+  };
+  return controller;
+}
+export function runOnChange(
+  command,
+  args = [],
+  ignore = ["dist", ".temp"],
+  extensions = [],
+  options = {},
+) {
+  const cwd = options.cwd || process.cwd();
+  const watcher = (options.watch || chokidar.watch)(
+    [
+      cwd,
+      ...(options.watchPaths || []).map((value) => path.resolve(cwd, value)),
+    ],
+    {
+      ignoreInitial: true,
+      ignored: (filename) =>
+        !isWatchedFile(filename, {
+          cwd,
+          ignore,
+          watchPaths: options.watchPaths,
+        }),
+    },
+  );
+  let child,
+    timer,
+    pending = false,
+    closed = false;
+  function schedule() {
+    clearTimeout(timer);
+    timer = setTimeout(run, options.delay ?? 50);
+  }
+  function run() {
+    if (closed || child) return;
+    pending = false;
+    child = (options.spawn || spawn)(
+      command,
+      args === process.argv ? args.slice(2) : args,
+      {
+        cwd,
+        env: options.env || process.env,
+        stdio: "inherit",
+        detached: process.platform !== "win32",
+        windowsHide: true,
+      },
+    );
+    const current = child;
+    const finish = (error) => {
+      if (child !== current) return;
+      child = undefined;
+      if (error) options.onError?.(error);
+      if (pending && !closed) schedule();
+    };
+    current.once("exit", () => finish());
+    current.once("error", finish);
+  }
+  watcher.on("all", (event, filename) => {
+    if (
+      !["add", "change", "unlink"].includes(event) ||
+      !isWatchedFile(filename, {
+        cwd,
+        ignore,
+        extensions,
+        watchPaths: options.watchPaths,
+      })
+    )
+      return;
+    pending = true;
+    if (!child) schedule();
+  });
+  const close = watcher.close.bind(watcher);
+  watcher.close = async () => {
+    closed = true;
+    clearTimeout(timer);
+    await close();
+    if (child && child.exitCode == null && !child.signalCode) {
+      const current = child;
+      const exited = once(current, "exit").catch(() => {});
+      const force = setTimeout(
+        () => terminateChild(current, "SIGKILL").catch(() => {}),
+        options.killTimeout || 2000,
+      );
+      force.unref?.();
+      await terminateChild(current);
+      try {
+        await exited;
+      } finally {
+        clearTimeout(force);
+      }
+    }
+  };
+  return watcher;
 }

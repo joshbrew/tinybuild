@@ -1,116 +1,105 @@
-//let cfg = require('../server_settings');
-import WebSocket from 'ws';
-import {WebSocketServer} from 'ws';
-
-//const WebSocket = require('ws');
-
-//connect to quart's wss
-
-//set in server_settings.js
-
-export class PythonClient {
-    config = null;
-    ws = null;
-    url = null;
-
-    constructor(cfg={},wss) {
-        this.config = cfg;
-        this.wss = wss;
-        if(cfg.python){
-
-            this.url = `wss://${cfg.host}:${cfg.python}`;
-            this.ws = new WebSocket(
-                this.url,
-                {rejectUnauthorized: false}
-            );
-
-            this.ws.on('error', (err) => {
-                console.error(err.toString());
-            });
-        
-            this.ws.on('connectFailed',(err)=>{
-                console.error(err.toString());
-            });
-        
-            this.ws.on('open',(ws)=>{
-                let now = new Date(Date.now());
-                console.log(now.getHours()+':'+now.getMinutes()+':'+now.getSeconds()+ ': Ping: Node connected to python WSS!');
-                py_client.send('nodejs');
-            });
-        
-            //let decoder = new TextDecoder();
-        
-            this.ws.on('message',(msg)=>{
-                //let now = new Date(Date.now());
-                //console.log(now.getHours() + ':' + now.getMinutes() + ':' + now.getSeconds() + ': Python->Node:',decoder.decode(msg))
-                wss.clients.forEach((cl) => {
-                    cl.send(msg);
-                });
-            })
-        }
-    }
-}
-
-
-// client.connect(python_socketUrl);
-//single connection stream
-
-//exports.py_client = py_client;
-
-
-
-//**********************//
-//**********************//
-// WSS Relay From Quart //
-//**********************//
-//**********************//
-
-
-
+import WebSocket, { WebSocketServer } from "ws";
+import http from "node:http";
+import https from "node:https";
 export class PythonRelay {
-    config = null;
-    server = null;
-    url = null;
-
-    constructor(cfg={}) {
-        this.config = cfg
-        if(cfg.python_node){
-
-        this.url = `ws://${this.cfg.host}:${this.cfg.python_node}`;
-        this.wss = new WebSocketServer({ // new WebSocket.Server({
-            port:this.cfg.python_node
-        });
-
-
-    this.wss.on('error',(err)=>{
-        console.error('python wss error:',err);
-    })
-
-    this.wss.on('connection', (ws) => {
-        //ws.send(something);
-
-        if(this.cfg.debug) console.log('New Connection to Python Socket Relay!');
-
-        ws.on('message', function message(data) {
-            console.log('received: %s', data); //log messages from clients
-        });
-
-        ws.send(`${py_socketUrl}: pong!`);
-
-        if(py_client.readyState !== py_client.OPEN) { 
-            ws.send(`Python relay not connected, is https enabled? Closing inactive connection!`);
-            ws.close();
-        }
+  constructor(config = {}) {
+    this.config = config;
+    this.wss = new WebSocketServer({
+      noServer: true,
+      maxPayload: config.maxPayload || 1024 * 1024,
     });
+    this.wss.on("connection", (socket) => socket.on("error", () => {}));
+    this.ready = Promise.resolve();
+    if (config.python_node !== undefined) {
+      this.server = config.tls
+        ? https.createServer(config.tls)
+        : http.createServer();
+      this.server.on("request", (req, res) => {
+        res.writeHead(404);
+        res.end("WebSocket endpoint");
+      });
+      this.server.on("upgrade", (request, socket, head) => {
+        if (
+          (config.allowedOrigins &&
+            !config.allowedOrigins.includes(request.headers.origin)) ||
+          !["/", "/home"].includes(
+            new URL(request.url, "http://localhost").pathname,
+          )
+        ) {
+          socket.destroy();
+          return;
+        }
+        this.wss.handleUpgrade(request, socket, head, (ws) =>
+          this.wss.emit("connection", ws, request),
+        );
+      });
+      this.ready = new Promise((resolve, reject) => {
+        this.server.once("error", reject);
+        this.server.listen(
+          config.python_node,
+          config.host || "localhost",
+          () => {
+            this.server.removeListener("error", reject);
+            this.server.on("error", (error) => config.onError?.(error));
+            this.port = this.server.address().port;
+            resolve();
+          },
+        );
+      });
+      this.ready.catch(() => {});
     }
+  }
+  broadcast(message) {
+    for (const socket of this.wss.clients)
+      if (socket.readyState === WebSocket.OPEN)
+        socket.send(message, { binary: false });
+  }
+  async close() {
+    for (const socket of this.wss.clients) socket.terminate();
+    await new Promise((resolve) => this.wss.close(resolve));
+    await this.ready.catch(() => {});
+    if (this.server?.listening)
+      await new Promise((resolve) => this.server.close(resolve));
+  }
 }
+export class PythonClient {
+  constructor(config = {}, relay) {
+    this.config = config;
+    this.relay = relay;
+    this.closed = false;
+    this.attempt = 0;
+    if (config.python) this.connect();
+  }
+  connect() {
+    const config = this.config;
+    this.url =
+      config.pythonUrl ||
+      (config.protocol === "https" ? "wss://" : "ws://") +
+        config.host +
+        ":" +
+        config.python;
+    this.ws = new WebSocket(this.url, {
+      rejectUnauthorized: config.pythonRejectUnauthorized !== false,
+    });
+    this.ws.on("open", () => {
+      this.attempt = 0;
+      this.ws.send("nodejs");
+    });
+    this.ws.on("message", (message) => this.relay.broadcast(message));
+    this.ws.on("error", (error) => config.onError?.(error));
+    this.ws.on("close", () => {
+      if (!this.closed) {
+        this.timer = setTimeout(
+          () => this.connect(),
+          Math.min(100 * 2 ** this.attempt++, 3000),
+        );
+        this.timer.unref();
+      }
+    });
+  }
+  async close() {
+    this.closed = true;
+    clearTimeout(this.timer);
+    this.ws?.terminate();
+  }
 }
-
-// exports.py_socketUrl = py_socketUrl;
-// exports.py_wss = py_wss;
-
-//**********************//
-//**********************//
-//  WS Client to Quart  //
-//**********************//
-//**********************//

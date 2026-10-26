@@ -1,29 +1,11 @@
-# capacitor_ble_tinybuild
- capacitor ble test with tinybuild to bundle the webapp. <100MB node dependencies if tinybuild is installed locally, otherwise it's about 10MB, not counting Android Studio or XCode
- 
-https://github.com/capacitor-community/bluetooth-le
+# Prepare a Capacitor app
 
-If not included, copy the index.html to dist so it copies to the mobile project files correctly. The local server is configured to run it from there as well.
+```sh
+npm run build
+```
 
-#### In your project root
-`npm i`
+Inspect `mobile_dist` for the web app. The default `stage` action prepares files without running Android Studio, Xcode or a device.
 
-Edit the index.js and optionally the index.html in the `dist/` folder. All public asset files need to end up in `dist/`
+To open a native project, change the active `mobile.android` or `mobile.ios` value in `tinybuild.config.js` to `"open"`. Tinybuild creates a missing platform project, syncs the web files and opens its IDE. That step needs the selected platform's tools; iOS needs macOS/Xcode.
 
-
-#### Build step: 
-If no tinybuild installed globally: `npm i -g tinybuild` or to keep it in dev dependencies `npm i --save-dev tinybuild`
-
-Build:
-- `tinybuild`
-
-#### Android Studio (install it first)
-- `npx cap copy` or `npx cap sync` to sync the www/ dist to the platform-specific folders.
-- `npx cap open android` to open android studio ready to build and serve the apk.
-
-Build the android project by click the Make Project hammer icon if it doesn't start automatically. Then if you see BUILD SUCCESSFUL, run with your android device connected or the built-in android emulators active.
-
-
-#### XCode
-- `npx cap copy` or `npx cap sync`
-- `npx cap open ios` to open xcode ready to build and serve the app
+Keep signing material outside source control. Add BLE or other native plugins explicitly to your app. For quick install/launch and live reload, use the [mobile debug example](../mobile_debug/README.md).

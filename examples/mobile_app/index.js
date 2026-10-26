@@ -1,13 +1,17 @@
-document.body.innerHTML = 'Hello World!';
-
-import { BleClient } from '@capacitor-community/bluetooth-le';
-
-BleClient.initialize({ 
-    androidNeverForLocation: true 
-}).then((initialized) => {
-    console.log("BLE initialized!", initialized);
-
-    BleClient.requestDevice().then((requested) => {
-        console.log("Connected to ",requested);
-    })
-});
+const output = document.createElement("p");
+output.textContent =
+  "This same web app runs in a browser or a Capacitor shell.";
+document.body.append(output);
+const button = document.createElement("button");
+button.textContent = "Get location";
+button.onclick = () =>
+  navigator.geolocation?.getCurrentPosition(
+    (position) => {
+      output.textContent =
+        position.coords.latitude + ", " + position.coords.longitude;
+    },
+    (error) => {
+      output.textContent = error.message;
+    },
+  );
+document.body.append(button);

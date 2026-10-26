@@ -1,44 +1,106 @@
 {
   "name": "tinybuild",
-  "version": "1.0.6",
-  "description": "Versatile esbuild configuration with custom plugins + node hotreloading for a lightweight and frustration-free web development experience.",
+  "version": "1.1.0",
+  "description": "An esbuild convenience layer with live reload, Node servers, workers and native app staging.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/joshbrew/tinybuild.git"
+  },
   "main": "tinybuild.js",
+  "types": "tinybuild.d.ts",
   "type": "module",
   "bin": {
     "tinybuild": "tinybuild/bin/global.js"
   },
-  "preferGlobal": true,
+  "exports": {
+    ".": {
+      "types": "./tinybuild.d.ts",
+      "import": "./tinybuild.js"
+    },
+    "./plugins/worker": "./tinybuild/esbuild/workerPlugin.js",
+    "./plugins/remote": "./tinybuild/esbuild/streamingImportsPlugin.js",
+    "./plugins/installer": "./tinybuild/esbuild/installerPlugin.js",
+    "./plugins/assets": "./tinybuild/esbuild/runtimeAssetsPlugin.js",
+    "./client/hot": {
+      "types": "./tinybuild/client/hot.d.ts",
+      "default": "./tinybuild/client/hot.js"
+    },
+    "./*": "./*",
+    "./client/workers": {
+      "types": "./tinybuild/client/workers.d.ts",
+      "default": "./tinybuild/client/workers.js"
+    },
+    "./client/native": {
+      "types": "./tinybuild/client/native.d.ts",
+      "default": "./tinybuild/client/native.js"
+    }
+  },
+  "files": [
+    "tinybuild.js",
+    "tinybuild.d.ts",
+    "tinybuild/",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
-    "start": "node tinybuild.js",
-    "build": "cd example && node tinybuild.js",
+    "start": "node tinybuild/bin/global.js",
+    "build": "node scripts/check-examples.js",
     "init": "node tinybuild/init.js",
-    "concurrent": "concurrently \"npm run python\" \"npm run startdev\"",
-    "dev": "npm run pip && npm i --save-dev concurrently && npm i --save-dev nodemon && npm run concurrent",
-    "startdev": "nodemon --exec \"cd example && node tinybuild.js\" -e ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv",
+    "dev": "node tinybuild/bin/global.js",
+    "test": "node --test --test-concurrency=1 --test-timeout=15000 tests/*.test.js",
+    "test:examples": "node scripts/check-examples.js",
+    "sync:example-configs": "node scripts/sync-example-configs.js",
+    "sync:options": "node scripts/sync-option-reference.js",
+    "sync:starters": "node scripts/sync-starters.js",
+    "test:package": "node scripts/check-package.js",
+    "check": "npm test && npm run test:types && npm run test:examples && npm run test:package",
     "python": "python tinybuild/python/server.py",
-    "pip": "pip install quart && pip install websockets"
+    "test:types": "tsc -p tests/tsconfig.json",
+    "test:python": "python -m unittest discover -s tests -p \"*_test.py\" -v",
+    "test:browser": "node --test --test-timeout=60000 tests/browser.spec.mjs",
+    "test:reload:soak": "node --expose-gc --test --test-timeout=240000 tests/reload-soak.spec.mjs",
+    "check:release": "npm run check && npm run test:reload:soak && npm run test:browser",
+    "prepublishOnly": "npm run sync:starters && npm run check:release",
+    "test:native": "node scripts/check-native.js",
+    "test:native:ui": "node scripts/check-native-ui.js",
+    "test:native:sidecars": "node scripts/check-sidecars.js",
+    "test:native:signature": "node scripts/verify-native-signature.js",
+    "test:mobile": "node scripts/check-mobile.js",
+    "test:stacks": "node scripts/check-stacks.js",
+    "test:stacks:browser": "node scripts/check-stack-browser.js",
+    "test:platform": "node scripts/check-platform.js",
+    "format": "prettier --write tinybuild.js tinybuild.d.ts tinybuild examples tests scripts README.md package.json .github/workflows"
   },
   "keywords": [
-    "esbuild"
+    "esbuild",
+    "live-reload",
+    "workers"
   ],
   "author": "Joshua Brewster",
   "license": "LGPL-3.0-or-later",
   "dependencies": {
-    "chokidar": "*",
-    "esbuild": "*",
-    "ws": "*"
+    "chokidar": "^5.0.0",
+    "esbuild": "^0.28.0",
+    "qrcode-generator": "^2.0.4",
+    "ws": "^8.20.1"
   },
   "peerDependencies": {
-    "typescript": "*"
+    "typescript": ">=5.6 <8"
   },
-  "nodemonConfig": {
-    "env": {
-      "NODEMON": true,
-      "HOTRELOAD": true
-    },
-    "ignore": [
-      "dist/",
-      ".temp/"
-    ]
+  "peerDependenciesMeta": {
+    "typescript": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "playwright-core": "^1.64.1",
+    "prettier": "^3.9.10",
+    "typescript": "^6.0.3",
+    "typescript5": "npm:typescript@~5.9.3",
+    "typescript7": "npm:typescript@~7.0.2"
   }
 }

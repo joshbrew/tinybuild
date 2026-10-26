@@ -1,0 +1,12 @@
+body {
+  font-family: system-ui, sans-serif;
+  margin: 2rem;
+}
+img {
+  width: 5rem;
+  display: block;
+}
+output {
+  display: block;
+  margin-top: 1rem;
+}

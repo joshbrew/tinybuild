@@ -1,0 +1,18 @@
+{
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "tinybuild dev",
+    "build": "tinybuild build --production",
+    "check": "tinybuild check",
+    "open": "tinybuild dev --open",
+    "serve": "tinybuild serve --production",
+    "status": "tinybuild status",
+    "env": "tinybuild dev --envFile demo.env",
+    "debug": "tinybuild dev --debug"
+  },
+  "name": "tinybuild-app",
+  "devDependencies": {
+    "tinybuild": "^1.1.0"
+  }
+}

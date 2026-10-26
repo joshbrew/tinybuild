@@ -1,0 +1,12 @@
+{
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node ../../tinybuild/bin/global.js",
+    "build": "node ../../tinybuild/bin/global.js build",
+    "config": "node ../../tinybuild/bin/global.js config",
+    "devices": "node ../../tinybuild/bin/global.js devices",
+    "android:dev": "node ../../tinybuild/bin/global.js mobile=android",
+    "ios:dev": "node ../../tinybuild/bin/global.js mobile=ios"
+  }
+}

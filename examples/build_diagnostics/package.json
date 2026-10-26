@@ -1,0 +1,10 @@
+{
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node ../../tinybuild/bin/global.js",
+    "build": "node ../../tinybuild/bin/global.js build",
+    "analyze": "node ../../tinybuild/bin/global.js analyze",
+    "benchmark": "node ../../tinybuild/bin/global.js --benchmark=3"
+  }
+}

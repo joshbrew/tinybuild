@@ -1,3 +1,3 @@
-import './sse.component'
-import './socket.component'
-import './component'
+import "./socket.component.js";
+import "./sse.component.js";
+import "./component.js";

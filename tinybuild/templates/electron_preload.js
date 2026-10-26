@@ -5,6 +5,6 @@
  *
  * https://www.electronjs.org/docs/latest/tutorial/sandbox
  */
-window.addEventListener('DOMContentLoaded', () => {
-    console.log("Hello Electron!");
+window.addEventListener("DOMContentLoaded", () => {
+  console.log("Hello Electron!");
 });

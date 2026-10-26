@@ -1,0 +1,9 @@
+[
+  { "path": "/_tinybuild/ready", "status": 200, "includes": "\"ready\":true" },
+  { "path": "/api/message", "status": 200, "includes": "message" },
+  {
+    "path": "/demo/settings",
+    "status": 200,
+    "headers": { "Accept": "text/html" }
+  }
+]

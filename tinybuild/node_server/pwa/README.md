@@ -1,27 +1,7 @@
-## [Secure SSL on localhost](https://deanhume.com/testing-service-workers-locally-with-self-signed-certificates/)
-## [Instructions](https://dev.to/digitalplayer1125/custom-service-worker-in-any-app-with-esbuild-3020)
+# PWA generation
 
+Set server.pwa to generate a service worker during builds. Asset lists and versions derive from real outputs. The network-first worker falls back to cached responses or a defined 503 and only cleans caches for its own scope.
 
-### Compile & inject:
+Supply your own manifest/icons and register the worker from application HTML. Match its URL to the static root. The configured worker receives Service-Worker-Allowed: /.
 
-Copy manifest.webmanifest to main folder of your app and customize.
-
-Code to paste or inject into html pages (our server does this if you specify the service-worker path in the server_settings.js file):
-```html
-
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="apple-touch-icon" href="src/assets/square.png">
-<meta name="apple-mobile-web-app-status-bar" content="#000000">
-<meta name="theme-color" content="#000000">
-<script> //Service workers for pwa test.  `npm run pwa`
-  
-    // Check that service workers are supported
-    if ("serviceWorker" in navigator) addEventListener('load', () => {
-        navigator.serviceWorker
-        .register("node_server/pwa/sw.js")
-        .catch((err) => console.log("Service worker registration failed", err));
-    });
-    
-</script>
-
-```
+Production server startup creates no files.

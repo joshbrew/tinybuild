@@ -1,368 +1,1086 @@
 <p align="center">
-  <img width="35%" src="./catgnome.png" />
+  <img width="35%" src="https://raw.githubusercontent.com/joshbrew/tinybuild/master/catgnome.png" alt="Tinybuild cat gnome mascot" />
 </p>
 
 # tinybuild
+
 [![npm version](https://img.shields.io/npm/v/tinybuild.svg)](https://www.npmjs.com/package/tinybuild)
 [![npm downloads](https://img.shields.io/npm/dt/tinybuild.svg)](https://www.npmjs.com/package/tinybuild)
 ![license](https://img.shields.io/npm/l/tinybuild)
 
 <table align="center">
   <tr>
-    <td><img width="100" src="./img/esbuild.svg" alt="esbuild"></td>
-    <td><img width="100" src="./img/nodejs.png" alt="Node.js"></td>
-    <td><img width="100" src="./img/http.png"   alt="http dev‑server"></td>
-    <td><img width="100" src="./img/desktop.png" alt="Desktop (Electron/Tauri)"></td>
-    <td><img width="100" src="./img/smartphone.png" alt="Mobile (Capacitor)"></td>
+    <td align="center"><img width="100" src="https://raw.githubusercontent.com/joshbrew/tinybuild/master/img/esbuild.svg" alt="esbuild" /><br />Build</td>
+    <td align="center"><img width="100" src="https://raw.githubusercontent.com/joshbrew/tinybuild/master/img/nodejs.png" alt="Node.js" /><br />Node.js</td>
+    <td align="center"><img width="100" src="https://raw.githubusercontent.com/joshbrew/tinybuild/master/img/http.png" alt="Web server" /><br />Web</td>
+    <td align="center"><img width="100" src="https://raw.githubusercontent.com/joshbrew/tinybuild/master/img/desktop.png" alt="Electron and Tauri desktop apps" /><br />Desktop</td>
+    <td align="center"><img width="100" src="https://raw.githubusercontent.com/joshbrew/tinybuild/master/img/smartphone.png" alt="Capacitor mobile apps" /><br />Mobile</td>
   </tr>
 </table>
 
+> **One config. Web, servers, desktop and mobile.**
 
-> **One‑stop HTML5 / JavaScript web, server, desktop & mobile build tool — with zero cognitive rent.**
+Tinybuild puts esbuild, live reload and a Node server behind one commented JavaScript config. Start with a page; grow into workers, APIs, libraries or native apps when you need them. Bring your own framework and esbuild plugins.
 
-Install globally:
+**Node.js 22+** · JavaScript / TypeScript / JSX / CSS · Public TypeScript types
 
-```bash
-npm i -g tinybuild
+## Jump in
+
+```sh
+npm install -D tinybuild
+npx tinybuild
 ```
 
-…or as a local dev‑dependency:
+In an empty folder, this creates missing starter files, builds and starts a local server. Follow the printed URL, edit a file, and see it reload. Existing files are preserved. Use `npx tinybuild dev --open` to open the browser automatically.
 
-```bash
-npm i -D tinybuild
+Edit `tinybuild.config.js` directly or run `npx tinybuild config` for guided setup. Common settings come first; commented options explain themselves. [Full reference below](#complete-config-reference).
+
+## Pick a use case
+
+Every example includes the **complete commented config** to tweak. [Browse all 41 build configurations →](examples/README.md)
+
+| I want to…                                   | Start here                                                                                                                                                                                                       |
+| -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Build a page with live reload                | [JavaScript](examples/default/README.md) · [TypeScript](examples/default_ts/README.md)                                                                                                                           |
+| Publish a library or use several entry pages | [ESM, CommonJS + types](examples/library/README.md) · [Multiple pages](examples/multi_page/README.md)                                                                                                            |
+| Move work off the UI thread                  | [Browser workers](examples/webworkers/README.md) · [Typed workers](examples/worker_types/README.md) · [Worker pool](examples/worker_pool/README.md)                                                              |
+| Use worker files, nesting or shared memory   | [Emitted files](examples/worker_files/README.md) · [Nested workers](examples/nested_workers/README.md) · [Shared buffers](examples/sharedarraybuffers/README.md)                                                 |
+| Share one HTML file, workers included        | [Portable HTML + assets](examples/html_bundle/README.md)                                                                                                                                                         |
+| Add a backend                                | [Node API](examples/frontend_backend/README.md) · [Python](examples/python_backend/README.md) · [Node workers](examples/node_worker/README.md)                                                                   |
+| Serve a site or connect other services       | [Server only](examples/server_only/README.md) · [SPA](examples/spa/README.md) · [HTTP proxy](examples/api_proxy/README.md) · [WebSocket proxy + SSE](examples/proxy_ws_sse/README.md)                            |
+| Ship a web app                               | [Production](examples/production/README.md) · [Gzip](examples/gzip_target/README.md) · [Offline/PWA](examples/pwa/README.md)                                                                                     |
+| Own a backend alongside development          | [Tasks + readiness + restarts](examples/task_workspace/README.md)                                                                                                                                                |
+| Build desktop apps with bundled backends     | [Electron sidecar](examples/electron_sidecar/README.md) · [Tauri sidecar](examples/tauri_sidecar/README.md) · [Desktop debugging](examples/desktop_debug/README.md)                                              |
+| Launch and debug on a phone                  | [Mobile live reload](examples/mobile_debug/README.md) · [Permissions + native profiles](examples/native_profiles/README.md) · [Device lifecycle + remotes](examples/native_lifecycle/README.md)                  |
+| Extend the build or include assets           | [Custom plugin](examples/custom_plugin/README.md) · [Remote imports](examples/remote_imports/README.md) · [Asset pipeline](examples/asset_pipeline/README.md) · [Watched copying](examples/asset_copy/README.md) |
+| Watch size or automate safely                | [Size reports + limits](examples/build_diagnostics/README.md) · [Saved baselines](examples/build_baseline/README.md) · [Config + agent workflow](examples/config_workflow/README.md)                             |
+
+Copy a shipped starter without installing dependencies:
+
+```sh
+npx tinybuild init --list
+npx tinybuild init --example worker_types --dir my-app
+cd my-app
+npm install
+npm start
 ```
 
----
+From this repository, run `npm ci`, then `npm start` inside an example. Native examples stage without SDKs; launching or packaging needs the target platform's tools. iOS builds require macOS/Xcode.
 
+## Everyday commands
 
-## Core Features
+Use `npx tinybuild` followed by:
 
-* **Minimal esbuild wrapper** – Typescript, JSX/TSX, CSS imports, code‑splitting. Build large apps in milliseconds. Deliver minimal compilations for fast web, mobile, and desktop builds.
-* **Custom plugins** – Web‑worker bundling, streaming imports, automatic type‑generation, CSS hot‑swap.
-* **Pure Node.js dev‑server** – Hot‑module reload via WebSockets; only one runtime dep (`chokidar`), way less overhead than `nodemon`.
-* **Multi‑target outputs** – Browser, ESM, Node, CommonJS, IIFE, `.d.ts` in the same run.
-* **Native packaging** – Electron, Tauri, Capacitor flags copy your build into desktop/mobile shells.
-* **Remote import helper** – Import from `https://` URLs or missing npm deps and Tinybuild grabs them for you.
-* **Optional Python Quart bridge** – Full‑stack hot‑reload for async Python back‑ends.
+| Command                                      | What it does                                         |
+| -------------------------------------------- | ---------------------------------------------------- |
+| `dev --open`                                 | Build, serve, watch and open the browser             |
+| `build` / `serve`                            | Build once / serve existing files                    |
+| `build --production` / `serve --production`  | Build / serve for deployment, with reload disabled   |
+| `config` / `options --search worker`         | Guided editing / explain matching settings           |
+| `preview` / `validate --strict`              | Inspect the plan / catch config mistakes             |
+| `check --json`                               | Build and check your configured files and local URLs |
+| `init --worker src/flow.Worker --typescript` | Add a worker and its type declarations               |
+| `desktop=electron` / `desktop=tauri`         | Launch a desktop development app                     |
+| `mobile=android --device <id>`               | Install and launch with mobile live reload           |
+| `dev --debug` / `doctor --report --json`     | Explain reload decisions / collect a support report  |
+| `help`                                       | List commands and options                            |
 
-> *“Goodbye esoteric instructions, goodbye unwieldy dependencies, goodbye staring at your compiler.”*
+Overrides such as `--port 8081` win over the file. `--cfgpath app.mjs` selects another config; `.cjs` works too. Use `--envFile .env.local` to load environment settings explicitly. `bundler: false` or `server: false` disables that component.
 
+**Workers:** `import workerURL from "./flow.worker"` works alongside explicit `.worker.js` imports; `.Worker` is supported too. Use `new Worker(workerURL)` or the module's `createWorker()` helper. [Worker modes, TypeScript and portable HTML →](tinybuild/docs/esbuild.md#workers-and-portable-html)
 
----
+**For agents:** `options`, `preview`, `validate` and `check` offer versioned JSON; `dev --json` streams readiness, build and error events with the actual URL. `init --agentGuide` adds project instructions. [Agent guide →](tinybuild/docs/agents.md)
 
-### Why roll our own?
+**From JavaScript:** import `bundle`, `serve` or `packager` from `tinybuild`. They return results/controllers; await `app.close()` when done. Importing starts no services. [API usage →](tinybuild/docs/tinybuild.md#programmatic-use)
 
-> *Because javascript's tooling treadmill eats more time and headspace than the solutions it's meant to help you build faster and cheaper.*
+[Builds + workers](tinybuild/docs/esbuild.md) · [Server guide](tinybuild/docs/server.md) · [Configuration + usage](tinybuild/docs/tinybuild.md) · [Native helpers](tinybuild/docs/enhancements.md) · [Testing + platform setup](tinybuild/docs/platform-testing.md)
 
-The dev community’s mood has shifted: we’re done re‑learning a new package manager every quarter that nobody understands anyway, swimming through 30‑page migration guides, and praying that today’s “must‑have” plugin still compiles tomorrow. The zeitgeist favours **boringly fast, single‑purpose tools** that stay out of the way, skipping the third party esoteric formats to get straight to testing production-ready, native cross-platform javascript compilations.
+## Contributing and testing
 
-| Decision axis                   | **Tinybuild (minimalist 2025 stack)**                                      | Vite / Webpack / Bun (ecosystem treadmill)                            |
-| ------------------------------- | -------------------------------------------------------------------------- | --------------------------------------------------------------------- |
-| *First build experience*        | `tinybuild` → scaffold + serve in < 2 s.                                   | `npm create vite@latest`, pick template, install deps, tweak config.  |
-| *Cognitive overhead*            | One plain JS config; flags are real nouns (`bundleBrowser`, `bundleNode`). | Custom DSL, nested Rollup, plugin labyrinth, breaking changes yearly. |
-| *Plugin longevity*              | Four in‑tree plugins you can read in one sitting. Add any esbuild plugins. | Thousands of 3rd‑party plugins; many unmaintained within 12 mo.       |
-| *Cross‑target output*           | Native flags `--electron`, `--tauri`, `mobile={}`.                         | Separate plugins & boilerplates (`vite-electron-builder`, etc.).      |
-| *Remote imports & auto‑install* | Built‑in fetch + `npm install` on‑the‑fly.                                 | Rare / experimental add‑ons.                                          |
-| *AI / automation readiness*     | Deterministic CLI, zero prompts, scriptable `packager()`.                  | Interactive scaffolds, variable outputs, harder to automate.          |
+`npm run check` tests the API, all examples and the installed package. `npm run test:browser` checks browser behavior; `npm run check:release` adds the reload stress test. Native/device checks are opt-in. [Testing instructions →](tinybuild/docs/platform-testing.md)
 
-**Tinybuild exists because complexity =/= effective development; predictability and mental calm matter just as much.** Owning a <100 line esbuild wrapper with all of the core developer automations grants permanent immunity from tooling churn so we can spend that reclaimed time shipping features.
+## Complete config reference
 
----
-
----
-
-## Quickstart
-
-In a blank or npm initialized project folder:
-
-```bash
-# 1. Global install (or use npx tinybuild)
-npm i -g tinybuild
-
-# 2. In a clean folder
-tinybuild           # scaffolds + bundles + starts dev‑server
-```
-
-Prerequisite: **Node.js LTS**.
-
-When you run you should see something like: 
-
-![image](https://github.com/user-attachments/assets/50f34052-e87f-484a-84a6-136e3a02b174)
-
-These are typical benchmarks even on 10 year old laptops.
-
-### Local (per‑project) install
-
-```bash
-npm i -D tinybuild
-npx tinybuild       # or node tinybuild.js if you import { packager }
-```
-
----
-
-## Adding to an Existing Project
-
-1. `npm init -y` (if needed)
-2. `npm i -D tinybuild`
-3. Generate config: `tinybuild init` or paste template below.
-4. Run `npx tinybuild`.
+Common build and server settings are first. Optional features stay commented until you enable them.
 
 <details>
-<summary>Minimal config template ▼</summary>
+<summary>Complete tinybuild.config.js</summary>
+
+<!-- tinybuild:config:start -->
 
 ```js
+// Run `npx tinybuild` to build your files and start a local web server.
+// Run `npx tinybuild config` for guided editing of common settings.
+// Run `npx tinybuild preview` to see settings without building anything.
+// Run `npx tinybuild validate --strict` to check for misspelled options.
+//
+// Settings without // are used as written, including settings with a false value.
+// Settings starting with // are optional examples; they do nothing until enabled.
+// Explanations also start with // and should stay commented out.
+// To enable a setting, remove its first // and keep the explanation above it.
+// For a whole object, remove one leading // from every line in that object.
+// The extra // on explanation lines inside that object should stay in place.
+// Change an existing setting instead of adding a second copy of the same name.
+// Paths are relative to the folder where you run tinybuild.
+// Command-line settings win over this file: `tinybuild --port 8081`.
+// Use `tinybuild dev --open` to start development and open the browser.
+// Use `tinybuild --envFile .env.local` to load values before reading this config.
+// For deployment: `tinybuild build --production`, then `tinybuild serve --production`.
+// `tinybuild status --url http://localhost:8080/_tinybuild/ready` checks a running server.
+// `tinybuild options --search worker` explains matching settings from this reference.
+// `tinybuild check --json` builds and checks your app for people or automation.
+// `tinybuild init --list` shows ready-to-copy starters; --agentGuide adds agent notes.
+
+/** @type {import('tinybuild').Config} */
 const config = {
+  // Build once and stop. Do not enable build and serve at the same time.
+  // build: true,
+
+  // Serve files that already exist, without building or copying them first.
+  // serve: true,
+
+  // Choose which source files to build and which output formats to create.
   bundler: {
+    // BUILD: turn your source files into files a browser or Node.js can run.
+    // To skip this step, replace this object with bundler: false.
+    // For separate builds, use bundler: [{ ...firstBuild }, { ...secondBuild }].
+    // Choose any combination of formats. Set bundleBrowser: false for a Node-only app.
+
+    // The file where your app starts. Its imports are included automatically.
+    // Use index.ts or index.tsx for TypeScript. Multiple entry files are allowed.
     entryPoints: ["index.js"],
+
+    // Where the built file goes. Tinybuild adds .js or the chosen format's suffix.
     outfile: "dist/index",
+
+    // Use a folder instead of outfile when building several entry files.
+    // Remove outfile above before enabling this setting.
+    // outdir: "dist",
+
+    // Build a browser script for an ordinary <script> tag.
+    // Each build format also accepts its own esbuild options instead of true.
     bundleBrowser: true,
-    bundleESM: false,
-    bundleTypes: false,
-    bundleNode: false,
-    bundleHTML: false,
+
+    // Build JavaScript modules for <script type="module"> or import statements.
+    // bundleESM: true,
+
+    // Create .d.ts files so other TypeScript projects know your exported types.
+    // Install TypeScript 5.6+, 6.x or 7.x in your project to generate these files.
+    // TypeScript entries give the most precise types; JavaScript entries work too.
+    // bundleTypes: true,
+
+    // Build code for Node.js, such as a backend server or command-line tool.
+    // bundleNode: true,
+
+    // Make one extra HTML file you can open or share without a web server.
+    // Includes scripts, styles, workers, WebAssembly and imported file assets.
+    // Native staging uses this generated page as its entry page too.
+    // bundleHTML: true,
+
+    // Build a self-running browser script with the .iife.js suffix in multi-format builds.
+    // bundleIIFE: true,
+
+    // Build CommonJS files for programs that use require().
+    // bundleCommonJS: true,
+
+    // Make built code smaller by shortening names, simplifying code and removing spaces.
+    // Set false while debugging if you want to read the built code yourself.
     minify: true,
+
+    // Remove spaces and line breaks without changing names or simplifying expressions.
+    // Set minify: false first if you want ONLY this smaller change.
+    // minify: true already enables all three individual minify options.
+    // minifyWhitespace: true,
+
+    // true creates extra files that point browser errors back to your source lines.
+    // Leave false for smaller output; enable it when you need to debug the source.
+    sourcemap: false,
+
+    // Add esbuild plugins. Define or import myPlugin above this config.
+    // A plugin with the same name as a built-in plugin replaces that plugin.
+    // plugins: [myPlugin],
+
+    // false removes Tinybuild's built-in plugins so you can supply your own set.
+    // includeDefaultPlugins: false,
+
+    // false saves workers as separate files; true embeds their code in browser URLs.
+    // The default is true. Portable HTML embeds them even when this is false.
+    // Import "./flow.worker" to load flow.worker.js or flow.worker.ts.
+    // The .Worker spelling and full filenames such as flow.worker.js work too.
+    // A file named flow.worker with no final extension is treated as JavaScript.
+    // Create a worker with `tinybuild init --worker src/flow.Worker`.
+    // Add --typescript for typed source and a matching URL declaration file.
+    // Add --workerRuntime node for a Node worker instead of a browser worker.
+    // blobWorkers: false,
+
+    // Extra build settings just for worker code.
+    // workerBundler: {
+    //   // Write the worker as a JavaScript module.
+    //   format: "esm",
+    //
+    //   // Remove spaces and line breaks from worker output.
+    //   minifyWhitespace: true,
+    // },
+
+    // Put the browser build's exports on globalThis.MyLibrary.
+    // Another script can then use MyLibrary.myExport without importing it.
+    // globalThis: "MyLibrary",
+
+    // Put selected exports directly on globalThis, such as globalThis.myExport.
+    // The object key must match one of your entryPoints.
+    // globals: {
+    //   "index.js": ["myExport"],
+    // },
+
+    // Run a function in the browser after an entry's exports are ready.
+    // init: {
+    //   "index.js": (bundle) => console.log(bundle),
+    // },
+
+    // Copy SVG imports to files and return their URLs to your app.
+    // loader: {
+    //   ".svg": "file",
+    //   ".xml": "file",
+    //   ".html": "text",
+    // },
+
+    // Shorten variable names. Use with minify: false to choose this step separately.
+    // minifyIdentifiers: true,
+
+    // Simplify expressions. Use with minify: false to choose this step separately.
+    // minifySyntax: true,
+
+    // Save maximum-compression gzip copies of built scripts, styles and portable HTML.
+    // For example, dist/index.js.gz is a smaller download of dist/index.js.
+    // The originals stay available for browsers, local files and native app shells.
+    // The Node server sends gzip when supported and useful; no app code changes needed.
+    // This adds build time, so enable it when preparing downloads or production output.
+    // bundleGzip: true,
+
+    // Choose "module" for browser workers that use JavaScript module features.
+    // Workers can create other workers too.
+    // workerType: "module",
+
+    // Name files loaded at runtime so portable HTML can include them too.
+    // In your app: import url from "tinybuild:asset/settings"; then fetch(url).
+    // runtimeAssets: {
+    //   settings: "assets/settings.json",
+    // },
+
+    // false makes you install missing packages yourself instead of auto-installing.
+    // Production and frozen builds always turn auto-installing off.
+    // autoInstall: false,
+
+    // Control imports loaded from web URLs and their downloaded cache.
+    // remoteImports: {
+    //   // Only use cached files; fail if a new download would be needed.
+    //   frozen: true,
+    //
+    //   // true downloads a fresh copy instead of reusing a cached file.
+    //   refresh: false,
+    //
+    //   // Folder used to save downloaded modules.
+    //   cacheDir: ".tinybuild-cache",
+    //
+    //   // Stop downloads after this many milliseconds (15000 = 15 seconds).
+    //   timeout: 15000,
+    //
+    //   // Reject a download larger than this many bytes (about 5 MB here).
+    //   maxBytes: 5000000,
+    // },
+
+    // Change one output format's settings without changing the other formats.
+    // outputs: {
+    //   // Browser-only overrides apply to ordinary script output.
+    //   browser: {
+    //     target: "es2022",
+    //   },
+    //   // Only the ESM build uses this JavaScript language target.
+    //   esm: {
+    //     target: "es2022",
+    //   },
+    //   // Only the Node build leaves this package for Node to load at runtime.
+    //   node: {
+    //     external: ["optional-backend"],
+    //   },
+    //   // Settings for CommonJS files loaded with require().
+    //   commonjs: {
+    //     target: "es2022",
+    //   },
+    //   // Settings for self-running browser scripts.
+    //   iife: {
+    //     target: "es2022",
+    //   },
+    // },
+
+    // Ordinary esbuild options also go here. For example, choose language support.
+    // target: "es2022",
+
+    // Choose the runtime esbuild should prepare code for: "browser" or "node".
+    // bundleNode chooses "node" automatically for its output.
+    // platform: "browser",
+
+    // Node builds normally leave installed packages for Node to load at runtime.
+    // Use "bundle" to include package code too, when those packages support it.
+    // Native packages with .node files should stay outside a JavaScript bundle.
+    // packages: "external",
+
+    // Replace a name in your code with a value while building.
+    // define: {
+    //   APP_NAME: JSON.stringify("My App"),
+    // },
   },
-  server: { //development server for testing distributions in a boilerplate html environment
+
+  // Choose how the local or production web server serves your app.
+  server: {
+    // SERVER: serve files and tell the browser when you edit them.
+    // To skip serving, replace this object with server: false.
+
+    // false keeps request logs quiet. true prints each path, status and duration as JSON.
+    // Query strings and request headers are left out of these logs.
+    // Also explain which saved files were grouped and why reload rebuilds or restarts.
+    debug: false,
+
+    // "https" encrypts connections; also set keypath and certpath below.
     protocol: "http",
+
+    // "localhost" is for this computer. --lan allows phones and other LAN devices.
+    // Add --qr to print a QR code and save an SVG of the reachable URL.
     host: "localhost",
+
+    // The number after the colon in your URL: http://localhost:8080.
+    // 0 picks a free port and keeps it across config reloads in this session.
     port: 8080,
-    hotreload: 5000,
+
+    // The HTML file shown when someone opens the server URL.
     startpage: "index.html",
+
+    // Refresh the page after saved edits finish building. false turns this off.
+    // Reload messages share the web server's port at /hotreload.
+    // HTML, plain CSS and source saves are grouped into one settled update.
+    // Build errors stay visible until the code builds successfully again.
+    // Config errors stay visible until the config is repaired too.
+    // Changing true to false pauses source watching; config edits can turn it back on.
+    // Native liveReload keeps this enabled so edits can reach the app.
+    // Edits made during the first build are picked up too.
+    hotreload: true,
+
+    // Override the reload WebSocket scheme for a proxy setup: "ws" or "wss".
+    // Usually leave this out; the browser chooses securely from the page URL.
+    // socket_protocol: "ws",
+
+    // Replace changed scripts without refreshing the whole page.
+    // Use tinybuild/client/hot to save state and clean up timers or listeners.
+    // reloadscripts: true,
+
+    // Wait this many milliseconds after the LAST change before rebuilding.
+    // 150 = 0.15 seconds. Higher values group slower multi-file saves together.
+    // A build already in progress finishes before the next one starts.
+    // delay: 150,
+
+    // Folder containing files people can request. Files are read fresh.
+    // root: "public",
+
+    // Watch folders outside this project too, such as shared source files.
+    // watch: ["../shared"],
+
+    // Do not reload for edits in these paths. Built output is ignored automatically.
+    // ignore: ["generated"],
+
+    // Only react to these file extensions. Without this list, all watched types count.
+    // extensions: ["js", "ts", "css", "html", "json"],
+
+    // Open the browser when the CLI starts. Use "/settings" for a particular page.
+    // This opens once at startup, rather than opening another tab after each save.
+    // open: true,
+
+    // Show this file when a requested page cannot be found.
+    // errpage: "404.html",
+
+    // Add response headers. These allow SharedArrayBuffer in supported browsers.
+    // headers: {
+    //   "Cross-Origin-Opener-Policy": "same-origin",
+    //   "Cross-Origin-Embedder-Policy": "require-corp",
+    // },
+
+    // Handle a URL yourself. :name captures text into req.params.name.
+    // Return true after sending your response to mark the request as handled.
+    // routes: {
+    //   // Map a URL to a file you supply in the project.
+    //   "/page2": "mypage.html",
+    //
+    //   // Give one page its own HTML and response headers.
+    //   "/custom": {
+    //     // Extra headers for this page only.
+    //     headers: {
+    //       "Cache-Control": "no-store",
+    //     },
+    //     // Inline HTML to send instead of reading a file.
+    //     template: "<h1>Hello from a custom page</h1>",
+    //   },
+    //
+    //   // File routes can also have their own settings.
+    //   "/file": {
+    //     // File to read, relative to this project.
+    //     path: "mypage.html",
+    //     // HTTP status code for this response.
+    //     status: 200,
+    //   },
+    //
+    //   // Send one URL to a different site or page.
+    //   "/redirect": {
+    //     redirect: "https://example.com",
+    //   },
+    //
+    //   // A handler can also be supplied directly as a function.
+    //   "/other": async (req, res) => {
+    //     res.end("Handled by the app");
+    //     return true;
+    //   },
+    //
+    //   // Override the homepage or the page used for missing files.
+    //   "/": "index.html",
+    //   "/404": "404.html",
+    //
+    //   "/hello/:name": {
+    //     onrequest: async (req, res) => {
+    //       res.end(req.params.name);
+    //       return true;
+    //     },
+    //   },
+    //
+    //   // Capture several named pieces of a URL in the same request.
+    //   "/user/:userId/:action": {
+    //     onrequest: (req, res) => {
+    //       res.end(`User ${req.params.userId} wants to ${req.params.action}`);
+    //       return true;
+    //     },
+    //   },
+    //
+    //   // Different parameter values can share one file or HTML template.
+    //   "/product/:productId": "product.html",
+    //   "/posts/:year/:month/:slug": {
+    //     template: "<h1>Blog post</h1>",
+    //   },
+    // },
+
+    // If this port is busy during development, try this many following ports.
+    // The printed URL always shows the port actually chosen. 0 disables retries.
+    // Production always uses the exact configured port so deployments stay predictable.
+    // portRetries: 5,
+
+    // Use fresh .gz copies when a browser requests compressed downloads.
+    // This is true by default. false serves the original files even if .gz files exist.
+    // Create these copies with bundler.bundleGzip above.
+    // precompressed: true,
+
+    // Use "sse" if your proxy blocks WebSockets. The default is "ws".
+    // SSE uses an ordinary HTTP stream at /hotreload/events.
+    // hotreloadTransport: "sse",
+
+    // Serve extra folders at particular URL prefixes.
+    // staticRoots: {
+    //   "/": "public",
+    //   "/assets": "assets",
+    // },
+
+    // Show this HTML for app routes like /settings; your app chooses the page.
+    // Missing file URLs and API requests still return 404.
+    // spa: "index.html",
+
+    // Forward matching requests to another server, such as a separate backend.
+    // proxy: {
+    //   "/api": {
+    //     // The backend to contact.
+    //     target: "http://127.0.0.1:7000",
+    //
+    //     // Remove /api first: /api/users becomes /users on the backend.
+    //     stripPrefix: true,
+    //
+    //     // Forward WebSocket connections as well as HTTP requests.
+    //     ws: true,
+    //
+    //     // Stop waiting for the backend after this many milliseconds.
+    //     timeout: 10000,
+    //
+    //     // Maximum request body size in bytes (1048576 = 1 MiB).
+    //     maxBodyBytes: 1048576,
+    //   },
+    // },
+
+    // Allow these page origins to connect to reload streams and WebSockets.
+    // Include the scheme, hostname and port used by the browser.
+    // allowedOrigins: ["http://localhost:8080"],
+
+    // A URL other tools can request to check whether the server is ready.
+    // readinessPath: "/_tinybuild/ready",
+
+    // Optionally check a database or another dependency before reporting ready.
+    // Return false while unavailable. A thrown error also reports not ready.
+    // The readiness URL returns 200 when ready and 503 otherwise.
+    // During development, failed builds report not ready until a build succeeds.
+    // isReady: async () => true,
+
+    // Choose browser caching rules for production static files.
+    // URL prefixes win over file extensions; "*" is the fallback for other files.
+    // Use long-lived caching only where you change the URL when the file changes.
+    // These rules do not affect development, APIs or forwarded backend responses.
+    // cacheControl: {
+    //   // Ask the server whether HTML changed before using a stored copy.
+    //   ".html": "no-cache",
+    //
+    //   // Only put versioned or content-named files under this URL prefix.
+    //   "/assets/": "public, max-age=31536000, immutable",
+    //
+    //   // Other static files are checked with the server before reuse.
+    //   "*": "public, max-age=0, must-revalidate",
+    // },
+
+    // Give open connections this many milliseconds to finish when stopping.
+    // shutdownTimeout: 5000,
+
+    // Limit how long a client may take to send its HTTP request, in milliseconds.
+    // requestTimeout: 30000,
+
+    // Stop a response that sends nothing for this many milliseconds.
+    // A stuck handler gets a 504 response. Active streams keep running.
+    // Set 0 if an application intentionally waits indefinitely before responding.
+    // responseTimeout: 30000,
+
+    // Private key file for protocol: "https".
+    // keypath: "server.key",
+
+    // Certificate file for protocol: "https".
+    // certpath: "server.crt",
+
+    // Read an encrypted key's password from an environment variable.
+    // passphrase: process.env.TLS_PASSWORD,
+
+    // Send visitors to another site instead of serving local files.
+    // redirect: "https://example.com",
+
+    // Redirect code: 302 is temporary; 301 tells clients it is permanent.
+    // redirectStatus: 302,
+
+    // Connect the Node server's Python relay to a backend on this port.
+    // The CLI option mode=python also starts Tinybuild's Python backend.
+    // python: 7000,
+
+    // Give Python-to-browser WebSocket clients a separate listening port.
+    // Normally those clients use this web server's port, so this is optional.
+    // Use this when your app connects to a dedicated relay URL such as ws://localhost:7001.
+    // python_node: 7001,
+
+    // Use a full Python WebSocket URL instead of the local port above.
+    // pythonUrl: "ws://localhost:7000/",
+
+    // Check the backend's TLS certificate when connecting to a wss:// URL.
+    // pythonRejectUnauthorized: true,
+
+    // Generate a service worker during builds to help a hosted app work offline.
+    // For one portable HTML file instead, use bundler.bundleHTML.
+    // This filename is relative to the served folder (dist by default in production).
+    // pwa: "service-worker.js",
+
+    // Send these response records to your own logger instead of using debug output.
+    // A disconnected request reports status 499. Time is measured in milliseconds.
+    // onRequest: (record) => console.log(JSON.stringify(record)),
+
+    // Receive server errors in your own logging function.
+    // onError: (error) => console.error(error),
   },
-  // electron:true,
-  // tauri:true,
-  // mobile:{ android:'open', ios:false },
+
+  // ELECTRON: package the app with its own desktop browser runtime.
+  // Debug launch: `tinybuild desktop=electron --devtools --inspect=9229`.
+  // electron: {
+  //   // stage prepares files; open runs; package/make create distributable apps.
+  //   action: "stage",
+  //
+  //   // Folder for the Electron app shell. Your custom shell is kept.
+  //   directory: "electron",
+  //
+  //   // Use the live server during open; false uses staged files instead.
+  //   // Set true together with action: "open" for saved edits in the app.
+  //   // With false, restart tinybuild to refresh the staged web files.
+  //   liveReload: false,
+  //
+  //   // Open browser developer tools in the unpackaged app.
+  //   devtools: true,
+  //
+  //   // Restart Electron when its main or preload script changes.
+  //   // true watches the shell's main file and electron_preload.js.
+  //   // Use a list of paths relative to the shell folder for a custom app.
+  //   // Browser file edits still use ordinary hot reload without restarting Electron.
+  //   // This requires action: "open" in development mode.
+  //   // Leave false for stage/package; set true for main/preload relaunches.
+  //   watch: false,
+  //
+  //   // Group main/preload edits made close together into one app restart.
+  //   // Milliseconds: 150 = 0.15 seconds.
+  //   restartDelay: 150,
+  //
+  //   // Debug Electron's Node process. 0 picks a free debugger port.
+  //   inspect: 0,
+  //
+  //   // Extra arguments when launching Electron.
+  //   args: ["--demo"],
+  //
+  //   // Initial window size, in pixels.
+  //   window: {
+  //     width: 1100,
+  //     height: 720,
+  //   },
+
+  //
+  //   // Packaged desktop app name.
+  //   name: "MyApp",
+  //
+  //   // Folder for packaged output.
+  //   outdir: "release",
+  //
+  //   // Operating system: win32, linux or darwin (macOS).
+  //   platform: "win32",
+  //
+  //   // Target computer's processor architecture.
+  //   arch: "x64",
+  //
+  //   // Formats Electron Forge creates when action is "make".
+  //   makers: [
+  //     {
+  //       name: "@electron-forge/maker-zip",
+  //     },
+  //   ],
+  //
+  //   // Additional Electron Forge settings.
+  //   forge: {},
+  // },
+
+  // TAURI: package a desktop app using the operating system's web view.
+  // Debug launch: `tinybuild desktop=tauri`.
+  // tauri: {
+  //   // stage prepares files; dev runs with saved edits; build makes a release.
+  //   action: "stage",
+  //
+  //   // Rust platform target. Omit this to build for your own computer.
+  //   target: "x86_64-pc-windows-msvc",
+  //
+  //   // Installer formats for releases. nsis makes a Windows installer.
+  //   bundles: ["nsis"],
+  //
+  //   // Set true together with action: "dev" to load the live web server.
+  //   liveReload: false,
+  //
+  //   // false disables Tauri's Rust watcher, not Tinybuild's web reloading.
+  //   watch: false,
+  //
+  //   // Optional Rust features already declared in your Tauri project.
+  //   features: ["demo"],
+  //
+  //   // Make a debug executable instead of an optimized release executable.
+  //   debug: true,
+  //
+  //   // false keeps installers enabled. true builds only the executable.
+  //   // Remove bundles above before changing this to true.
+  //   noBundle: false,
+  // },
+
+  // MOBILE: prepare, open or run Android/iOS apps using Capacitor.
+  // Live reload needs a development server; server.production must be false too.
+  // Debug Android: `tinybuild mobile=android --device emulator-5554`.
+  // --connection usb, emulator or lan chooses how it reaches your server.
+  // Debug iOS: `tinybuild mobile=ios --device <simulator-id>`.
+  // Use --connection lan for a physical iOS device.
+  // mobile: {
+  //   // Settings for an Android app. iOS has its own settings below.
+  //   android: {
+  //     // stage prepares files; add creates the platform project; sync updates it.
+  //     // open opens the SDK project; run builds, installs and launches the app.
+  //     // build compiles the app without launching it.
+  //     action: "run",
+  //
+  //     // Device/emulator ID from `tinybuild devices`.
+  //     target: "emulator-5554",
+  //
+  //     // Load the live server to show saved edits in the app.
+  //     liveReload: true,
+  //
+  //     // Connect over USB instead of your local network.
+  //     connection: "usb",
+  //
+  //     // Optional Android product flavor already defined in your Gradle project.
+  //     flavor: "demo",
+  //   },
+  //
+  //   // false skips iOS. Use "stage" or an object like android above to enable it.
+  //   // iOS also accepts scheme and configuration; host selects your LAN address.
+  //   ios: false,
+  // },
+
+  // Extra files or folders to include when preparing a native app.
+  // Use copy below for ordinary web output files.
+  // assets: ["assets"],
+
+  // STATIC FILES: copy images or other files that your code does not import.
+  // A folder's contents are copied; for one file, to is the full new filename.
+  // Saved edits and deletions are copied again during development.
+  // copy: [
+  //   {
+  //     // Folder or file to copy from.
+  //     from: "public",
+  //
+  //     // Destination folder, or exact filename when copying one file.
+  //     to: "dist",
+  //
+  //     // Optional: leave Photoshop source files out of the copied output.
+  //     filter: (path) => !path.endsWith(".psd"),
+  //   },
+  // ],
+
+  // REMOTE COMPUTERS: run an existing project through SSH and forward its ports.
+  // Set up SSH keys/host aliases and install the project on that computer first.
+  // Preview without connecting: `tinybuild --remote mac --dryRun`.
+  // Connect: `tinybuild --remote mac`. Source copying and OS installation are separate.
+  // remotes: {
+  //   mac: {
+  //     // An SSH host alias, or a user@hostname from your own SSH setup.
+  //     host: "mac-dev",
+  //
+  //     // Project directory on that computer, not on this one.
+  //     directory: "/Users/developer/app",
+  //
+  //     // Use posix for macOS/Linux shells; use windows for PowerShell.
+  //     platform: "posix",
+  //
+  //     // Program and arguments. false only forwards ports without starting a program.
+  //     command: ["npm", "start"],
+  //
+  //     // Forward a local port to a loopback port on that computer.
+  //     forwards: [
+  //       {
+  //         // Port to open on this computer, reachable only through localhost.
+  //         local: 8080,
+  //
+  //         // Port used by the server on the remote computer.
+  //         remote: 8080,
+  //       },
+  //     ],
+  //
+  //     // SSH connection port. This is separate from the web server's port.
+  //     port: 22,
+  //
+  //     // Optional SSH private-key path. Prefer your SSH agent/config when possible.
+  //     identityFile: "/path/to/your/private-key",
+  //
+  //     // Wait for the forwarded server to become ready before reporting success.
+  //     ready: {
+  //       // A local forwarded URL to check.
+  //       url: "http://127.0.0.1:8080/_tinybuild/ready",
+  //
+  //       // Maximum startup wait, in milliseconds.
+  //       timeout: 30000,
+  //     },
+  //   },
+  // },
+
+  // BUILD SIZE: print how many bytes were built and how long each build took.
+  // stats: true,
+
+  // PROJECT CHECKS: describe what a successful build should produce.
+  // Run `tinybuild check` after editing. It builds with dependency installs disabled.
+  // URL checks use a temporary local server that closes when the check finishes.
+  // Add --stage to prepare configured native targets without running SDKs or devices.
+  // checks: {
+  //   // These files must exist inside the project after building.
+  //   files: ["dist/index.js"],
+  //
+  //   // Request local paths and check their status and optional response text.
+  //   urls: [
+  //     {
+  //       // Path on your temporary server, not a remote website.
+  //       path: "/",
+  //
+  //       // HTTP status expected from that path. 200 means it loaded successfully.
+  //       status: 200,
+  //
+  //       // Optional text that must appear in the response body, up to 2 MiB.
+  //       includes: "<html",
+  //     },
+  //   ],
+  //
+  //   // Stop a URL check after this many milliseconds. 5000 = 5 seconds.
+  //   timeout: 5000,
+  // },
+
+  // BUDGETS: optional size limits, like a spending limit for your built files.
+  // Catch a new import that makes your app unexpectedly large.
+  // All sizes are bytes. 1000 bytes is about 1 KB.
+  // Totals include every build format, source maps and portable HTML you generate.
+  // Leave this section commented out if you do not want size limits.
+  // budgets: {
+  //   // Maximum combined size of generated files before compression.
+  //   totalBytes: 200000,
+  //
+  //   // Maximum size of one entry output file before compression.
+  //   entryBytes: 100000,
+  //
+  //   // Maximum combined size after gzip compression, used for web downloads.
+  //   // This estimates download size; configure compression on your hosting separately.
+  //   gzipBytes: 60000,
+  //
+  //   // Maximum combined size after Brotli compression, another download format.
+  //   brotliBytes: 50000,
+  //
+  //   // Allowed size increase compared with a previously saved build.
+  //   // Save that build with `tinybuild baseline`; see diagnostics below.
+  //   growthBytes: 1000,
+  //
+  //   // "error" fails the build if a limit is exceeded; "warn" only tells you.
+  //   // If you leave onExceed out, Tinybuild uses "warn".
+  //   onExceed: "error",
+  // },
+
+  // DIAGNOSTICS: optional measurements explaining the size of your built app.
+  // These make reports and comparisons; budgets above set the limits.
+  // diagnostics: {
+  //   // Measure gzip and Brotli sizes as well as ordinary uncompressed sizes.
+  //   compression: true,
+  //
+  //   // File containing a previous build's sizes, used to show size changes.
+  //   // Run `tinybuild baseline` to create or deliberately update this file.
+  //   // Commit it so your team compares against the same saved build.
+  //   baseline: "tinybuild.baseline.json",
+  //
+  //   // Write an HTML page showing which files and dependencies take up space.
+  //   // Open it in a browser after building to see what made the app large.
+  //   report: "dist/report.html",
+  // },
+
+  // TASKS: start other programs with your app and stop them when Tinybuild closes.
+  // For example, start an API backend and wait until it is ready.
+  // tasks: {
+  //   api: {
+  //     // Program to run.
+  //     command: "node",
+  //
+  //     // Arguments passed to that program, one item per argument.
+  //     args: ["api.js"],
+  //
+  //     // Folder the program runs in, relative to this project.
+  //     cwd: ".",
+  //
+  //     // Extra environment variables passed to the program.
+  //     env: {
+  //       PORT: "7000",
+  //     },
+  //
+  //     // "service" stays running; "once" must finish before continuing.
+  //     mode: "service",
+  //
+  //     // Wait until the program is ready before starting dependent tasks.
+  //     ready: {
+  //       // This URL must answer successfully. Use stdout: "READY" instead
+  //       // of url if the program prints READY when it can accept work.
+  //       url: "http://localhost:7000/ready",
+  //
+  //       // How long to wait for readiness, in milliseconds.
+  //       timeout: 10000,
+  //     },
+  //
+  //     // Restart this task when these files change.
+  //     watch: ["api.js"],
+  //
+  //     // Wait this many milliseconds after the last edit before restarting.
+  //     delay: 150,
+  //   },
+  //   prepare: {
+  //     // Program used for a setup step.
+  //     command: "node",
+  //
+  //     // Setup script to run.
+  //     args: ["prepare.js"],
+  //
+  //     // Run once and require a successful exit before continuing.
+  //     mode: "once",
+  //
+  //     // Stop this setup task if it takes more than 60 seconds.
+  //     timeout: 60000,
+  //
+  //     // Start these tasks first. Stop tasks in the reverse order.
+  //     dependsOn: ["api"],
+  //   },
+  // },
+
+  // NATIVE APPS: share app settings across Electron, Tauri, Android and iOS.
+  // "stage" prepares files without running an app or needing a platform SDK.
+  // Restart tinybuild after changing native settings or the server's address/port.
+  // Ordinary web edits hot reload; main/preload edits use electron.watch below.
+  // native: {
+  //   // Unique app ID, usually your reversed website name plus the app name.
+  //   id: "com.example.app",
+  //
+  //   // App name shown to people.
+  //   name: "My App",
+  //
+  //   // App version; use three numbers separated by dots.
+  //   version: "1.0.0",
+  //
+  //   // App-store build counter. Increase it for each uploaded build.
+  //   buildNumber: 1,
+  //
+  //   // Person or team making the app.
+  //   author: "Example",
+  //
+  //   // Short description included in generated app metadata.
+  //   description: "My app",
+  //
+  //   // Software license included in generated package metadata.
+  //   license: "MIT",
+  //
+  //   // Platforms to prepare. Set a platform to false to skip it.
+  //   targets: {
+  //     electron: {
+  //       action: "stage",
+  //     },
+  //     tauri: {
+  //       action: "stage",
+  //     },
+  //     mobile: {
+  //       android: "stage",
+  //       ios: "stage",
+  //     },
+  //   },
+  //
+  //   // Add common device features and the permissions they need.
+  //   // The app must still ask the person for permission at runtime.
+  //   presets: [
+  //     {
+  //       name: "camera",
+  //       description: "Scan a receipt.",
+  //     },
+  //     "files",
+  //     "notifications",
+  //   ],
+  //
+  //   // Extra native packages to install on a particular platform.
+  //   // Secure storage needs a preset with a plugin provider you choose.
+  //   plugins: [
+  //     {
+  //       target: "mobile",
+  //       name: "@capacitor/share",
+  //       version: "^8.0.0",
+  //     },
+  //   ],
+  //
+  //   // Extra platform permissions beyond those supplied by presets.
+  //   permissions: {
+  //     // Android permission names, such as "android.permission.CAMERA".
+  //     android: [],
+  //
+  //     // iOS permission messages, e.g. NSCameraUsageDescription: "Take a photo".
+  //     ios: {},
+  //
+  //     // Tauri capabilities allowed for the app's windows.
+  //     tauri: ["core:default"],
+  //   },
+  //
+  //   // Icon files or asset folders for each platform.
+  //   icons: {
+  //     electron: "icon.png",
+  //     tauri: ["icons/32x32.png"],
+  //     mobile: "assets",
+  //   },
+  //
+  //   // Load the live web server inside the app to see saved edits quickly.
+  //   devUrl: true,
+  //
+  //   // Your computer's LAN address when another device must reach that server.
+  //   devHost: "192.168.1.2",
+  //
+  //   // Extra environment variables for native build commands.
+  //   env: {
+  //     APP_VARIANT: "debug",
+  //   },
+  //
+  //   // Additional Capacitor settings merged into the mobile app config.
+  //   capacitor: {
+  //     plugins: {},
+  //   },
+  //
+  //   // Additional Tauri settings merged into the desktop app config.
+  //   tauri: {
+  //     // Include a separate backend program in the native distribution.
+  //     // Supply a compiled executable for each OS/CPU you build for.
+  //     // The actual filename adds -<Rust target triple> and .exe on Windows.
+  //     // See examples/tauri_sidecar for building, launching and stopping it.
+  //     bundle: {
+  //       externalBin: ["binaries/my-backend"],
+  //     },
+  //   },
+  //
+  //   // Named sets of settings for different builds of the same app.
+  //   profiles: {
+  //     debug: {
+  //       name: "My App Debug",
+  //     },
+  //     release: {
+  //       // Run your signing script after successful packaging.
+  //       signing: {
+  //         // Fail early if these environment variables are missing.
+  //         requiredEnv: ["SIGNING_ID"],
+  //
+  //         // Program and arguments for your signing step.
+  //         command: ["node", "sign.js"],
+  //
+  //         // Check the finished app's signature. A failed check fails this build.
+  //         // Both scripts receive artifact folders in TINYBUILD_ARTIFACT_DIRS.
+  //         verify: ["node", "verify-signature.js"],
+  //       },
+  //     },
+  //   },
+  //
+  //   // Choose one of the profiles above. The CLI can override this with --profile.
+  //   profile: "debug",
+  // },
+
+  // Choose a native profile here, or use `tinybuild --profile release`.
+  // profile: "debug",
+
+  // DEPLOYMENT: normally Tinybuild builds, serves and watches for edits.
+
+  // Prepare production output: no reload, no package installs, cached URL imports.
+  // The server uses dist as its default public folder in this mode.
+  // production: true,
+
+  // Prevent installs and new URL downloads without changing the server mode.
+  // frozen: true,
+
+  // Reject unknown config options instead of warning about them.
+  // Helps catch typos such as "minfy" instead of "minify".
+  // strictConfig: true,
+
+  // Your own app settings go here so config validation knows they are intentional.
+  // metadata: {
+  //   applicationSpecific: "value",
+  // },
+
+  // MORE TOOLS: `tinybuild doctor` checks which optional build tools are installed.
+  // `tinybuild doctor --report --json` collects selected settings and tool checks to share.
+  // `tinybuild analyze` reports sizes. `tinybuild benchmark=5` times five builds.
+  // `tinybuild clean --dryRun` lists unchanged generated files it could delete.
+  // Remove --dryRun to clean them; edited files and custom native shells are kept.
+  // `tinybuild bundle` is another way to request a single build.
+  // `tinybuild path=other.config.js` selects another config, as --cfgpath does.
+  // `tinybuild start path=server.js` runs and restarts your own Node startup script.
+  // `tinybuild mode=python` starts the Python backend alongside your web app.
+  // `tinybuild help` lists command-line options. --config accepts JSON overrides.
+  // App helpers: tinybuild/client/hot saves state across script replacement;
+  // tinybuild/client/workers runs/cancels worker jobs; tinybuild/client/native uses device bridges.
+  // Native stage/preview need no SDK; running/compiling native apps needs platform tools.
 };
+
 export default config;
 ```
+
+<!-- tinybuild:config:end -->
 
 </details>
-
-See below for full instructions!
-
----
-
-## CLI Cheatsheet
-
-| Command                      | Description                                            |
-| ---------------------------- | ------------------------------------------------------ |
-| `tinybuild`                  | Build **and** serve (default)                          |
-| `tinybuild build`            | Bundle only                                            |
-| `tinybuild serve`            | Dev‑server only (no build)                             |
-| `tinybuild help`             | List CLI/config commands.                              |
-| `--config='{…}'`             | Inline JSON config override                            |
-
-Everything is also exposed programmatically via:
-
-```js
-import { packager } from 'tinybuild';
-packager(myConfig);
-```
-
-See below for full instructions!
-
----
-
-## Deep‑Dive Docs
-
-* **Quickstart** – [`docs/tinybuild.md`](tinybuild/docs/tinybuild.md)
-* **esbuild Details** – [`docs/esbuild.md`](tinybuild/docs/esbuild.md)
-* **Node Server** – [`docs/server.md`](tinybuild/docs/server.md)
-* **Python Bridge** – [`docs/python.md`](tinybuild/docs/python.md)
-
----
-
-## Troubleshooting
-
-* **macOS shebang fix**
-
-  ```bash
-  brew install dos2unix
-  sudo dos2unix $(npm root -g)/tinybuild/tinybuild/bin/global.js
-  ```
-* **Windows global perms** – search the npm error and apply usual ACL / build‑tools fixes.
-
----
-
-## Contributing
-
-We use Tinybuild daily; main may break occasionally. PRs, issues & feature ideas are welcome, especially **plugins** and **native‑target enhancements**.
-
----
-
-## Full Configuration Reference
-
-## For Existing Projects
-
-In a project folder with a package.json (e.g. after running `npm init` for the first time), 
-
-Create a `tinybuild.config.js` file like so (copy/paste or tinybuild can generate one for you by simply running):
-```js
-//import {defaultBundler, defaultServer, packager} from 'tinybuild'
-
-const config = {
-    //build:true, //enable this to skip serve step (same as cli)
-    //serve:true //or enable this to skip build step (same as cli)
-    bundler: { //esbuild settings, set false to skip build step or add bundle:true to config object to only bundle (alt methods)
-        entryPoints: [ //entry point file(s). These can include .js, .mjs, .ts, .jsx, .tsx, or other javascript files. Make sure your entry point is a ts file if you want to generate types
-        "index.js"
-        ],
-        outfile: "dist/index", //exit point file, will append .js as well as indicators like .esm.js, .node.js for other build flags
-        //outdir:'dist'               //exit point folder, define for multiple entryPoints
-        bundleBrowser: true, //create plain js build? Can include globals and init scripts
-        bundleESM: false, //create esm module js files // { platform:'node' } //etc you can also supply an object here to add more specific esbuild settings
-        bundleTypes: false, //create .d.ts files, //you need a .tsconfig for this to work, tinybuild will create one for you when you set this true, however, and has typescript support built in
-        bundleNode: false, //create node platform plain js build, specify platform:'node' to do the rest of the files 
-        bundleHTML: false, //wrap the first entry point file as a plain js script in a boilerplate html file, frontend scripts can be run standalone like a .exe! Server serves this as start page if set to true.
-        //bundleIIFE:false,   //create an iife build, this is compiled temporarily to create the types files and only saved with bundleIIFE:true
-        //bundleCommonJS:false, //cjs format outputted as .cjs
-        minify: true,
-        sourcemap: false,
-        //plugins:[] //custom esbuild plugins? e.g. esbuild-sass-plugin for scss support
-        //includeDefaultPlugins:true //true by default, includes the presets for the streaming imports, worker bundling, and auto npm install
-        //blobWorkers:true, //package workers as blobs or files? blobs are faster but inflate the main package size
-        //workerBundler:{minifyWhitespace:true} //bundler settings specific to the worker. e.g. apply platform:'node' when bundling node workers, default is minifyWhitespace:true as full minifying may cause unforeseen errors 
-        //globalThis:null //'mymodule'
-        //globals:{'index.js':['Graph']}
-        //init:{'index.js':function(bundle) { console.log('prepackaged bundle script!', bundle); }.toString(); }      
-        //  outputs:{ //overwrites main config settings for specific use cases
-        //     node:{ //e.g. for bundleNode
-        //     // external:[] //externals for node environment builds
-        //     },
-        //     //commonjs:{} //bundleCommonJS
-        //     //browser:{}
-        //     //esm:{}
-        //     iife:{
-        //     // external:[] //we only use the iife for types so it doesn't really matter if it bundles node, just note otherwise if you need iife for some obscure reason
-        //     }
-        // },
-        //refer to esbuild docs for more settings
-     },
-    server: {  //node server settings, set false to skip server step or add serve:true to config object to only serve (alt methods)
-        debug: false,
-        protocol: "http",  //'http' or 'https'. HTTPS required for Nodejs <---> Python sockets. If using http, set production to False in python/server.py as well
-        host: "localhost", //'localhost' or '127.0.0.1' etc.
-        port: 8080, //e.g. port 80, 443, 8000
-        //redirect: 'http://localhost:8082' //instead of serving the default content, redirect ot another url
-        //headers: { 'Content-Security-Policy': '*'  }, //global header overrides
-        startpage: 'index.html',  //default home page/app entry point 
-        /*
-        routes:{ //set additional page routes (for sites instead of single page applications)
-            '/page2': 'mypage.html',
-            '/custom':{ //e.g. custom page template
-                headers: { 'Content-Security-Policy': '*' }, //page specific headers 
-                template:'<html><head></head><body><div>Hello World!</div></body></html>'
-                //path: 'mypage.html' //or a file path (e.g. plus specific headers)
-                // ─── Example parameterized routes ─────────────────────────────────
-                '/user/:userId/:action':{             // e.g. GET /user/42/edit
-                    onrequest: (req,res) => {
-                        const { userId, action } = req.params;
-                        res.end(`User ${userId} wants to ${action}`);
-                        return true;                  // signal “handled”
-                    }
-                },
-                '/product/:productId': 'product.html',// serve same template for any product
-                '/posts/:year/:month/:slug':{         // e.g. /posts/2025/05/awesome-post
-                    template:'<h1>Blog post here…</h1>'
-                }
-            },
-            '/redirect':{ //e.g. custom redirect
-                redirect:'https://google.com'
-            },
-            '/other':(request,response) => {}, //custom request/response handling
-            '/': 'index.html', //alt start page declaration
-            '/404':'packager/node_server/other/404.html', //e.g. custom error page
-        },
-        */
-        socket_protocol: "ws", //frontend socket protocol, wss for served, ws for localhost
-        hotreload: 5000,  //hotreload websocket server port
-        //reloadscripts: false, //hot swap scripts, can break things if script handles initializations, otherwise css, link, srcs all hot swap without page reloading fairly intelligently
-        //delay: 50, //millisecond delay on the watch command for hot reloading
-        //pwa: "service-worker.js",  //pwa mode? Injects service worker webpage code to live site, will create a service worker and webmanifest for you if not existent
-        //watch: ['../'], //watch additional directories other than the current working directory
-        //python: false,//7000,  //quart server port (configured via the python server script file still)
-        //python_node:7001, //websocket relay port (relays messages to client from nodejs that were sent to it by python)
-        errpage: 'node_modules/tinybuild/tinybuild/node_server/other/404.html', //default error page, etc.
-        certpath:'node_modules/tinybuild/tinybuild/node_server/ssl/cert.pem',//if using https, this is required. See cert.pfx.md for instructions
-        keypath:'node_modules/tinybuild/tinybuild/node_server/ssl/key.pem'//if using https, this is required. See cert.pfx.md for instructions
-    },
-    // electron:true //desktop apps as a full chromium bundle, not small and needs some customization for things like bluetooth menus. Better for full featured applications. Can trigger backend runtimes on local machines.
-    /*mobile:{ //this will copy the dist and index.html to capacitor builds that can create small interoperable javascript webview + native functionality (e.g. bluetooth) mobile apps (~2Mb at minimum). 
-        //android:'open', //'open'//true //Requires Android Studio, it will be launched
-        //ios:false //'open'//true //Requires XCode 
-    }, */
-    //tauri:true, //alternative tauri build options for very minimal native engine desktop apps that generally lack the latest web APIs. Good for simple apps, you can bundle it with backend runtimes on local machines.
-    /*
-    assets:[ //for the mobile/desktop bundlers to copy into their respective folders
-        './assets',
-        './favicon.ico'
-    ]
-    */
-}
-
-export default config;
-```
-
-Please note the bundler object simply uses the base esbuild commands plus some extras that we filter out. We preset certain things like the file import formats so you easily import html and so on as text files or url refs or other as appropriate, then your specifications will override our defaults otherwise, which you can see if you go to tinybuild/esbuild and explore the files 
-
-## tinybuild CLI commands:
-
-e.g. `tinybuild build` or `tinybuild serve` to run isolated commands 
-
-`tinybuild help` lists accepted arguments, see the boilerplate created in the new repo for more. The `tinybuild` command will use your edited `tinybuild.config.js` or `tinybuild.js` (which includes the library and executes the packager with the bundler and/or server itself for more control) config file after initialization so you can use it generically, else see the created `package.json` for more local commands.
-
-global command:
-- `tinybuild` -- runs the boilerplate tinybuild bundler + server settings in the current working directory. It will create missing index.js, package.json (with auto npm/yarn install), and tinybuild.js, and serve with watched folders in the working directory (minus node_modules because it slows down) for hot reloading.
-
-local command:
-- `node path/to/tinybuild.js` -- will use the current working directory as reference to run this packager config
-
-### tinybuild arguments (applies to packager or tinybuild commands):
-- `start` -- runs the equivalent of `node tinybuild.js` in the current working directory.
-- `build`/`bundle` -- runs the esbuild bundler, can specify config with `config={"bundler":{}}` via a jsonified object
-- `serve` -- runs the node development server, can specify config with `config={"server":{}}` via a jsonified object and object
-- `mode=python` -- runs the development server as well as python which also serves the dist from a separate port (7000 by default). 
-- `mode=dev` for the dev server mode (used by default if you just type `tinybuild` on boilerplate)
-- `path=custom.js` -- target a custom equivalent tinybuild.js entry file (to run the packager or bundler/server)st` - host name for the server, localhost by default
-
-### esbuild arguments:
-- `entryPoints=index.js` -- set an entry point for your script, can also be a JSONified array of strings.
-- `outfile=dist/index` -- set the output directory and file name (minus the extension name)
-- `outdir=dist` -- alternatively use outdir when using multiple entry points
-- `bundleBrowser=true` -- produce a plain .js bundle that is browser-friendly, true by default. 
-- `bundleESM=false` -- produce an ESM module bundle, false by default, Will be identified by .esm.js
-- `bundleTypes=false` -- produce .d.ts files, false by default, entry point needs to by a typescript file but it will attempt to generate types for js files in the repo otherwise. The files are organized like your repo in the dist folder used. 
-- `bundleNode=false` -- create a separate bundle set to include node dependencies. Identified by .node.js
-- `bundleHTML=true` -- bundle an HTML boilerplate that wraps and executes the browser bundle as a quick test. If true the packager command will set this file as the startpage, otherwise you have an index.html you can customize and use that has the same base boilerplate. Find e.g. index.build.html in dist.
-- `external=['node-fetch']` -- mark externals in your repo, node-fetch is used in a lot of our work so it's there by default, the node bundle has its own excludes (see our esbuild options in readme)
-- `platform=browser` -- the non-node bundles use browser by default, set to node to have all bundles target the node platform. Externals must be set appropriately.
-- `globalThis=myCustomBundle` -- You can set any exports on your entry points on the bundleBrowser setting to be accessible as a global variable. Not set by default.
-- `globals={[entryPoint]:['myFunction']}` -- you can specify any additional functions, classes, variables etc. exported from your bundle to be installed as globals on the bundleBrowser setting.
-
-### Server arguments:
-- `host=localhost` -- set the hostname for the server, localhost by default. You can set it to your server url or IP address when serving. Generally use port 80 when serving.
-- `port=8080` - port for the server, 8080 by default
-- `protocol=http` - http or https? You need ssl cert and key to run https
-- `python=7000` - port for python server so the node server can send a kill signal, 7000 by default. Run the python server concurrently or use `mode=python`
-- `hotreload=5000` - hotreload port for the node server, 5000 by default
-- `watch=../../path/to/other/src` OR `watch=['path/to/src1','src2','.xml']` - watch extra folders and extensions
-- `extensions=xml,3ds` OR `extensions=['xml','3ds']` watch specific extensions for changes
-- `ignore=../../path/to/other/src,path2/src2` OR `ignore=['path/to/src1','../path2/src2']`- ignore files and folders
-- `startpage=index.html` - entry html page for the home '/' page, index.html by default
-- `certpath=tinybuild/node_server/ssl/cert.pem` - cert file for https 
-- `keypath=tinybuild/node_server/ssl/key.pem` - key file for https
-- `pwa=tinybuild/pwa/workbox-config.js` - service worker config for pwa using workbox-cli (installed separately via package.json), the server will install a manifest.json in the main folder if not found, https required
-- `config="{"server":{},"bundler":{}}"` -- pass a jsonified config object for the packager. See the bundler and server settings in the docs.
-- `init` -- initialize a folder as a new tinybuild repository with the necessary files, you can include the source using the below command
-- `core=true` -- include the tinybuild source in the new repository with an appropriate package.json
-- `entry=index.js` --name the entry point file you want to create, defaults to index.js
-- `script=console.log("Hello%20World!")` -- pass a jsonified and URI-encoded (for spaces etc.) javascript string, defaults to a console.log of Hello World!
-
-### Native Desktop and Mobile Apps
-- `electron` -- Start an electron app with boilerplate, copying your dist and specified assets. See Electron Docs
-- `mobile={android:'open',ios:false}` -- Use Capacitor to create a bundled mobile app, use 'open' to run android studio or xcode, or set to true to use the CLI, assuming you have dependencies installed. See Capacitor Docs.
-- `tauri` -- Alternative minimal desktop runtime via Tauri. See Tauri Docs.
-- `assets=['./assets','favicon.ico']` -- Specify additional assets to copy to the native distributions
-
-
-

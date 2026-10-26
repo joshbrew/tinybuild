@@ -1,0 +1,11 @@
+{
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node ../../tinybuild/bin/global.js",
+    "build": "node ../../tinybuild/bin/global.js build",
+    "devices": "node ../../tinybuild/bin/global.js devices",
+    "native:debug": "node ../../tinybuild/bin/global.js --profile debug --lan --qr",
+    "native:release": "node ../../tinybuild/bin/global.js build --profile release"
+  }
+}

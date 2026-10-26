@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8" /><title>Electron sidecar</title>
+  <body>
+    <h1>Electron sidecar</h1>
+    <p>
+      The app owns a separate Node backend. Web edits keep that backend running.
+    </p>
+    <label>Number <input type="number" value="7" min="0" max="1000000" /></label
+    ><button>Calculate square</button>
+    <p><output>Connecting to the native backend…</output></p>
+    <script src="dist/index.js"></script>
+  </body>
+</html>

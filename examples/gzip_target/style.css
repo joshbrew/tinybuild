@@ -1,0 +1,14 @@
+body {
+  font: 18px system-ui;
+  max-width: 48rem;
+  margin: 3rem auto;
+  padding: 1rem;
+}
+button {
+  font: inherit;
+  padding: 0.6rem 1rem;
+}
+output {
+  display: block;
+  margin-top: 1rem;
+}

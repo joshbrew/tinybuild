@@ -1,9 +1,13 @@
-## Build and run
+# Share or transfer memory to a worker
 
-With `tinybuild` installed globally (`npm i -g tinybuild`): `npm start`
+```sh
+npm start
+```
 
-## Configuration
+Open the printed URL. One worker fills a shared buffer; another receives and returns a transferred buffer. The page reports 65,536 filled pixels and 262,144 returned bytes, then stops both workers.
 
-See [`./tinybuild.config.js`](./tinybuild.config.js) for settings. 
+- `index.js` creates buffers and sends the jobs.
+- `worker.js` uses shared memory.
+- `nonshared.worker.js` handles the transferred buffer.
 
-Add build:true for build-only, add serve:true for serve-only, or set bundle or server to false alternatively.
+The server config sends `Cross-Origin-Opener-Policy: same-origin` and `Cross-Origin-Embedder-Policy: require-corp`. These headers let supported browsers enable shared memory. Use the configured server; the page explains when cross-origin isolation or SharedArrayBuffer is unavailable. Measure performance on the devices you intend to support.

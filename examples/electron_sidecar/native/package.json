@@ -1,0 +1,8 @@
+{
+  "name": "tinybuild-electron-sidecar",
+  "version": "0.0.0",
+  "main": "app.cjs",
+  "description": "An Electron app with an owned Node backend",
+  "author": "Tinybuild examples",
+  "license": "MIT"
+}

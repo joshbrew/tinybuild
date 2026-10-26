@@ -1,17 +1,10 @@
-### Known Bugs
+# Follow-ups
 
-- Installing tinybuild locally and globally then running hotreload server config can trigger both library locations for some reason. Our previous measures don't seem to work anymore.
-- redirect can cache and break localhost on non-redirect servers because of caching (??)
+Feature usage is documented in [README](README.md) and the [enhancement guide](tinybuild/docs/enhancements.md). Validation results and platform requirements are recorded in the [testing guide](tinybuild/docs/platform-testing.md).
 
-### Enhancements
+Keep further work driven by actual applications:
 
-- suggestions? We are not gonna over-engineer more than we have to though as it's antithetical to esbuild.
-
-### QOL
-
-Redo some of the templating logic so it's more intelligent to your repository
-
-Explore a hotreloading system where we copy css files for example to an isolated build so they can hotreload much quicker in large projects.
- - Requires a new runAndWatch command that will decide which bundle to run based on which paths resolve from chokidar.watch
- - Temp write css caches only for hotreload mode since this is pointless otherwise, use an esbuild plugin that collects the files into node_modules/.cache folder just to keep it out of the way
- - Include consideration for the worker plugin too as rebundling those every time can be cumbersome for large programs in workers
+- Add application-specific checks for the next complex stacks, especially custom plugins, routes and native overlays. Existing application source failures are recorded separately from tinybuild failures.
+- Run the existing mobile lifecycle, permission and reconnect checks on real Android/iOS devices and prepared SDK hosts.
+- Verify macOS execution, signing/notarization and credentialed release workflows on the appropriate hosts. The current portable checks do not replace those runs.
+- Extend native capability and remote synchronization recipes only when a concrete application needs them.

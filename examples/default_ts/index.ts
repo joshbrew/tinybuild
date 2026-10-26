@@ -1,54 +1,28 @@
-/* 
-    esbuild + nodejs development server. 
-    Begin your javascript application here. This file serves as a simplified entry point to your app, 
-    all other scripts you want to build can stem from here if you don't want to define more entryPoints 
-    and an outdir in the bundler settings.
+// Start your app here. Imports are built automatically.
+import "./index.css";
 
-    Just ctrl-A + delete all this to get started on your app.
+document.body.style.backgroundColor = "#101010";
+document.body.style.color = "white";
 
-*/
+const square = document.createElement("div");
+square.id = "floatingDiv";
+square.textContent = "Hello World!";
+document.body.append(square);
 
-import './index.css' //compiles with esbuild, just link the stylesheet in your index.html (the boilerplate shows this example)
+// A small animation to show that the page is running.
+let x = 0;
+let y = 0;
+let dx = 2;
+let dy = 2;
 
-document.body.style.backgroundColor = '#101010'; //page color
-document.body.style.color = 'white'; //text color
-let div = document.createElement('div');
-div.innerHTML = 'Hello World!';
-div.id = 'floatingDiv';
-document.body.appendChild(div);
-
-console.warn('Tinybuild successful!');
-
-// Get the floating div element
-var floatingDiv = document.getElementById("floatingDiv") as HTMLDivElement;
-
-// Set initial position and velocity
-var posX = 0;
-var posY = 0;
-var velX = 2;
-var velY = 2;
-
-// Update the position of the div and handle bouncing off the edges
-function updatePosition() {
-    posX += velX;
-    posY += velY;
-
-    // Check if the div has reached the left or right edge
-    if (posX <= 0 || posX + floatingDiv.offsetWidth >= window.innerWidth) {
-    velX *= -1; // Reverse the horizontal velocity
-    }
-
-    // Check if the div has reached the top or bottom edge
-    if (posY <= 0 || posY + floatingDiv.offsetHeight >= window.innerHeight) {
-    velY *= -1; // Reverse the vertical velocity
-    }
-
-    // Set the new position
-    floatingDiv.style.left = posX + "px";
-    floatingDiv.style.top = posY + "px";
-
-    requestAnimationFrame(updatePosition);
+function animate() {
+  x += dx;
+  y += dy;
+  if (x <= 0 || x + square.offsetWidth >= window.innerWidth) dx *= -1;
+  if (y <= 0 || y + square.offsetHeight >= window.innerHeight) dy *= -1;
+  square.style.left = x + "px";
+  square.style.top = y + "px";
+  requestAnimationFrame(animate);
 }
 
-// Call the updatePosition function repeatedly to animate the div
-requestAnimationFrame(updatePosition);
+requestAnimationFrame(animate);

@@ -1,20 +1,6 @@
-import { CapacitorConfig } from '@capacitor/cli';
-
-const config: CapacitorConfig = {
-  appId: 'com.brainsatplay.bletest',
-  appName: 'tinybuildapp',
-  webDir: 'dist',
-  bundledWebRuntime: false,
-  plugins:{
-    "BluetoothLe":{
-      "displayStrings": {
-        "scanning":"Scanning BLE...",
-        "cancel":"Stop Scanning",
-        "availableDevices":"Devices available!",
-        "noDeviceFound": "No BLE devices found."
-      }
-    }
-  }
-};
-
-export default config;
+import type { CapacitorConfig } from "@capacitor/cli";
+export default {
+  appId: "com.tinybuild.example",
+  appName: "Tinybuild Example",
+  webDir: "mobile_dist",
+} satisfies CapacitorConfig;

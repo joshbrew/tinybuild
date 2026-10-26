@@ -1,0 +1,22 @@
+# Working on a tinybuild project
+
+Read the project's README and complete tinybuild.config.js first. The config is ordinary JavaScript: inspecting it can execute its imports and callbacks used to construct it. Keep its explanations and custom code when making edits.
+
+1. Run `tinybuild help` or `tinybuild options --search worker --json` to discover settings. The installed annotated template and public Config type are the references.
+2. Run `tinybuild preview --json` to see outputs, serving paths, native command plans and explanations. Run `tinybuild validate --strict --json` to catch mistakes. Put application-specific values under metadata.
+3. Make a small change. `tinybuild config --set <JSON> --dryRun` previews a managed edit; `--yes` saves it with a backup. Calling configure from JavaScript avoids shell quoting. Never replace a custom config with a minimal generated object.
+4. Run `tinybuild check --json`. It builds with dependency auto-install disabled, checks configured files and URLs, and closes its private server. Install dependencies explicitly first. Use `--stage` for configured native staging; SDK compilation, devices and signing are separate checks. A successful build alone does not prove UI behavior. Run the project's own tests too.
+5. For interactive work, use `tinybuild dev --json`: stdout contains one JSON event per line. Wait for ready, built or build-error; read the actual URL instead of assuming port 8080. Later built events include the current URL. Custom config/plugin/application console output and child processes are application-owned; keep their logs on stderr when consuming JSON.
+6. Stop the process you started with SIGINT or SIGTERM. Programmatic users should await app.close(). Do not terminate unrelated Node processes or reuse somebody else's occupied port.
+
+`doctor --target browser|node|electron|tauri|android|ios` checks that workflow's prerequisites and suggests remedies. It does not install SDKs. `init --list --search worker` lists shipped starter recipes; `init --example webworkers --dir demo` copies one without installing dependencies. `init --agentGuide` creates TINYBUILD_AGENT.md only if it is missing; existing AGENTS.md and other instructions are preserved.
+
+Read-only commands: help, options, preview, validate, doctor, devices and status. Preview loads executable JavaScript config but does not build, install, stage or launch. Init and config write project files. Check/build write outputs. Development can install missing dependencies when autoInstall is enabled. Native run/build, remote presets and signing can start programs or contact machines; inspect their plans and use them only within the requested task.
+
+Add worker files to an existing project with `tinybuild init --worker src/flow.Worker --typescript --dryRun --json`, then omit dryRun to create them. The result includes a usage example and required settings; existing files and config are preserved. Use `--workerRuntime node` for worker_threads, or `init --example worker_types --dir demo` for a complete typed browser-worker starter. TypeScript URL imports use companion declarations and allowArbitraryExtensions; include the generated worker source in type checks too.
+
+Machine output uses schemaVersion: 1. Inspection commands emit one result object with command, ok and data. Development emits events with type, sequence and time. Failed commands exit 1 and emit an error object in JSON mode; successful one-shot commands exit 0. Unknown options are errors with strict validation; warnings remain visible otherwise. Environment values and credential-named config fields are redacted in previews, but ordinary JavaScript can print arbitrary values itself.
+
+Select events by type. `dev --debug --json` includes optional `reload` trace events; native packaging includes an `artifacts` event listing current output-directory contents. A `built` event means the current output is ready, while `ready` announces the listening session. Ignore event types you do not use. `doctor --report --json` collects selected settings and tool checks for support without saving logs; see the [report fields and redaction rules](tinybuild.md#troubleshooting-reports).
+
+Output flags follow the normal CLI rules: `--json false`, `--json=false` and `--no-json` select human-readable errors, and the last repeated flag wins. Error records name the selected command whether you use `validate`, `--validate`, or inline JSON config. Malformed JSON arguments still produce a JSON error when `--json` is enabled.

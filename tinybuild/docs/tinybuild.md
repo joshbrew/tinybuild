@@ -1,308 +1,146 @@
+# Configuration and usage
 
-tinybuild is the result of testing a ton of bundlers and development servers and landing on this combination of packages and settings. It is instantaneous (<100ms for bundling and serving, <3 seconds if you are bundling types for modules in mid-size libraries). 
+Commands below use `tinybuild`; use `npx tinybuild` when it is installed locally in your app.
 
+`options` starts with common settings; add `--search <word>` for a specific feature. `doctor` lists available or missing tools with suggested fixes. `check` lists the build, files and URLs it verified. Add `--json` for the complete structured results used by scripts and agents.
 
-Feature breakdown:
+| Command                                                         | Purpose                                              |
+| --------------------------------------------------------------- | ---------------------------------------------------- |
+| `tinybuild`                                                     | Build, serve and watch for edits                     |
+| `tinybuild dev --open`                                          | Start development and open the browser               |
+| `tinybuild build`                                               | Build once                                           |
+| `tinybuild serve`                                               | Serve existing files without building                |
+| `tinybuild config`                                              | Edit common settings with a guided configurator      |
+| `tinybuild preview`                                             | Inspect the effective configuration without building |
+| `tinybuild validate --strict`                                   | Check configuration, including unknown options       |
+| `tinybuild options --search worker`                             | Explain matching options                             |
+| `tinybuild init --list`                                         | List available starter projects                      |
+| `tinybuild init --example webworkers --dir demo`                | Create a project from a starter                      |
+| `tinybuild doctor --target android`                             | Check the tools needed for a target                  |
+| `tinybuild status --url http://localhost:8080/_tinybuild/ready` | Check a running server's readiness                   |
+| `tinybuild mode=python`                                         | Start a supervised Python backend                    |
+| `tinybuild help`                                                | List commands and options                            |
 
-## [esbuild](./esbuild.md)
-## [node server](./server.md)
-## [python](./python.md)
+Use `--cfgpath custom.mjs` to select a config; CommonJS `.cjs` configs are supported too. Overrides accept `--port 8081`, `--port=8081` or `port=8081`. Lists accept comma-separated values or JSON arrays. Inline config uses JSON. Explicit CLI settings override the config file, which overrides defaults.
 
+The configurator previews changes, preserves imports/comments/custom code, and backs up the file before saving. `--envFile .env.local` explicitly loads environment values before reading the config. The shipped [TypeScript config](../templates/tsconfig.json) explains browser, React, Node and declaration settings.
 
-esbuild supports the full spectrum of javascript bundling needs and we have documented its typical features fairly well with our settings. See their website for more information. 
+For agents and scripts, `options`, `preview`, `validate` and `check` support `--json`. `tinybuild check --json` builds without automatic dependency installation and checks configured output files and URLs; `--stage` includes native staging. `tinybuild dev --json` emits lifecycle events with the listening URL. Keep custom config/plugin and child-process logs on stderr when consuming JSON. Add `--agentGuide` during initialization to include project instructions. See the [configuration example](../../examples/config_workflow/README.md) and [agent guide](agents.md).
 
-The node server is no-frills with websocket based hot reloading and basic examples of python backend communication and relaying. It's small and fast and meets our most common development server needs without giant dependencies.
+## Live reload and development tasks
 
-## Global install
+Use `tinybuild dev --debug` to trace grouped files and the quiet-window delay, queued saves during compilation, static-only refreshes, rebuild reasons and service replacements after config edits. It uses the existing `server.debug` setting, so request logs are enabled too. `--json` adds structured `reload` events with an `action`, file list and optional delay/services; readable logs stay on stderr. Tracing does not change the reload schedule.
 
-`npm i -g tinybuild`
+The server stays running while persistent esbuild contexts rebuild. A configurable quiet window groups saved files; `server.delay` defaults to 150 milliseconds. Saves during a build are queued, and settled output changes trigger one update. The CLI reports the listening URL after startup and successful builds.
 
-then from an empty project folder, initialize a default app with:
+Stylesheets update after successful compilation. Other changed outputs refresh the page. Build and config errors remain visible in an overlay until repaired. Added/deleted files, extra watch directories and config edits are supported. Static files are read per request, so new files are available immediately.
 
-`tinybuild`
+Set `server.hotreload` to `true` or a positive number to enable reload. Reload WebSockets share the HTTP/HTTPS listener at `/hotreload`; SSE transport is also available. The browser derives the host and protocol from its page. `reloadscripts: true` enables script replacement; `tinybuild/client/hot` provides state and cleanup hooks for applications using it.
 
-Or first create a tinybuild.config.js in your project directory like so:
+Use `tasks` to own development backends and other services. Tasks support dependencies, readiness checks, watched restarts and shutdown in dependency order. See [task_workspace](../../examples/task_workspace/README.md) and [hot_hooks](../../examples/hot_hooks/README.md).
+
+## Web server and production
+
+The Node server supports async and parameterized routes, HTTPS, response headers, static mounts, SPA navigation, HTTP/WebSocket proxies, ETags, byte ranges, readiness and graceful shutdown. `server.open` opens the browser, `portRetries` allows development port fallback, and optional request logs and deadlines help diagnose server behavior.
+
 ```js
-//import {defaultBundler, defaultServer, packager} from 'tinybuild'
-
-let entryPoints = ['index.js']
-
-const config = {
-    //build:true, //enable this to skip serve step (same as cli)
-    //serve:true //or enable this to skip build step (same as cli)
-    bundler: { //esbuild settings, set false to skip build step or add bundle:true to config object to only bundle (alt methods)
-        entryPoints: [ //entry point file(s). These can include .js, .mjs, .ts, .jsx, .tsx, or other javascript files. Make sure your entry point is a ts file if you want to generate types
-        "index.js"
-        ],
-        outfile: "dist/index", //exit point file, will append .js as well as indicators like .esm.js, .node.js for other build flags
-        //outdir:'dist'         //exit point folder, define for multiple entryPoints
-        bundleBrowser: true, //create plain js build? Can include globals and init scripts
-        bundleESM: false, //create esm module js files // { platform:'node' } //etc you can also supply an object here to add more specific esbuild settings
-        bundleTypes: false, //create .d.ts files, //you need a .tsconfig for this to work
-        bundleNode: false, //create node platform plain js build, specify platform:'node' to do the rest of the files 
-        bundleHTML: false, //wrap the first entry point file as a plain js script in a boilerplate html file, frontend scripts can be run standalone like a .exe! Server serves this as start page if set to true.
-        //bundleIIFE:false,   //create an iife build, this is compiled temporarily to create the types files and only saved with bundleIIFE:true
-        //bundleCommonJS:false, //cjs format outputted as .cjs
-        minify: true,
-        sourcemap: false,
-        //plugins:[] //custom esbuild plugins? e.g. esbuild-sass-plugin for scss support
-        //includeDefaultPlugins:true //true by default, includes the presets for the streaming imports, worker bundling, and auto npm install
-        //blobWorkers:true, //package workers as blobs or files? blobs are faster but inflate the main package size
-        //workerBundler:{minifyWhitespace:true} //bundler settings specific to the worker. e.g. apply platform:'node' when bundling node workers, 
-        //globalThis:null //'mymodule'
-        //globals:{'index.js':['Graph']}
-        //init:{'index.js':function(bundle) { console.log('prepackaged bundle script!', bundle); }.toString(); }      
-        //  outputs:{ //overwrites main config settings for specific use cases
-        //     node:{ //e.g. for bundleNode
-        //     // external:[] //externals for node environment builds
-        //     },
-        //     //commonjs:{} //bundleCommonJS
-        //     //browser:{}
-        //     //esm:{}
-        //     iife:{
-        //     // external:[] //we only use the iife for types so it doesn't really matter if it bundles node, just note otherwise if you need iife for some obscure reason
-        //     }
-        // },
-        
-        //refer to esbuild docs for more settings
-     },
-    server: {  //node server settings, set false to skip server step or add serve:true to config object to only serve (alt methods)
-        debug: false,
-        protocol: "http",  //'http' or 'https'. HTTPS required for Nodejs <---> Python sockets. If using http, set production to False in python/server.py as well
-        host: "localhost", //'localhost' or '127.0.0.1' etc.
-        port: 8080, //e.g. port 80, 443, 8000
-        //redirect: 'http://localhost:8082' //instead of serving the default content, redirect ot another url
-        //headers: { 'Content-Security-Policy': '*'  }, //global header overrides
-        startpage: 'index.html',  //default home page/app entry point 
-        /*
-        routes:{ //set additional page routes (for sites instead of single page applications)
-            '/page2': 'mypage.html',
-            '/custom':{ //e.g. custom page template
-                headers: { 'Content-Security-Policy': '*' }, //page specific headers 
-                template:'<html><head></head><body><div>Hello World!</div></body></html>'
-                //path: 'mypage.html' //or a file path (e.g. plus specific headers)
-            },
-            '/redirect':{ //e.g. custom redirect
-                redirect:'https://google.com'
-            },
-            '/other':(request,response) => {}, //custom request/response handling
-            '/': 'index.html', //alt start page declaration
-            '/404':'packager/node_server/other/404.html', //alt error page declaration
-        },
-        */
-        socket_protocol: "ws", //frontend socket protocol, wss for served, ws for localhost
-        hotreload: 5000,  //hotreload websocket server port
-        //reloadscripts: false, //hot swap scripts, can break things if script handles initializations, otherwise css, link, srcs all hot swap without page reloading fairly intelligently
-        //delay: 50, //millisecond delay on the watch command for hot reloading
-        //pwa: "dist/service-worker.js",  //pwa mode? Injects service worker registry code in (see pwa README.md)
-        //watch: ['../'], //watch additional directories other than the current working directory
-        //python: false,//7000,  //quart server port (configured via the python server script file still)
-        //python_node:7001, //websocket relay port (relays messages to client from nodejs that were sent to it by python)
-        errpage: 'node_modules/tinybuild/tinybuild/node_server/other/404.html', //default error page, etc.
-        certpath:'node_modules/tinybuild/tinybuild/node_server/ssl/cert.pem',//if using https, this is required. See cert.pfx.md for instructions
-        keypath:'node_modules/tinybuild/tinybuild/node_server/ssl/key.pem'//if using https, this is required. See cert.pfx.md for instructions
+server: {
+  root: "public",
+  routes: {
+    "/api/hello/:name": {
+      onrequest: async (req, res) => {
+        res.setHeader("Content-Type", "application/json");
+        res.end(JSON.stringify({ hello: req.params.name }));
+        return true;
+      },
     },
-    /*
-    mobile:{ //this will copy the dist and index.html to capacitor builds that can create small interoperable javascript webview + native functionality (e.g. bluetooth) mobile apps (~2Mb at minimum). 
-        android:'open', //'open'//true //Requires Android Studio, it will be launched
-        ios:false //'open'//true //Requires XCode 
-    },
-    electron:true, //desktop apps as a full chromium bundle, not small and needs some customization for things like bluetooth menus. Better for full featured applications. Can trigger backend runtimes on local machines.
-    tauri:true, //alternative tauri build options for very minimal native engine desktop apps that generally lack the latest web APIs. Good for simple apps, you can bundle it with backend runtimes on local machines.
-    assets:[ //for the mobile/desktop bundlers to copy into their respective folders
-        './assets',
-        './favicon.ico'
-    ]
-    */
+    "/404": { template: "<h1>Not found</h1>" },
+  },
 }
-
-export default config;
 ```
 
-Then run `tinybuild`.
+Set `server.spa` to your HTML entry for extensionless deep links. `server.proxy` forwards API requests and optional WebSocket upgrades to trusted backends. Hidden/private files and escaping paths are denied; explicit file routes are trusted configuration.
 
-## Local node_modules/tinybuild Builds (no global package manager)
-For using tinybuild locally (`npm install` vs `npm install -g`) you must import and run `packager(config)` from the tinybuild library yourself, and run it in a script file.
+For production:
 
-### Example:
-
-Create tinybuild.js at the root of your project directory
 ```js
-import {packager} from 'tinybuild'
-import config from './tinybuild.config.js'
-
-packager(config);
-
+export default {
+  production: true,
+  bundler: {
+    entryPoints: ["index.js"],
+    outfile: "dist/index",
+    bundleHTML: true,
+    minify: true,
+  },
+  server: {
+    root: "dist",
+    startpage: "index.html",
+    host: "127.0.0.1",
+    port: 8080,
+  },
+};
 ```
 
-then in the console from that project directory run `node tinybuild.js`
+Production disables reload and automatic installation, and requires cached remote imports. Set `root` or `staticRoots` for your deployment layout. Build with `tinybuild build --production`, then serve with `tinybuild serve --production`.
 
+`bundleGzip: true` saves maximum-compression `.gz` copies of scripts, styles, workers and portable HTML. The server serves fresh, smaller gzip copies at ordinary URLs when the browser accepts them. Originals remain available for local/native use and other clients. `server.precompressed: false` disables this selection. API/proxy responses keep their own behavior.
 
-## tinybuild commands:
+Build-generated PWA workers and manifests support offline distribution. `server.pwa` is relative to the public root: with `root: "public"`, use `pwa: "service-worker.js"` to serve `/service-worker.js`. Absolute filenames are also supported. The optional Python backend provides WebSocket and SSE examples. See the [server guide](server.md), [server_workflow](../../examples/server_workflow/README.md), [gzip_target](../../examples/gzip_target/README.md), [pwa](../../examples/pwa/README.md) and [Python guide](python.md).
 
-`tinybuild help` lists accepted arguments, see the boilerplate created in the new repo for more. The `tinybuild` command will use your edited `tinybuild.config.js` or `tinybuild.js` (which includes the library and executes the packager with the bundler and/or server itself for more control) config file after initialization so you can use it generically, else see the created `package.json` for more local commands.
+## Desktop and mobile apps
 
-global command:
-- `tinybuild` -- runs the boilerplate tinybuild bundler + server settings in the current working directory. It will create missing index.js, package.json (with auto npm/yarn install), and tinybuild.js, and serve with watched folders in the working directory (minus node_modules because it slows down) for hot reloading.
+Tinybuild gathers HTML, chunks, styles, workers and explicit assets into a native web distribution. Existing custom shells are preserved. Stage mode prepares files without installing an SDK:
 
-local command:
-- `node path/to/tinybuild.js` -- will use the current working directory as reference to run this packager config
-
-### tinybuild arguments (applies to packager or tinybuild commands):
-- `start` -- runs the equivalent of `node tinybuild.js` in the current working directory.
-- `build`/`bundle` -- runs the esbuild bundler, can specify config with `config={"bundler":{}}` via a jsonified object
-- `serve` -- runs the node development server, can specify config with `config={"server":{}}` via a jsonified object and object
-- `mode=python` -- runs the development server as well as python which also serves the dist from a separate port (7000 by default). 
-- `mode=dev` for the dev server mode (used by default if you just type `tinybuild` on boilerplate)
-- `path=custom.js` -- target a custom equivalent tinybuild.js entry file (to run the packager or bundler/server)st` - host name for the server, localhost by default
-
-### esbuild arguments:
-- `entryPoints=index.js` -- set an entry point for your script, can also be a JSONified array of strings.
-- `outfile=dist/index` -- set the output directory and file name (minus the extension name)
-- `outdir=dist` -- alternatively use outdir when using multiple entry points
-- `bundleBrowser=true` -- produce a plain .js bundle that is browser-friendly, true by default. 
-- `bundleESM=false` -- produce an ESM module bundle, false by default, Will be identified by .esm.js
-- `bundleTypes=false` -- produce .d.ts files, false by default, entry point needs to by a typescript file but it will attempt to generate types for js files in the repo otherwise. The files are organized like your repo in the dist folder used. 
-- `bundleNode=false` -- create a separate bundle set to include node dependencies. Identified by .node.js
-- `bundleHTML=true` -- bundle an HTML boilerplate that wraps and executes the browser bundle as a quick test. If true the packager command will set this file as the startpage, otherwise you have an index.html you can customize and use that has the same base boilerplate. Find e.g. index.build.html in dist.
-- `external=['node-fetch']` -- mark externals in your repo, node-fetch is used in a lot of our work so it's there by default, the node bundle has its own excludes (see our esbuild options in readme)
-- `platform=browser` -- the non-node bundles use browser by default, set to node to have all bundles target the node platform. Externals must be set appropriately.
-- `globalThis=myCustomBundle` -- You can set any exports on your entry points on the bundleBrowser setting to be accessible as a global variable. Not set by default.
-- `globals={[entryPoint]:['myFunction']}` -- you can specify any additional functions, classes, variables etc. exported from your bundle to be installed as globals on the bundleBrowser setting.
-
-### Server arguments:
-- `host=localhost` -- set the hostname for the server, localhost by default. You can set it to your server url or IP address when serving. Generally use port 80 when serving.
-- `port=8080` - port for the server, 8080 by default
-- `protocol=http` - http or https? You need ssl cert and key to run https
-- `python=7000` - port for python server so the node server can send a kill signal, 7000 by default. Run the python server concurrently or use `mode=python`
-- `hotreload=5000` - hotreload port for the node server, 5000 by default
-- `watch=../../path/to/other/src` OR `watch=['path/to/src1','src2','.xml']` - watch extra folders and extensions
-- `extensions=xml,3ds` OR `extensions=['xml','3ds']` watch specific extensions for changes
-- `ignore=../../path/to/other/src,path2/src2` OR `ignore=['path/to/src1','../path2/src2']`- ignore files and folders
-- `startpage=index.html` - entry html page for the home '/' page, index.html by default
-- `certpath=tinybuild/node_server/ssl/cert.pem` - cert file for https 
-- `keypath=tinybuild/node_server/ssl/key.pem` - key file for https
-- `pwa=tinybuild/pwa/workbox-config.js` - service worker config for pwa using workbox-cli (installed separately via package.json), the server will install a manifest.json in the main folder if not found, https required
-- `config="{"server":{},"bundler":{}}"` -- pass a jsonified config object for the packager. See the bundler and server settings in the docs.
-- `init` -- initialize a folder as a new tinybuild repository with the necessary files, you can include the source using the below command
-- `core=true` -- include the tinybuild source in the new repository with an appropriate package.json
-- `entry=index.js` --name the entry point file you want to create, defaults to index.js
-- `script=console.log("Hello%20World!")` -- pass a jsonified and URI-encoded (for spaces etc.) javascript string, defaults to a console.log of Hello World!
-
-### Native Desktop and Mobile Apps
-- `electron` -- Start an electron app with boilerplate, copying your dist and specified assets. See Electron Docs
-- `mobile={android:'open',ios:false}` -- Use Capacitor to create a bundled mobile app, use 'open' to run android studio or xcode, or set to true to use the CLI, assuming you have dependencies installed. See Capacitor Docs.
-- `tauri` -- Alternative minimal desktop runtime via Tauri. See Tauri Docs.
-- `assets=['./assets','favicon.ico']` -- Specify additional assets to copy to the native distributions
-
-
-Create a package.json if you don't have one. You an use these scripts to run the server.
-```json
-
+```js
 {
-    "name": "tinybuildapp",
-    "version": "0.0.0",
-    "description": "Barebones esbuild and test node server implementation. For building",
-    "main": "./dist/index.js",
-    "types": "./dist/index.d.ts",
-    "type":"module",
-    "scripts": {
-        "start": "tinybuild",
-        "build": "tinybuild build",
-        "serve": "tinybuild serve",
-        "init": "node tinybuild/init.js",
-        "concurrent": "concurrently \"npm run python\" \"npm start\"",
-        "dev": "npm run pip && npm i --save-dev concurrently && npm i --save-dev nodemon && npm run concurrent",
-        "startdev": "nodemon --exec \"node tinybuild.js\" -e ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv",
-        "python": "python python/server.py",
-        "pip": "pip install quart && pip install websockets",
-        "pwa": "npm i workbox-cli && workbox generateSW node_server/pwa/workbox-config.js && npm run build && npm start",
-        "electron": "electron ./electron",
-        "android": "npx cap open android",
-        "ios":"npx cap open ios",
-        "tauri": "tauri"
-    },
-    "keywords": [
-        "esbuild"
-    ],
-    "author": "",
-    "license": "",
-    "dependencies": {
-    },
-    "devDependencies": {
-    },
-    "nodemonConfig": {
-        "env": {
-            "NODEMON": true
-        },
-        "ignore": [
-            "dist/",
-            ".temp/"
-        ]
-    }
+  bundler: { entryPoints: ["index.js"], outdir: "dist" },
+  server: false,
+  assets: ["assets"],
+  electron: { action: "stage" },
+  tauri: { action: "stage" },
+  mobile: { android: "stage", ios: "stage" },
 }
-
 ```
 
+**Electron:** `tinybuild desktop=electron --devtools --inspect=9229` launches against the live server. Main/preload watching can relaunch the shell while frontend saves use ordinary hot reload. Configure window settings, runtime arguments, packaged apps or Forge installers. See [desktop_debug](../../examples/desktop_debug/README.md).
 
-Create a javascript app entry point `index.js`
+**Tauri:** `tinybuild desktop=tauri` starts a Tauri 2 development app against the server URL. Configure Rust features, targets, debug builds, binary-only distributions and installer bundles. Platform prerequisites are described in the [testing guide](platform-testing.md).
+
+**Sidecars:** bundle an app-owned backend with the desktop distribution. [electron_sidecar](../../examples/electron_sidecar/README.md) uses a separate Node utility process supplied by Electron; [tauri_sidecar](../../examples/tauri_sidecar/README.md) includes a standalone executable. Both demonstrate readiness, validated private IPC, backend preservation during frontend reloads and process cleanup when the app closes.
+
+**Mobile:** `tinybuild mobile=android --device <id>` builds, installs and launches a Capacitor 8 app with live web reload. Android supports USB forwarding, emulator and LAN connections; `--lan --qr` helps open the dev URL on a device. iOS uses a prepared macOS/Xcode host. See [mobile_debug](../../examples/mobile_debug/README.md).
+
+Shared `native` settings and profiles cover app identity, icons, permissions, plugins, capability presets and release variants. Settings are written as overlays in `.tinybuild`; a custom Capacitor config must load or merge its generated overlay to apply those settings. Signing/verification hooks receive artifact directories. SDK compilation, device provisioning and credentials belong to the selected platform. See [native_profiles](../../examples/native_profiles/README.md), [native_capabilities](../../examples/native_capabilities/README.md) and the [enhancement guide](enhancements.md).
+
+Named SSH remotes can launch an existing checkout and forward local debug/server ports: `tinybuild --remote mac --dryRun` previews the plan. Optional lifecycle helpers exercise permission changes and reconnect behavior on prepared devices; macOS helpers handle signature, ticket and notarization checks. See [native_lifecycle](../../examples/native_lifecycle/README.md).
+
+## Troubleshooting reports
+
+`tinybuild doctor --report --json` prints runtime versions, target-specific prerequisite checks, selected resolved build/server settings, task names and native target plans. Add `--target android` or another doctor target to check its tools. The command does not build or install anything; it loads the JavaScript config as preview does. Custom config logging remains application-owned.
+
+Environment values, headers, callbacks, command arguments, build definitions and custom metadata are omitted. Project/home prefixes and URL credentials/query values are redacted. Project filenames, hosts and task names remain useful context; review them before sharing. A config load failure produces a failed report without its raw exception/source. Run `tinybuild check --json` separately for current build, file and URL errors. Reports keep no persistent history.
+
+## Build measurements
+
+`--stats` reports build time and output sizes. Optional `budgets` set size limits, and `diagnostics` can measure compressed output or compare a saved baseline. `tinybuild analyze` provides dependency/output information; `--benchmark` compares fresh and incremental builds. A standalone dependency report is available for exploring output size.
+
+See [build_diagnostics](../../examples/build_diagnostics/README.md), [build_baseline](../../examples/build_baseline/README.md) and the [enhancement guide](enhancements.md).
+
+## Programmatic use
+
 ```js
+import { bundle, packager } from "tinybuild";
 
+const results = await bundle({
+  entryPoints: ["src/index.ts"],
+  outdir: "dist",
+  bundleESM: true,
+  autoInstall: false,
+});
 
-    document.body.style.backgroundColor = '#101010'; //page color
-    document.body.style.color = 'white'; //text color
-    let div = document.createElement('div');
-    div.innerHTML = 'Hello World!';
-    document.body.appendChild(div);
-    
-    alert('tinybuild successful!');
-
+const app = await packager(myConfig);
+process.once("SIGINT", () => app.close());
+process.once("SIGTERM", () => app.close());
 ```
 
-Create a boilerplate html 
-```html
-
-<!DOCTYPE html>
-<html>
-    <head> 
-        <link rel="stylesheet" href="./dist/index.css">
-    </head>
-    <body>  
-        <script src="./dist/index.js">
-        </script>
-    </body>
-</html>
-
-```
-
-Create a tinybuild.js script in your main folder:
-```js
-
-    //use command 'node tinybuild.js' to build and run after doing npm install!
-
-    import {packager, defaultServer, initRepo} from 'tinybuild'
-    let config = {
-        bundler:{
-            entryPoints: ['index.js'],
-            outfile: 'dist/index',
-            bundleBrowser: true, //plain js format
-            bundleESM: false, //.esm format
-            bundleTypes: false, //entry point should be a ts or jsx (or other typescript) file
-            bundleHTML: true
-        },
-        server:defaultServer
-    }
-    
-    //bundle and serve
-    packager(config);
-
-```
-
-Then run `node tinybuild.js`
-
-The function 
-```js
-packager(config)
-``` 
-simply combines the [bundle()] and [serve()] functions and settings objects to run sequentially using a combined object labeled as above. We provide `defaultBundler` and `defaultServer` for quick setup (or `defaultConfig` for combined). 
-
+Importing the package does not start services. Library calls use their supplied config, return results and reject on errors. `packager` returns bundles, its optional server, `rebuild()` and `close()`. `serve` resolves after listening and returns its actual address and `close()`. Public TypeScript types and config autocomplete are included.

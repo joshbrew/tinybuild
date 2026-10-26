@@ -1,0 +1,125 @@
+{
+  // Files TypeScript should check. Tinybuild replaces this entry when scaffolding.
+  // Add more files or patterns such as "src/**/*" when your project grows.
+  // tinybuild-env.d.ts describes non-JavaScript imports such as stylesheets.
+  "include": ["index.ts", "tinybuild-env.d.ts"],
+
+  // Generated files and installed packages are not project source files.
+  "exclude": ["node_modules", "dist", ".tinybuild"],
+
+  "compilerOptions": {
+    // Language features the type checker should expect in your app.
+    // Tinybuild's bundler.target separately controls the JavaScript it builds.
+    "target": "ES2022",
+
+    // Keep import/export statements for esbuild to bundle.
+    "module": "ESNext",
+
+    // Find imported files the way a bundler does, including package exports.
+    // For files run directly by Node without bundling, use "NodeNext" for BOTH
+    // module and moduleResolution, and install @types/node for Node's APIs.
+    "moduleResolution": "Bundler",
+
+    // For a typed worker URL import such as "./flow.worker", add flow.d.worker.ts
+    // declaring the URL and helper exports, then enable this option.
+    // See examples/worker_types for a complete working example.
+    // "allowArbitraryExtensions": true,
+
+    // Include browser and modern JavaScript APIs in type checking.
+    // A Node-only app can use ["ES2022"] and set types to ["node"] below.
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+
+    // Avoid picking up unrelated global types from every installed package.
+    // Add "node" here for Node APIs, or test-tool types when your tests need them.
+    "types": [],
+
+    // Accept .js files as well as TypeScript files in the same project.
+    "allowJs": true,
+
+    // false lets ordinary JavaScript stay untyped. true checks JavaScript too.
+    "checkJs": false,
+
+    // Catch likely mistakes, such as missing values or unknown argument types.
+    "strict": true,
+
+    // Check that each file can be compiled on its own, as esbuild compiles it.
+    "isolatedModules": true,
+
+    // Catch filename spelling/capitalization differences before moving OSes.
+    "forceConsistentCasingInFileNames": true,
+
+    // Speed up checking by trusting installed packages' .d.ts files.
+    // Your own source files are still checked.
+    "skipLibCheck": true,
+
+    // Let default imports work with packages that use CommonJS exports.
+    "esModuleInterop": true,
+
+    // Let imports such as import settings from "./settings.json" have types.
+    "resolveJsonModule": true,
+
+    // Make `tsc` check types without writing JavaScript on top of esbuild's work.
+    // Tinybuild enables declaration output itself when bundleTypes is true.
+    "noEmit": true,
+
+    // Allow .d.ts output when Tinybuild runs its declaration build.
+    "declaration": true,
+
+    // Destination for declaration builds; bundler.outfile/outdir takes precedence.
+    "outDir": "./dist",
+
+    // REACT: enable for .tsx files using React's automatic JSX runtime.
+    // Install react and @types/react in the project too.
+    // "jsx": "react-jsx",
+
+    // IMPORT SHORTCUTS: map names to source folders, relative to this tsconfig.
+    // Keep these mappings consistent with any esbuild alias settings.
+    // "paths": {
+    //   "@app/*": ["./src/*"]
+    // },
+
+    // MORE CHECKS: these can help catch mistakes as the project grows.
+    // "noUnusedLocals": true,
+    // "noUnusedParameters": true,
+    // "noImplicitReturns": true,
+    // "noFallthroughCasesInSwitch": true,
+    // "noUncheckedIndexedAccess": true,
+
+    // DECLARATION MAPS: help library users jump from .d.ts files to your source.
+    // "declarationMap": true,
+
+    // SOURCE MAPS: normally use bundler.sourcemap in tinybuild.config.js.
+    // This only controls output written by TypeScript itself.
+    // "sourceMap": false,
+    // "inlineSourceMap": false,
+    // "inlineSources": false,
+    // "sourceRoot": "",
+    // "mapRoot": "",
+
+    // INCREMENTAL CHECKING: reuse type-checking work between tsc runs.
+    // Tinybuild's declaration builder manages its own fresh output.
+    // "incremental": true,
+    // "tsBuildInfoFile": ".tinybuild/types.tsbuildinfo",
+    // "composite": true,
+
+    // MODULES: useful for specialized package layouts.
+    // "rootDirs": ["./src", "./generated"],
+    // "typeRoots": ["./types", "./node_modules/@types"],
+    // "preserveSymlinks": true,
+    // "allowUmdGlobalAccess": true,
+    // "allowSyntheticDefaultImports": true,
+
+    // DECORATORS: enable only if your framework needs TypeScript's decorator mode.
+    // Metadata also needs experimentalDecorators and framework runtime support.
+    // "experimentalDecorators": true,
+    // "emitDecoratorMetadata": true,
+
+    // OUTPUT: normally esbuild handles these choices in tinybuild.config.js.
+    // "removeComments": true,
+    // "importHelpers": true,
+    // "downlevelIteration": true,
+
+    // Use the project folder as the root for generated declaration paths.
+    "rootDir": "."
+  }
+}

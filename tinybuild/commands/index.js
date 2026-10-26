@@ -1,83 +1,38 @@
-
-import { json, exists } from "./utils.js"
-
-
-import help from "./basic/help.js"
-
-export const basic = {
-    'start': undefined,
-    'build': undefined,
-    'serve': {not: ['server']},
-    'init': undefined,
-    'help': help,
-    'path': undefined, //path to the tinybuild script where the packager or plain bundler etc. are being run. defaults to look for 'tinybuild.js'
-    'includeCore': (input, accumulator) => {
-        accumulator.includeCore = input
-        return null
-    },
-    'script': (input, accumulator) => {
-        accumulator.initScript =  decodeURIComponent(input);  //encoded URI string of a javascript file
-        return null
-    },
-    'cfgpath': undefined, //path to the config, require instead of stringifying config
-    'config': (input, accumulator) => {
-        Object.assign(accumulator, JSON.parse(input)); //encoded URI string of a packager config in its entirety.
-        return null
-    },
-    'GLOBAL':undefined,
-    'changed':undefined,
-    'mobile':json,
-    'electron':undefined,
-    'tauri':undefined,
-    'assets':json
+import { json, list } from "./utils.js";
+// This registry also drives CLI help. Nested init scripts use config JSON.
+const options = (names) =>
+  Object.fromEntries(names.split(" ").map((name) => [name, json]));
+export const basic = options(
+  "remote dev status url envFile start build bundle serve init help doctor report devices analyze benchmark baseline lan qr profile path cfgpath config configure set yes GLOBAL changed mode dir entry core includeCore script assets mobile device connection electron tauri desktop devtools inspect production frozen stats native budgets tasks preview validate strict clean dryRun copy diagnostics strictConfig metadata json check stage options search example list agentGuide doctorTarget worker typescript workerRuntime",
+);
+Object.assign(basic, { assets: list });
+export const bundler = options(
+  "bundleBrowser bundleESM bundleTypes bundleNode bundleHTML bundleGzip bundleCommonJS bundleIIFE includeDefaultPlugins outfile outdir platform globalThis globals minify minifyWhitespace minifySyntax minifyIdentifiers sourcemap outputs blobWorkers workerBundler workerType runtimeAssets hotSwap autoInstall remoteImports target format splitting publicPath",
+);
+Object.assign(bundler, { entryPoints: list, external: list });
+export const server = options(
+  "debug socket_protocol pwa hotreload delay redirect reloadscripts keypath certpath python python_node host port portRetries open cacheControl responseTimeout protocol startpage root staticRoots readinessPath shutdownTimeout requestTimeout headers spa proxy precompressed",
+);
+Object.assign(server, {
+  watch: list,
+  ignore: list,
+  extensions: list,
+  hotreloadExtensions: list,
+});
+// Paths and labels stay strings even when they look like JSON scalars.
+for (const group of [basic, bundler, server]) {
+  for (const name of "remote url path cfgpath GLOBAL changed mode dir script outfile outdir platform globalThis socket_protocol redirect keypath certpath host protocol startpage root readinessPath format publicPath profile workerType device connection desktop search example doctorTarget worker workerRuntime".split(
+    " ",
+  )) {
+    if (Object.hasOwn(group, name))
+      group[name] = (value) => {
+        if (value === true) throw new Error(name + " requires a value");
+        return String(value);
+      };
+  }
 }
-
-export const bundler = {
-    bundleBrowser: undefined, 
-    bundleESM: undefined, 
-    bundleTypes: undefined, 
-    bundleNode: undefined, 
-    bundleHTML: undefined, 
-    bundleCommonJS: undefined, 
-    bundleIIFE: undefined, 
-    includeDefaultPlugins:undefined,
-    entryPoints: (input) => {
-        let entryPoints = [input]; //entry point script name to be created
-        if(entryPoints.includes('[')) entryPoints = json(entryPoints);
-    }, 
-    outfile: json,
-    outdir: json, 
-    platform: json,
-    external: json,
-    globalThis: json,
-    globals: json,
-    init: json,
-    minify: json,
-    minifyWhitespace: json,
-    sourcemap: json,
-    outputs: json,
-    blobWorkers:undefined,
-    workerBundler:json
-};
-
-
-export const server = {
-    'debug': json, // debug?
-    'socket_protocol': json, //node server socket protocol (wss for hosted, or ws for localhost, depends)
-    'pwa': json, //pwa service worker relative path
-    'hotreload':  json, //pwa service worker relative path
-    'delay': json,
-    'hotreloadExtensions':json,
-    'redirect': json,
-    'reloadscripts':json,
-    'keypath': json, //https key path
-    'certpath': json, //https cert path
-    'watch': json, //pwa service worker relative path
-    'ignore': json, //pwa service worker relative path
-    'extensions': json, //pwa service worker relative path
-    'python': json, // python port
-    'host': json, // node host
-    'port': json, // node port
-    'protocol': json, // node http or https protocols
-    'startpage': json, // html page to start your app
-}
+export const booleanOptions = new Set(
+  "dev status open start build bundle serve init help doctor report devices analyze lan qr production frozen stats core includeCore bundleBrowser bundleESM bundleTypes bundleNode bundleHTML bundleGzip bundleCommonJS bundleIIFE includeDefaultPlugins blobWorkers autoInstall minify minifyWhitespace minifySyntax minifyIdentifiers splitting debug reloadscripts precompressed electron tauri preview validate strict clean dryRun strictConfig yes configure devtools json check stage options list agentGuide typescript".split(
+    " ",
+  ),
+);

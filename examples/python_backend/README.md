@@ -1,3 +1,17 @@
-Enabling python in the server settings will copy the tinybuild core to this folder so you can begin to edit the node and python server boilerplate to your needs. 
+# A web page with Python streams
 
-It's a very complete example with threads, websockets, and event sources, and node-python relaying as well as the python server serving the dist directly to your browser.
+From this folder, install the Python requirements and launch both servers:
+
+```sh
+python -m pip install -r ../../tinybuild/python/requirements.txt
+npm run python
+```
+
+Follow the printed frontend URL (normally port 8080). The Python server uses `http://127.0.0.1:7000`. Click the WebSocket and SSE buttons to try the streams; the Python URL also serves the page for same-origin use.
+
+| Edit                                                 | What happens                    |
+| ---------------------------------------------------- | ------------------------------- |
+| `src/app.js` or its imported components              | Rebuild the frontend            |
+| `python/server.py`, copied when this workflow starts | Restart only the Python backend |
+
+Ctrl+C closes both servers. `npm run build` builds the frontend without launching Python. The Python tests cover static/private-file handling, socket echo, SSE framing, cleanup and bounded queues.

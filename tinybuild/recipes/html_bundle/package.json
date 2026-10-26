@@ -1,0 +1,15 @@
+{
+  "name": "tinybuild-app",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "start": "tinybuild",
+    "build": "tinybuild build",
+    "check": "tinybuild check",
+    "serve": "tinybuild serve"
+  },
+  "type": "module",
+  "devDependencies": {
+    "tinybuild": "^1.1.0"
+  }
+}

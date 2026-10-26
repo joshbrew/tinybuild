@@ -1,0 +1,9 @@
+[
+  {
+    "path": "/dashboard/settings",
+    "headers": { "Accept": "text/html" },
+    "status": 200,
+    "includes": "SPA routing"
+  },
+  { "path": "/missing.js", "status": 404 }
+]

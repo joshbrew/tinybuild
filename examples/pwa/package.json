@@ -1,0 +1,11 @@
+{
+  "name": "tinybuild-example-pwa",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "serve": "node ../../tinybuild/bin/global.js serve",
+    "build": "node ../../tinybuild/bin/global.js build",
+    "start": "node ../../tinybuild/bin/global.js"
+  },
+  "type": "module"
+}

@@ -1,244 +1,70 @@
+# Node server
 
-## [Node Server](https://nodejs.org)
+Start development with live reload:
 
-
-The node server is no-frills with websocket based hot reloading and basic examples of python backend communication and relaying. It's small and fast and meets our most common development server needs without giant dependencies.
-
-Code: [`tinybuild/node_server`](../node_server)
-
-### Features:
-- Serve whatever files
-- Hot reload injector
-- PWA injector (if you run the `npm run pwa` command below)
-- HTTP or HTTPS (with SSL certificate instructions found in node_server/ssl)
-- Python (via [Quart](https://pgjones.gitlab.io/quart/)) cross communication or even using python in production to serve the build.
-
-
-Quick start server from Node:
-
-Create index.html (or any name):
-```html
-<!DOCTYPE html>
-<head></head>
-<body>
-
-    Hello World!
-    <script>  //OR: <script src='dist/index.js'> or whatever your outfile is to serve a bundle. bundleHTML will automatically create and serve a boilerplate html with the outfile (or first entry in outdir)
-       
-        alert('Served from ' + window.location.host)
-    </script>
-</body>
+```sh
+tinybuild dev --open
 ```
 
-Create server.js
-```js
+For production, build once and then serve the output:
 
-import 'serve' from 'tinybuild'
-
-let config = {
-    protocol:'http', //'http' or 'https'. HTTPS required for Nodejs <---> Python sockets. If using http, set production to False in python/server.py as well
-    host: 'localhost', //'localhost' or '127.0.0.1' etc.
-    port: 8080, //e.g. port 80, 443, 8000. Server will be at '[protocol]://[host]:[port]'
-    //redirect: 'http://localhost:8082' //instead of serving the default content, redirect ot another url
-    startpage: 'index.html',  //home page
-    socket_protocol: 'ws', //frontend socket protocol, wss for served, ws for localhost
-    hotreload: 5000, //hotreload websocket server port
-    reloadscripts: false, //hot swap scripts, can break things if script handles initializations, otherwise css, link, srcs all hot swap without page reloading fairly intelligently
-    //hotswapExtensions:['css','sass','scss','less'], //can set aside specific extensions for a smaller hotreload bundle step, particularly nice for css. use esbuild-sass-plugin or similar for sass/scss. Defaults to the extensions shown here
-    //delay:50, //millisecond delay on the watch command for hot reloading
-    //watch: ['../'], //watch additional directories other than the current working directory
-    //pwa:'dist/service-worker.js', //pwa mode? Injects service worker registry code in (see pwa README.md)
-    python: false,//7000,  //quart server port (configured via the python server script file still)
-    python_node:7001, //websocket relay port (relays messages to client from nodejs that were sent to it by python)
-    errpage: 'packager/node_server/other/404.html', //default error page, etc.
-    certpath:'packager/node_server/ssl/cert.pem',//if using https, this is required. See cert.pfx.md for instructions
-    keypath:'packager/node_server/ssl/key.pem'//if using https, this is required. See cert.pfx.md for instructions
-    //SERVER
-    //SOCKETS
-}
-
-serve(config);
-
+```sh
+tinybuild build --production
+tinybuild serve --production
 ```
 
-Then via command line: `node server.js`
+Check a running server from another terminal:
 
-## Hot reloading, python, concurrency, bundling then serving, etc:
-
-We recommend these as your package.json settings with tinybuild and to use the concurrent + development server features, choose the devDependencies tag based on if you are using source or the libraries and follow the rest of the instructions to set up the tinybuild.js entry point.
-```json
-{
-    "name": "tinybuildapp",
-    "version": "0.0.0",
-    "description": "Barebones esbuild and test node server implementation. For building",
-    "main": "index.js",
-    "type":"module",
-    "scripts": {
-        "start": "npm run startdev",
-        "build": "node tinybuild.js",
-        "init": "node tinybuild/init.js",
-        "concurrent": "concurrently \"npm run python\" \"npm run startdev\"",
-        "dev": "npm run pip && npm i --save-dev concurrently && npm i --save-dev nodemon && npm run concurrent",
-        "startdev": "nodemon --exec \"node tinybuild.js\" -e ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv",
-        "python": "python tinybuild/python/server.py",
-        "pip": "pip install quart && pip install websockets",
-        "pwa": "npm i workbox-cli && workbox generateSW tinybuild/node_server/pwa/workbox-config.js && npm run build && npm start"
-    },
-    "keywords": [
-        "esbuild"
-    ],
-    "author": "Joshua Brewster",
-    "license": "LGPL-3.0-or-later",
-    "dependencies": {
-    },
-    "devDependencies":{
-        "nodemon": "^2.0.15",
-        "concurrently": "^7.1.0"
-    },
-//-------------OR (delete below if using tinybuild instead of source)----------------//
-    "devDependencies": {
-        "concurrently": "^7.1.0",
-        "esbuild": "^0.14.38",
-        "esbuild-plugin-d.ts":"^1.1.0",
-        "nodemon": "^2.0.15",
-        "ws": "^8.5.0"
-    },
-    "nodemonConfig": {
-        "env": {
-            "NODEMON": true
-        },
-        "ignore": [
-            "dist/"
-        ]
-    }
-}
-
+```sh
+tinybuild status --url http://localhost:8080/_tinybuild/ready
 ```
 
-then `npm install` in the directory with this file.
+Development builds and watches while the HTTP listener remains available. Build finishes once. Serve reads existing files without bundling, watching or launching inherited native targets. Explicit build/serve commands override the opposite mode stored in a config. `tinybuild config` offers production and static-server recipes. [server_workflow](../../examples/server_workflow/README.md) is a runnable example.
 
-- Hot reloading is accomplished with `nodemon` and `ws`
-- Concurrent python and node is accompished with `concurrently`
-- PWA bundling is accomplished with `workbox-cli` installed optionall via `npm run pwa`
+## Starting without friction
 
-## Build & Run Development Server
+`server.port: 0` chooses a free port. `server.portRetries: 5` tries up to five following ports when a development port is occupied. The printed URL uses the actual port. Production requires its exact port and reports a useful error if another process owns it. Wildcard listeners print a usable localhost URL; `--lan --qr` also provides device addresses.
 
-`npm i` then `npm start`
+`--open` opens that URL once. `--open=/settings` opens a particular page. The config form is `server.open`; only the CLI opens the browser. An unavailable desktop opener reports a warning while the server keeps running.
 
-Find node_server/server_settings.js for easy config for http/https (set socket protocol 'ws' to 'wss' for hosted https). https requires ssl (instructions included in node_server/ssl)
+`--envFile .env.local` loads an explicit file before evaluating tinybuild.config.js. A JSON list loads several files: `--envFile '[".env",".env.local"]'`. Existing shell values win; later files override earlier files for the remaining keys. Missing files fail before environment changes are applied. Values are not printed. Keep secrets out of browser define values and public directories. The parser uses [Node's environment-file support](https://nodejs.org/api/environment_variables.html).
 
-## With Python Server
+For hosts supplying a port, use `port: Number(process.env.PORT || 8080)` in the config. Set host to `0.0.0.0` when the hosting environment must reach the process through its network interface.
 
-Requires: Python 3.7 or later and NodeJS LTS or later. 
+## Files, routes and caching
 
-In server_settings.js, set settings.python to undefined to not use it, or port 7000 is default.
+Development defaults to the working directory; production to dist. Use root/staticRoots for public files. Portable HTML uses this same root for its start page. Files are read per request, so additions do not require a restart. Hidden/private files and escaping symlinks are denied; explicit file routes are trusted configuration.
 
-This test runs a websocket and a thread on the [python](https://www.python.org/downloads/) quart server. You can access the Node-served build at `http://localhost:8080` or the quart server build at `http://localhost:7000` to experiment (if on default settings).
-
-Quart enables fast asyncio server streams from python. Bonus thread-generated data in python streaming through websockets to show off the potential.
-
-`npm run pip` should install any missing python packages. See [README](https://github.com/moothyknight/esbuild_base_python/blob/master/python/README.md))
-
-`npm run concurrent` runs both python and node servers concurrently (with hot reloading for FE with a persistent python streaming server backend).
-
-After installing dependencies, 
-
-## Run Python and Node together: 
-
-`npm run concurrent`
-
-Comment out any py_wss or py_client references in node_server/server.js if you want to exclude it altogether else the node server tries to connect to the python port 7000 (only works on https).
-
-## Otherwise
-
-To run: `npm run build` to bundle, then `npm start` to run the node server.
-
-* OR `npm test` to run both commands in sequence
-
-You can specify https and add an ssl certificate if you follow the instructions.
-
->2 dependencies: `esbuild` 
-
-## Hot reloading (for dev)
-
-`npm run start` 
-
-nodemon restarts the node server automatically when changes to included source files are detected.
-
-The nodemon dev server adds basic frontend hot reloading via websocket and clientside code injection (see [nodeserver/server.js](https://github.com/moothyknight/esbuild_base/blob/master/node_server/server.js) for method).
-
-> 2 dev dependencies: `nodemon` and `ws`
-
-## PWA build:
-
-To test:
-
-Create a manifest.json and a template serviceworker file like so (tinybuild server will write these for you) 
-
-```json
-{
-    "short_name": "PWA",
-    "name": "PWA",
-    "start_url": ".",
-    "display": "standalone",
-    "theme_color": "#000000",
-    "background_color": "#ffffff",
-    "description": "PWA Test",
-    "lang": "en-US",
-    "permissions": [
-      "storage"
-    ]
-  }
-```
+Static responses support HEAD, ETags, last-modified checks, ranges and fresh gzip sidecars. Production revalidates files by default, keeping fixed filenames safe across releases. Development uses no-store. Optional production-only cacheControl rules select a URL prefix, file extension or fallback:
 
 ```js
-//sw.js
-
-//https://github.com/ibrahima92/pwa-with-vanilla-js
-const assets = [
-  "/",
-  "/index.html",
-  "/dist/index.js"
-];
-
-self.addEventListener("install", installEvent => {
-  installEvent.waitUntil(
-    caches.open(staticDevCoffee).then(cache => {
-      cache.addAll(assets);
-    })
-  );
-});
-
-self.addEventListener("fetch", fetchEvent => {
-  fetchEvent.respondWith(
-    caches.match(fetchEvent.request).then(res => {
-      return res || fetch(fetchEvent.request);
-    })
-  );
-});
-
+cacheControl: {
+  ".html": "no-cache",
+  "/assets/": "public, max-age=31536000, immutable",
+  "*": "public, max-age=0, must-revalidate",
+}
 ```
 
-In your index.html:
-```html
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="apple-touch-icon" href="src/assets/square.png">
-<meta name="apple-mobile-web-app-status-bar" content="#000000">
-<meta name="theme-color" content="#000000">
-<script> //Service workers for pwa test.  `npm run pwa`
-  
-    // Check that service workers are supported
-    if ("serviceWorker" in navigator) addEventListener('load', () => {
-        navigator.serviceWorker
-        .register("node_server/pwa/sw.js")
-        .catch((err) => console.log("Service worker registration failed", err));
-    });
-    
-</script>
-```
+The longest matching prefix wins over an extension; explicit headers win over these defaults. Immutable caching means you must change the URL when content changes. API/proxy responses keep application/backend cache rules. Gzip and original representations have distinct validators.
 
-And run the server with https.
+Routes accept files, templates, redirects and async callbacks. Return true after handling a response. Parameters are decoded into req.params. Errors receive safe 500 responses; malformed encodings receive 400; missing pages remain 404.
 
-### Other notes:
+## Readiness, logs and shutdown
 
-See README.md files in each folder for more explanation on how to work with these types of applications.
+Watching starts before the first build, so an edit made during startup is not lost. HTML and plain stylesheet edits stay in the same settled update as source edits. A static-file save cannot clear a failed-build overlay or restore readiness; the source must build successfully first. Turning hotreload off in a running browser workflow pauses source saves while keeping the config file watched, so it can be enabled again. Native liveReload keeps reloading enabled for its development server.
+
+PWA filenames are relative to the public root. `pwa: "service-worker.js"` generates `/service-worker.js` under the served folder, including the default production `dist` folder, and cache URLs use that same root. Explicit absolute filenames remain supported. The standalone generatePWA helper retains its explicit cwd/root/filename arguments.
+
+`/_tinybuild/ready` accepts GET/HEAD and bypasses static caching/redirects. It returns `{ready:true}` with 200 or `{ready:false}` with 503. `server.isReady` can asynchronously check dependencies; a thrown error reports unavailable without exposing details. Failed frontend builds turn readiness off until a settled successful build. Existing output remains available while fixing code.
+
+`tinybuild status` checks the configured address; `--url` selects an actual dynamic/fallback/tunnel/deployment URL. Explicit URLs work independently of the local config. The command reports status/duration, avoids downloading application bodies and exits nonzero when unhealthy. Programmatic probeServer returns information without changing the caller's exit code.
+
+`debug: true` prints one JSON record per HTTP response: method, path, status, durationMs. Query strings and headers are omitted. Use onRequest to send records to your own logger. Disconnected responses report 499; logging failures do not take the server down.
+
+`requestTimeout` limits how long clients take to send request data. `responseTimeout` limits inactivity while responding: stuck handlers get 504; active streams continue while sending data. Both default to 30000 ms. Set responseTimeout to 0 for intentionally idle long-lived requests, or choose a larger value. [Node's HTTP documentation](https://nodejs.org/api/http.html) explains request/socket timeouts.
+
+serve() resolves after listening and returns SERVER, SOCKETS, actual port/url, setReady(), setStartpage() and close(). Library startup installs no process signal handlers. close() stops accepting new connections first, marks readiness unavailable, closes reload/relay/proxy sockets and drains HTTP up to shutdownTimeout. The CLI handles SIGINT/SIGTERM. Use your host's normal service supervisor for automatic restart after a machine/process failure; tinybuild does not add another production process manager.
+
+packager.close() attempts every owned cleanup even if native cleanup fails, then reports collected errors. One-shot setup tasks are cancelled when their workspace closes, including during a restart; shutdown does not wait for their ordinary execution timeout.
+
+HTTPS keypath/certpath resolve relative to the configured project directory. Reload shares that TLS listener. An existing reverse proxy can terminate HTTPS and forward to a loopback Node listener. Forward /hotreload upgrades during development; choose SSE reload when upgrades are unavailable.
