@@ -430,12 +430,14 @@ async function finishTarget(result, options, config, target) {
     if (options.write === false)
       throw new Error("bundleHTML requires write:true");
     // Build a separate portable variant: normal JS can keep file workers/assets.
-    const inlineLoader = Object.fromEntries(
-      Object.entries(options.loader || {}).map(([extension, loader]) => [
-        extension,
-        ["file", "copy"].includes(loader) ? "dataurl" : loader,
-      ]),
-    );
+    const inlineLoaders = (loaders) =>
+      Object.fromEntries(
+        Object.entries(loaders).map(([extension, loader]) => [
+          extension,
+          ["file", "copy"].includes(loader) ? "dataurl" : loader,
+        ]),
+      );
+    const inlineLoader = inlineLoaders(options.loader || {});
     const htmlOptions = normalizeBuildOptions(
       {
         ...config,
@@ -443,6 +445,10 @@ async function finishTarget(result, options, config, target) {
         blobWorkers: true,
         workerBundler: {
           ...config.workerBundler,
+          loader: inlineLoaders({
+            ...inlineLoader,
+            ...config.workerBundler?.loader,
+          }),
           format: "iife",
           sourcemap: false,
         },
@@ -457,23 +463,64 @@ async function finishTarget(result, options, config, target) {
       sourcemap: false,
       loader: inlineLoader,
     });
+    const javascriptFile = (filename) => /\.[cm]?js$/.test(filename);
+    // Worker builds inherit this plugin too, so hidden worker dependencies
+    // cannot slip into an otherwise self-contained page.
+    htmlOptions.plugins.push({
+      name: "tinybuild-portable-validation",
+      setup(build) {
+        build.onEnd((result) => {
+          if (result.errors.length) return;
+          const external = Object.values(result.metafile.outputs).flatMap(
+            (output) =>
+              output.imports
+                .filter((item) => item.external)
+                .map((item) => item.path),
+          );
+          if (external.length)
+            return {
+              errors: [
+                {
+                  text:
+                    "Self-contained HTML cannot contain external module imports: " +
+                    [...new Set(external)].join(", "),
+                },
+              ],
+            };
+          const companions = result.outputFiles.filter(
+            (file) => !javascriptFile(file.path) && !file.path.endsWith(".css"),
+          );
+          if (companions.length)
+            return {
+              errors: [
+                {
+                  text:
+                    "Self-contained HTML cannot contain emitted companion files: " +
+                    companions
+                      .map((file) => path.basename(file.path))
+                      .join(", ") +
+                    ". Use dataurl loaders for portable assets.",
+                },
+              ],
+            };
+        });
+      },
+    });
     const portable = await esbuild.build(htmlOptions);
-    if (
-      Object.values(portable.metafile.outputs).some((output) =>
-        output.imports.some((item) => item.external),
-      )
-    )
-      throw new Error(
-        "Self-contained HTML cannot contain external module imports",
-      );
     result.htmlFiles = [];
     for (const javascript of portable.outputFiles.filter((file) =>
-      file.path.endsWith(".js"),
+      javascriptFile(file.path),
     )) {
+      const metadata = Object.entries(portable.metafile.outputs).find(
+        ([filename]) =>
+          path.resolve(options.absWorkingDir, filename) === javascript.path,
+      )?.[1];
       const css = portable.outputFiles.find(
-        (file) => file.path === javascript.path.replace(/\.js$/, ".css"),
+        (file) =>
+          metadata?.cssBundle &&
+          file.path === path.resolve(options.absWorkingDir, metadata.cssBundle),
       );
-      const filename = javascript.path.replace(/\.js$/, ".html");
+      const filename = javascript.path.replace(/\.[cm]?js$/, ".html");
       writeHTML(filename, javascript.text, css?.text || "");
       result.htmlFiles.push(filename);
     }
@@ -483,34 +530,82 @@ async function finishTarget(result, options, config, target) {
   return result;
 }
 
-export async function bundle(configs = {}) {
-  return Promise.all(
-    buildPlan(configs).map(async (plan) => {
-      const results = { config: plan.config };
-      for (const { target, options } of plan.targets)
-        results[target] = await finishTarget(
+async function buildStep(target, options, onProgress, run) {
+  const started = performance.now();
+  onProgress?.({ target, format: options.format, phase: "start" });
+  const result = await run();
+  if (onProgress) {
+    const cwd = options.absWorkingDir || process.cwd();
+    const outputs = new Map();
+    for (const [filename, info] of Object.entries(
+      result.metafile?.outputs || {},
+    ))
+      outputs.set(path.resolve(cwd, filename), info.bytes);
+    for (const output of result.outputs || [])
+      outputs.set(
+        path.resolve(cwd, output.path),
+        Buffer.byteLength(output.text),
+      );
+    for (const filename of [
+      ...(result.htmlFiles || []),
+      ...(result.gzipFiles || []),
+    ])
+      outputs.set(
+        path.resolve(cwd, filename),
+        fs.statSync(path.resolve(cwd, filename)).size,
+      );
+    onProgress({
+      target,
+      format: options.format,
+      phase: "end",
+      durationMs: performance.now() - started,
+      outputs: [...outputs].map(([path, bytes]) => ({ path, bytes })),
+    });
+  }
+  return result;
+}
+
+export async function bundle(configs = {}, { onProgress } = {}) {
+  const bundles = [];
+  // Later groups can import earlier generated outputs or plugin-created files.
+  // Keep the same order as incremental rebuilds instead of racing those inputs.
+  for (const plan of buildPlan(configs)) {
+    const results = { config: plan.config };
+    for (const { target, options } of plan.targets)
+      results[target] = await buildStep(target, options, onProgress, async () =>
+        finishTarget(
           await esbuild.build(options),
           options,
           plan.config,
           target,
-        );
-      if (plan.config.bundleTypes) results.ts = await bundleTypes(plan.config);
-      return results;
-    }),
-  );
+        ),
+      );
+    if (plan.config.bundleTypes)
+      results.ts = await buildStep("types", plan.config, onProgress, () =>
+        bundleTypes(plan.config),
+      );
+    bundles.push(results);
+  }
+  return bundles;
 }
 
-export async function createBuildContexts(configs = {}) {
+export async function createBuildContexts(configs = {}, { onProgress } = {}) {
   const plans = buildPlan(configs);
   const contexts = [];
+  const groups = [];
   try {
     for (const plan of plans) {
-      for (const target of plan.targets)
-        contexts.push({
+      const group = [];
+      groups.push(group);
+      for (const target of plan.targets) {
+        const item = {
           ...target,
           config: plan.config,
           context: await esbuild.context(target.options),
-        });
+        };
+        contexts.push(item);
+        group.push(item);
+      }
     }
   } catch (error) {
     await Promise.all(contexts.map((item) => item.context.dispose()));
@@ -520,19 +615,29 @@ export async function createBuildContexts(configs = {}) {
     contexts,
     async rebuild() {
       const results = plans.map((plan) => ({ config: plan.config }));
-      for (const item of contexts) {
-        const result = await item.context.rebuild();
-        const index = plans.findIndex((plan) => plan.config === item.config);
-        results[index][item.target] = await finishTarget(
-          result,
-          item.options,
-          item.config,
-          item.target,
-        );
-      }
-      for (let index = 0; index < plans.length; index++)
+      for (let index = 0; index < plans.length; index++) {
+        for (const item of groups[index]) {
+          results[index][item.target] = await buildStep(
+            item.target,
+            item.options,
+            onProgress,
+            async () =>
+              finishTarget(
+                await item.context.rebuild(),
+                item.options,
+                item.config,
+                item.target,
+              ),
+          );
+        }
         if (plans[index].config.bundleTypes)
-          results[index].ts = await bundleTypes(plans[index].config);
+          results[index].ts = await buildStep(
+            "types",
+            plans[index].config,
+            onProgress,
+            () => bundleTypes(plans[index].config),
+          );
+      }
       return results;
     },
     async dispose() {
@@ -565,7 +670,9 @@ function writeHTML(output, javascript, css) {
       style +
       "</head><body><script>" +
       script +
-      "</script></body></html>",
+      // HTML's script parser treats <!-- followed by <script as an escaped
+      // block, even inside JS strings. End that state without changing the JS.
+      "\n//-->\n</script></body></html>",
   );
 }
 
@@ -702,10 +809,9 @@ export async function bundleTypes(config = {}) {
     }
   });
   const errors = ts
-    .sortAndDeduplicateDiagnostics([
-      ...ts.getPreEmitDiagnostics(program),
-      ...emit.diagnostics,
-    ])
+    // noEmitOnError makes emit run the option, syntax, semantic and declaration
+    // checks before publishing. Repeating getPreEmitDiagnostics does that twice.
+    .sortAndDeduplicateDiagnostics(emit.diagnostics)
     .filter((error) => error.category === ts.DiagnosticCategory.Error);
   if (errors.length)
     throw new Error(

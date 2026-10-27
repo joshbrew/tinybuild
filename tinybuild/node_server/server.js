@@ -114,7 +114,7 @@ function inside(root, filename) {
 }
 function send(response, status, body = "", headers = {}, method) {
   if (response.writableEnded || response.destroyed) return;
-  const data = Buffer.from(body);
+  const data = Buffer.isBuffer(body) ? body : Buffer.from(body);
   response.writeHead(status, {
     "Content-Type": "text/plain; charset=utf-8",
     ...(status === 304 ? {} : { "Content-Length": data.length }),
@@ -143,6 +143,17 @@ export function createRequestHandler(config = {}, sockets = {}) {
   const root = serverRoot(cfg, cwd);
   let ready = true;
   const mounts = cfg.staticRoots || { "/": root };
+  const reloadClient =
+    cfg.hotreload && !cfg.production
+      ? Buffer.from(
+          addHotReloadClient(
+            "",
+            "/hotreload",
+            cfg.hotreloadTransport,
+            cfg.socket_protocol,
+          ),
+        )
+      : undefined;
   async function errorPage(request, response) {
     if (
       cfg.spa &&
@@ -259,12 +270,15 @@ export function createRequestHandler(config = {}, sockets = {}) {
           headers,
           request.method,
         );
-      const data = addHotReloadClient(
-        await fs.readFile(filename),
-        "/hotreload",
-        cfg.hotreloadTransport,
-        cfg.socket_protocol,
-      );
+      if (request.method === "HEAD")
+        return send(
+          response,
+          200,
+          "",
+          { ...headers, "Content-Length": stat.size + reloadClient.length },
+          request.method,
+        );
+      const data = Buffer.concat([await fs.readFile(filename), reloadClient]);
       return send(response, 200, data, headers, request.method);
     }
     const modified = stat.mtime;

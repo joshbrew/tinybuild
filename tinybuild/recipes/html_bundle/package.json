@@ -10,6 +10,6 @@
   },
   "type": "module",
   "devDependencies": {
-    "tinybuild": "^1.1.0"
+    "tinybuild": "^1.1.1"
   }
 }

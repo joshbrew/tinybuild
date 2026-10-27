@@ -35,6 +35,8 @@ For hosts supplying a port, use `port: Number(process.env.PORT || 8080)` in the 
 
 Development defaults to the working directory; production to dist. Use root/staticRoots for public files. Portable HTML uses this same root for its start page. Files are read per request, so additions do not require a restart. Hidden/private files and escaping symlinks are denied; explicit file routes are trusted configuration.
 
+HEAD requests return headers without downloading file content. Development HTML reports its full size, including the reload client, without reading the page body for HEAD. GET requests always use the current page on disk.
+
 Static responses support HEAD, ETags, last-modified checks, ranges and fresh gzip sidecars. Production revalidates files by default, keeping fixed filenames safe across releases. Development uses no-store. Optional production-only cacheControl rules select a URL prefix, file extension or fallback:
 
 ```js

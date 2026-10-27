@@ -13,6 +13,6 @@
   },
   "name": "tinybuild-app",
   "devDependencies": {
-    "tinybuild": "^1.1.0"
+    "tinybuild": "^1.1.1"
   }
 }

@@ -125,47 +125,63 @@ export async function nativeDeclarations(config, compiler, cwd) {
           if (error.code === "ENOENT" && directory === emitted) return [];
           throw error;
         });
-      for (const entry of entries) {
-        const source = path.join(directory, entry.name);
-        if (entry.isDirectory()) {
-          await collect(source);
-          continue;
-        }
-        const target = path.join(destination, path.relative(emitted, source));
-        let text = await fs.readFile(source, "utf8");
-        if (entry.name.endsWith(".map")) {
-          const map = JSON.parse(text);
-          const remote = (value) =>
-            /^(?:[a-z][a-z\d+.-]*:)?\/\//i.test(value || "");
-          if (!remote(map.sourceRoot)) {
-            map.sources = map.sources.map((item) =>
-              remote(item)
-                ? item
-                : path
-                    .relative(
-                      path.dirname(target),
-                      path.resolve(
-                        path.dirname(source),
-                        map.sourceRoot || "",
-                        item,
-                      ),
-                    )
-                    .split(path.sep)
-                    .join("/"),
+      const collected = [];
+      for (let offset = 0; offset < entries.length; offset += 16) {
+        const batch = await Promise.all(
+          entries.slice(offset, offset + 16).map(async (entry) => {
+            const source = path.join(directory, entry.name);
+            if (entry.isDirectory()) {
+              return collect(source);
+            }
+            const target = path.join(
+              destination,
+              path.relative(emitted, source),
             );
-            map.sourceRoot = "";
-          }
-          text = JSON.stringify(map);
-        }
-        outputs.push({ path: target, text });
+            let text = await fs.readFile(source, "utf8");
+            if (entry.name.endsWith(".map")) {
+              const map = JSON.parse(text);
+              const remote = (value) =>
+                /^(?:[a-z][a-z\d+.-]*:)?\/\//i.test(value || "");
+              if (!remote(map.sourceRoot)) {
+                map.sources = map.sources.map((item) =>
+                  remote(item)
+                    ? item
+                    : path
+                        .relative(
+                          path.dirname(target),
+                          path.resolve(
+                            path.dirname(source),
+                            map.sourceRoot || "",
+                            item,
+                          ),
+                        )
+                        .split(path.sep)
+                        .join("/"),
+                );
+                map.sourceRoot = "";
+              }
+              text = JSON.stringify(map);
+            }
+            return [{ path: target, text }];
+          }),
+        );
+        collected.push(...batch.flat());
       }
+      return collected;
     }
-    await collect(emitted);
-    if (config.write !== false)
-      for (const output of outputs) {
-        await fs.mkdir(path.dirname(output.path), { recursive: true });
-        await fs.writeFile(output.path, output.text);
-      }
+    outputs.push(...(await collect(emitted)));
+    if (config.write !== false) {
+      for (const directory of new Set(
+        outputs.map((output) => path.dirname(output.path)),
+      ))
+        await fs.mkdir(directory, { recursive: true });
+      for (let offset = 0; offset < outputs.length; offset += 16)
+        await Promise.all(
+          outputs
+            .slice(offset, offset + 16)
+            .map((output) => fs.writeFile(output.path, output.text)),
+        );
+    }
     return { outputs };
   } finally {
     await fs.rm(temp, { recursive: true, force: true });

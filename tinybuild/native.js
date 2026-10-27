@@ -752,7 +752,7 @@ export async function generatePWA({
             ...Object.keys(result.metafile.outputs).map((file) =>
               path.resolve(group.config.absWorkingDir || cwd, file),
             ),
-            ...(result.html ? [result.html] : []),
+            ...(result.htmlFiles || (result.html ? [result.html] : [])),
           ]
         : [],
     ),

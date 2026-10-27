@@ -27,6 +27,17 @@ import {
 } from "tinybuild";
 import { createHotContext } from "tinybuild/client/hot";
 import { watchAppLifecycle } from "tinybuild/client/native";
+void bundle(
+  {},
+  {
+    onProgress(progress) {
+      const target: string = progress.target;
+      const phase: "start" | "end" = progress.phase;
+      const bytes: number | undefined = progress.outputs?.[0]?.bytes;
+      void [target, phase, bytes];
+    },
+  },
+);
 void remotePlan({
   host: "mac-dev",
   command: ["npm", "start"],

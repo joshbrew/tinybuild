@@ -39,7 +39,7 @@ async function save(cwd, files) {
     });
   }
 }
-async function checked(cwd, entry) {
+async function checked(cwd, entry, canonicalRoot, verify = true) {
   if (
     typeof entry.path !== "string" ||
     path.isAbsolute(entry.path) ||
@@ -53,8 +53,14 @@ async function checked(cwd, entry) {
     inside(path.join(cwd, ".tinybuild"), filename)
   )
     throw new Error("Unsafe generated-output manifest path: " + entry.path);
+  if (!verify) return filename;
   try {
-    if (!inside(await fs.realpath(cwd), await fs.realpath(filename)))
+    if (
+      !inside(
+        canonicalRoot || (await fs.realpath(cwd)),
+        await fs.realpath(filename),
+      )
+    )
       throw new Error("Generated output escapes project: " + entry.path);
     if (!(await fs.lstat(filename)).isFile())
       throw new Error("Generated output is not a regular file: " + entry.path);
@@ -70,18 +76,31 @@ export async function recordOutputs(
   cwd = path.resolve(cwd);
   const previous = await manifest(cwd);
   const entries = new Map(previous.map((item) => [item.path, item]));
-  for (const file of files) {
-    const filename = path.resolve(cwd, file);
-    if (!inside(cwd, filename)) continue; // Builds outside the project are never cleaned here.
-    const entry = {
-      path: path.relative(cwd, filename).split(path.sep).join("/"),
-      kind,
-      hash: digest(await fs.readFile(filename)),
-    };
-    await checked(cwd, entry);
-    entries.set(entry.path, entry);
+  const filenames = [
+    ...new Set(files.map((file) => path.resolve(cwd, file))),
+  ].filter((file) => inside(cwd, file));
+  const canonicalRoot = filenames.length ? await fs.realpath(cwd) : cwd;
+  let changed = false;
+  for (let offset = 0; offset < filenames.length; offset += 16) {
+    const batch = await Promise.all(
+      filenames.slice(offset, offset + 16).map(async (filename) => {
+        const entry = {
+          path: path.relative(cwd, filename).split(path.sep).join("/"),
+          kind,
+          hash: digest(await fs.readFile(filename)),
+        };
+        await checked(cwd, entry, canonicalRoot);
+        return entry;
+      }),
+    );
+    for (const entry of batch) {
+      const old = entries.get(entry.path);
+      if (!old || old.hash !== entry.hash || old.kind !== entry.kind)
+        changed = true;
+      entries.set(entry.path, entry);
+    }
   }
-  await save(cwd, [...entries.values()]);
+  if (changed) await save(cwd, [...entries.values()]);
 }
 export async function cleanGenerated({
   cwd = process.cwd(),
@@ -91,7 +110,13 @@ export async function cleanGenerated({
 } = {}) {
   cwd = path.resolve(cwd);
   const entries = await manifest(cwd);
-  const paths = await Promise.all(entries.map((entry) => checked(cwd, entry)));
+  const canonicalRoot = entries.length ? await fs.realpath(cwd) : cwd;
+  // Always validate manifest paths; only inspect files this cleanup can remove.
+  const paths = await Promise.all(
+    entries.map((entry) =>
+      checked(cwd, entry, canonicalRoot, !kind || entry.kind === kind),
+    ),
+  );
   const kept = new Set(keep.map((filename) => path.resolve(cwd, filename)));
   const removed = [],
     preserved = [],
@@ -118,7 +143,8 @@ export async function cleanGenerated({
     removed.push(entry.path);
     if (!dryRun) await fs.unlink(filename);
   }
-  if (!dryRun && entries.length) await save(cwd, remaining);
+  if (!dryRun && remaining.length !== entries.length)
+    await save(cwd, remaining);
   return { dryRun, removed, preserved };
 }
 export async function copyAssets(

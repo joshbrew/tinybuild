@@ -190,11 +190,12 @@ export async function packager(input = defaultConfig, options = {}) {
             if (error.code !== "ENOENT") throw error;
           }
         }
-        if (result.html)
+        for (const html of result.htmlFiles ||
+          (result.html ? [result.html] : []))
           next.set(
-            result.html,
+            html,
             createHash("sha256")
-              .update(await fs.readFile(result.html))
+              .update(await fs.readFile(html))
               .digest("hex"),
           );
       }
@@ -307,13 +308,15 @@ export async function packager(input = defaultConfig, options = {}) {
     });
     const started = performance.now();
     if (watching && config.bundler !== false && !contexts)
-      contexts = await createBuildContexts(buildConfig());
+      contexts = await createBuildContexts(buildConfig(), {
+        onProgress: options.onProgress,
+      });
     const results =
       config.bundler === false
         ? []
         : watching
           ? await contexts.rebuild()
-          : await bundle(buildConfig());
+          : await bundle(buildConfig(), { onProgress: options.onProgress });
     const builtFiles = results.flatMap((group) =>
       Object.values(group).flatMap((result) =>
         result?.metafile && group.config.write !== false
@@ -321,7 +324,7 @@ export async function packager(input = defaultConfig, options = {}) {
               ...Object.keys(result.metafile.outputs).map((file) =>
                 path.resolve(group.config.absWorkingDir || cwd, file),
               ),
-              ...(result.html ? [result.html] : []),
+              ...(result.htmlFiles || (result.html ? [result.html] : [])),
               ...(result.gzipFiles || []),
             ]
           : [],
@@ -336,7 +339,20 @@ export async function packager(input = defaultConfig, options = {}) {
     );
     for (const file of builtFiles) generatedFiles.add(file);
     if (builtFiles.length) await recordOutputs(builtFiles, { cwd });
+    const copying = performance.now();
     const copied = await copyAssets(config.copy || [], { cwd });
+    if (copied.files.length)
+      options.onProgress?.({
+        target: "assets",
+        phase: "end",
+        durationMs: performance.now() - copying,
+        outputs: Object.entries(copied.metafile.outputs).map(
+          ([filename, info]) => ({
+            path: path.resolve(cwd, filename),
+            bytes: info.bytes,
+          }),
+        ),
+      });
     if (copied.files.length)
       results.push({ config: { absWorkingDir: cwd }, assets: copied });
     controller.bundles = results;

@@ -246,7 +246,12 @@ test("CLI reports the live URL after startup completion and after subsequent suc
   await until(() => app.stats.builds === 2);
   await delay(20);
   assert.equal(lines.at(-1), "Tinybuild listening at " + app.server.url);
-  assert.equal(lines.at(-2), "package build finished");
+  assert.match(lines.at(-2), /🚀 Package finished/);
+  const callback = lines.indexOf(
+    "package build finished",
+    lines.indexOf("Tinybuild listening at " + app.server.url) + 1,
+  );
+  assert.ok(callback >= 0 && callback < lines.length - 2);
 });
 
 test("task restart bursts coalesce into a single replacement for the same dependency graph", async (t) => {

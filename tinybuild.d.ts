@@ -760,6 +760,14 @@ export interface AppController {
   rebuild(changed?: string[]): Promise<unknown>;
   close(): Promise<void>;
 }
+/** Progress for a build format or copied assets, including output sizes and elapsed time. */
+export interface BuildProgress {
+  target: "browser" | "esm" | "node" | "commonjs" | "iife" | "types" | "assets";
+  format?: string;
+  phase: "start" | "end";
+  durationMs?: number;
+  outputs?: Array<{ path: string; bytes: number }>;
+}
 export function packager(
   config?: Config,
   options?:
@@ -774,6 +782,7 @@ export function packager(
         onWarning?: (message: string) => void;
         onReady?: (app: AppController) => void | Promise<void>;
         onEvent?: (event: BuildEvent) => void;
+        onProgress?: (progress: BuildProgress) => void;
         log?: (message: string) => void;
         signal?: AbortSignal;
         tasks?: TaskOptions;
@@ -788,6 +797,7 @@ export function packager(
 ): Promise<AppController>;
 export function bundle(
   config?: BundlerConfig | BundlerConfig[],
+  options?: { onProgress?: (progress: BuildProgress) => void },
 ): Promise<Bundles>;
 export function bundleBrowser(config: BundlerConfig): Promise<BundleResult>;
 export function bundleESM(
@@ -855,6 +865,7 @@ export function packageNative(
 ): Promise<NativeResult>;
 export function createBuildContexts(
   config?: BundlerConfig | BundlerConfig[],
+  options?: { onProgress?: (progress: BuildProgress) => void },
 ): Promise<{ rebuild(): Promise<Bundles>; dispose(): Promise<void> }>;
 export function normalizeBuildOptions(
   config?: BundlerConfig,

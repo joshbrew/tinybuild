@@ -724,6 +724,26 @@ async function executeTinybuild(args, options) {
     readyController,
     startupError,
     browserOpened = false;
+  const friendlyProgress =
+    !overrides.json && ["dev", "build"].includes(command);
+  const progressOutputs = new Map();
+  const size = (bytes) =>
+    bytes < 1024
+      ? bytes + " B"
+      : bytes < 1024 ** 2
+        ? (bytes / 1024).toFixed(1) + " KiB"
+        : (bytes / 1024 ** 2).toFixed(2) + " MiB";
+  function outputList(outputs) {
+    return (
+      outputs
+        .slice(0, 3)
+        .map((output) =>
+          path.relative(cwd, output.path).split(path.sep).join("/"),
+        )
+        .join(", ") +
+      (outputs.length > 3 ? " (+" + (outputs.length - 3) + " more)" : "")
+    );
+  }
   async function announce(controller, details = true) {
     if (details && controller?.server && (overrides.lan || overrides.qr)) {
       const urls = developmentURLs(controller.server.url, options.network);
@@ -774,9 +794,89 @@ async function executeTinybuild(args, options) {
       },
       ...options,
       log,
+      onProgress: (progress) => {
+        options.onProgress?.(progress);
+        if (!friendlyProgress) return;
+        if (progress.phase === "start") {
+          if (progress.target === "types")
+            log("🪐 Starting to bundle types...");
+          return;
+        }
+        const outputs = progress.outputs;
+        for (const output of outputs)
+          progressOutputs.set(output.path, output.bytes);
+        const icons = {
+          browser: "☄️",
+          esm: "🌌",
+          node: "🟢",
+          commonjs: "📦",
+          iife: "☀️",
+          types: "🪐",
+          assets: "🗂️",
+        };
+        const bytes = outputs.reduce((sum, output) => sum + output.bytes, 0);
+        log(
+          (icons[progress.target] || "📦") +
+            (progress.target === "assets" ? " Copied " : " Built ") +
+            progress.target +
+            (progress.format ? " (" + progress.format + ")" : "") +
+            ": " +
+            (outputList(outputs) || "no emitted files") +
+            " — " +
+            size(bytes) +
+            " in " +
+            progress.durationMs.toFixed(1) +
+            " ms",
+        );
+        for (const [extension, label] of [
+          [".html", "📄 Self-contained HTML"],
+          [".gz", "🗜️ Gzip"],
+        ]) {
+          const matching = outputs.filter((output) =>
+            output.path.endsWith(extension),
+          );
+          if (matching.length)
+            log(
+              label +
+                ": " +
+                outputList(matching) +
+                " — " +
+                size(matching.reduce((sum, output) => sum + output.bytes, 0)),
+            );
+        }
+      },
       onEvent: (event) => {
         if (overrides.json) write(JSON.stringify(event));
-        else if (event.type === "artifacts") {
+        else if (friendlyProgress && event.type === "building") {
+          progressOutputs.clear();
+          log(
+            "✨ esbuild starting" +
+              (event.files.length
+                ? " — " +
+                  event.files.length +
+                  " changed file" +
+                  (event.files.length === 1 ? "" : "s")
+                : "") +
+              "!",
+          );
+        } else if (friendlyProgress && event.type === "built" && event.stats) {
+          log(
+            "🚀 Package finished: " +
+              progressOutputs.size +
+              " build output" +
+              (progressOutputs.size === 1 ? "" : "s") +
+              ", " +
+              size(
+                [...progressOutputs.values()].reduce(
+                  (sum, bytes) => sum + bytes,
+                  0,
+                ),
+              ) +
+              " in " +
+              event.stats.durationMs.toFixed(1) +
+              " ms",
+          );
+        } else if (event.type === "artifacts") {
           for (const artifact of event.artifacts) {
             log(
               "Native output: " +
@@ -791,6 +891,8 @@ async function executeTinybuild(args, options) {
           );
         }
         options.onEvent?.(event);
+        if (event.type === "built" && readyController?.server)
+          log("Tinybuild listening at " + readyController.server.url);
       },
       onReady: async (app) => {
         readyController = app;
@@ -803,8 +905,6 @@ async function executeTinybuild(args, options) {
       },
       onBuild: (stats) => {
         options.onBuild?.(stats);
-        if (readyController?.server)
-          log("Tinybuild listening at " + readyController.server.url);
       },
     });
     // Native commands may finish much later than onReady; repeat the URL then.

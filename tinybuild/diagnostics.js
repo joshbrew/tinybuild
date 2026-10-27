@@ -46,8 +46,9 @@ export async function analyzeBuild(
           inputs: info.inputs,
         });
       }
-      if (result.html) {
-        const absolute = path.resolve(root, result.html);
+      for (const html of result.htmlFiles ||
+        (result.html ? [result.html] : [])) {
+        const absolute = path.resolve(root, html);
         outputs.set(absolute, {
           path: path.relative(cwd, absolute).split(path.sep).join("/"),
           target: "html",

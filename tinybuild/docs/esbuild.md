@@ -2,6 +2,8 @@
 
 Choose any combination of `bundleBrowser`, `bundleESM`, `bundleNode`, `bundleCommonJS`, `bundleIIFE` and `bundleTypes`. Formats can be booleans or individual esbuild option objects; `outputs.browser`, `outputs.esm`, `outputs.node`, `outputs.commonjs` and `outputs.iife` provide format-specific overrides. Use `outdir` for multiple entry files, or a `bundler` array for separate builds.
 
+Build groups run in array order, so a later group can import an earlier group's generated files. Put a library before its example app or another consumer. Live rebuilds reuse esbuild contexts; saved files are grouped using `server.delay` before compilation.
+
 Browser scripts use IIFE by default; ESM and Node builds use ESM. CommonJS output uses `.cjs`. Multiple formats have separate output paths. Node builds leave installed packages external so native bindings and package-owned files can load normally; deploy production dependencies alongside the output, or use `packages: "bundle"` to include compatible JavaScript dependencies.
 
 Starter builds use `minify: true` and `sourcemap: false`. Set `minify: false` to choose individual options such as `minifyWhitespace` without enabling every minification step.
@@ -61,5 +63,7 @@ worker.terminate();
 Blob workers are the default. The factory manages its blob URL as workers start and terminate; `revokeWorkerURL` is available for explicit URL cleanup. With the default URL import, manage the worker and URL lifetime yourself. Set `blobWorkers: false` for emitted worker files, workers with emitted assets, or Node workers. Module workers, nested workers and worker dependency rebuilds are supported. The optional worker-pool client adds queued RPC calls, transfers, timeouts and cancellation.
 
 `bundleHTML: true` creates a portable HTML file containing scripts, styles, workers, WebAssembly and imported file assets. It can be opened from disk and used as a native entry page. Normal JavaScript output keeps its configured worker/file mode. Declare runtime-fetched assets with `runtimeAssets` so they can be embedded too; computed URLs and external module imports require application handling.
+
+Multiple entries each receive their own HTML file with the matching styles, including hashed filenames. File/copy loaders in `workerBundler.loader` are embedded too. External imports and plugins that leave companion assets fail the portable build with an explanation. Server APIs, browser permissions and features needing cross-origin isolation still require a suitable server.
 
 See [webworkers](../../examples/webworkers/README.md), [worker_files](../../examples/worker_files/README.md), [node_worker](../../examples/node_worker/README.md), [nested_workers](../../examples/nested_workers/README.md), [worker_pool](../../examples/worker_pool/README.md) and [html_bundle](../../examples/html_bundle/README.md).

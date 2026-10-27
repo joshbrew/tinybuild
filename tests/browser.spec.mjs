@@ -25,6 +25,7 @@ test("mixed HTML/CSS/source saves reload once and static saves cannot hide build
         outfile: "dist/index",
         minify: true,
         autoInstall: false,
+        logLevel: "silent",
       },
       server: { host: "127.0.0.1", port: 0, delay: 100 },
     },
@@ -199,6 +200,134 @@ test("portable module workers nest and fetch declared runtime assets without com
   );
   assert.deepEqual(errors, []);
   assert.deepEqual(network, []);
+});
+
+test("hashed portable pages run offline with isolated CSS, dynamic imports, worker assets and reusable blob URLs", async (t) => {
+  const root = await fixture(t, {
+    "a.js": 'import "./a.css";import {run} from "./app.js";run("a");',
+    "b.js": 'import "./b.css";import {run} from "./app.js";run("b");',
+    "a.css":
+      'body{color:rgb(255,0,0);background-image:url("./icon.svg")}body::after{content:"</style>"}',
+    "b.css":
+      'body{color:rgb(0,0,255);background-image:url("./icon.svg")}body::after{content:"</style>"}',
+    "app.js": `import {createWorker,revokeWorkerURL} from "./task.Worker";
+      export async function run(name){
+        document.body.dataset.page=name;
+        document.body.dataset.literal="</script> <!-- <script>";
+        document.body.innerHTML="<output>waiting</output>";
+        const {value}=await import("./lazy.js");
+        const answers=[];
+        for(let i=0;i<3;i++){
+          const worker=createWorker();
+          answers.push(await new Promise((resolve,reject)=>{worker.onmessage=({data})=>resolve(data);worker.onerror=reject;worker.postMessage(value);}));
+          worker.terminate();revokeWorkerURL();
+        }
+        document.querySelector("output").textContent=answers.join("|");
+      }`,
+    "lazy.js": "export const value=21;",
+    "task.Worker.ts":
+      'import url from "./payload.custom";onmessage=async({data})=>postMessage(data*2+":"+await(await fetch(url)).text());',
+    "payload.custom": "portable worker asset",
+    "icon.svg":
+      '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><rect width="10" height="10" fill="green"/></svg>',
+  });
+  const [group] = await bundle({
+    absWorkingDir: root,
+    entryPoints: ["a.js", "b.js"],
+    outdir: "dist",
+    entryNames: "[name]-[hash]",
+    bundleHTML: true,
+    bundleGzip: true,
+    blobWorkers: false,
+    workerType: "module",
+    workerBundler: { loader: { ".custom": "copy" } },
+    autoInstall: false,
+  });
+  const destination = await fixture(t);
+  const pages = [];
+  for (const html of group.browser.htmlFiles) {
+    const name = path.basename(html).slice(0, 1);
+    const filename = path.join(destination, "portable # " + name + ".html");
+    await fs.copyFile(html, filename);
+    pages.push({ filename, name });
+  }
+  assert.equal(pages.length, 2);
+  if (
+    !path.basename(root).startsWith("tinybuild-test-") ||
+    root === destination
+  )
+    throw new Error("Unsafe fixture cleanup");
+  await fs.rm(root, { recursive: true, force: true });
+  const browser = await chromium.launch(
+    process.env.TINYBUILD_BROWSER
+      ? { executablePath: process.env.TINYBUILD_BROWSER, headless: true }
+      : process.platform === "win32"
+        ? { channel: "chrome", headless: true }
+        : { headless: true },
+  );
+  t.after(() => browser.close());
+  const context = await browser.newContext({ offline: true });
+  const errors = [],
+    requests = [];
+  context.on("request", (request) => requests.push(request.url()));
+  for (const { filename, name } of pages) {
+    const page = await context.newPage();
+    page.on("pageerror", (error) => errors.push(error.message));
+    await page.goto(pathToFileURL(filename).href);
+    try {
+      await page.waitForFunction(
+        () =>
+          document.querySelector("output")?.textContent ===
+          Array(3).fill("42:portable worker asset").join("|"),
+        undefined,
+        { timeout: 5000 },
+      );
+    } catch (error) {
+      assert.fail(
+        JSON.stringify({
+          errors,
+          requests,
+          body: await page.locator("body").innerHTML(),
+        }) +
+          "\n" +
+          error.message,
+      );
+    }
+    assert.equal(await page.locator("body").getAttribute("data-page"), name);
+    assert.equal(
+      await page.locator("body").getAttribute("data-literal"),
+      "</script> <!-- <script>",
+    );
+    assert.equal(
+      await page
+        .locator("body")
+        .evaluate((body) => getComputedStyle(body).color),
+      name === "a" ? "rgb(255, 0, 0)" : "rgb(0, 0, 255)",
+    );
+    assert.equal(
+      await page
+        .locator("body")
+        .evaluate((body) => getComputedStyle(body, "::after").content),
+      '"</style>"',
+    );
+    assert.match(
+      await page
+        .locator("body")
+        .evaluate((body) => getComputedStyle(body).backgroundImage),
+      /^url\("?data:image\/svg\+xml/,
+    );
+    await page.close();
+  }
+  assert.deepEqual(errors, []);
+  assert.deepEqual(
+    requests.filter(
+      (url) =>
+        !url.startsWith("data:") &&
+        !url.startsWith("blob:") &&
+        !pages.some(({ filename }) => url === pathToFileURL(filename).href),
+    ),
+    [],
+  );
 });
 
 test("script reload awaits disposal, preserves state and installs each listener once", async (t) => {
@@ -508,6 +637,7 @@ test("SSE reload updates real browser pages and recovers from build errors", asy
         entryPoints: ["index.js"],
         outfile: "dist/index",
         autoInstall: false,
+        logLevel: "silent",
       },
       server: { host: "127.0.0.1", port: 0, hotreloadTransport: "sse" },
     },

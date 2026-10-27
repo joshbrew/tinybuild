@@ -31,7 +31,7 @@ npm install -D tinybuild
 npx tinybuild
 ```
 
-In an empty folder, this creates missing starter files, builds and starts a local server. Follow the printed URL, edit a file, and see it reload. Existing files are preserved. Use `npx tinybuild dev --open` to open the browser automatically.
+In an empty folder, this creates missing starter files, builds and starts a local server. Friendly progress messages show output paths, sizes and timings, followed by the live URL. Follow it, edit a file, and see it reload. Existing files are preserved. Use `npx tinybuild dev --open` to open the browser automatically.
 
 Edit `tinybuild.config.js` directly or run `npx tinybuild config` for guided setup. Common settings come first; commented options explain themselves. [Full reference below](#complete-config-reference).
 
